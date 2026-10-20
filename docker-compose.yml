@@ -1,74 +1,30 @@
 name: vera
 
-x-backend-env: &backend-env
-  REDIS_URL: redis://redis:6379/0
-  DATABASE_URL: postgresql://${POSTGRES_USER:-vera}:${POSTGRES_PASSWORD:-vera}@postgres:5432/${POSTGRES_DB:-vera}
-  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
-
-x-backend-build: &backend-build
-  context: ./backend
-  args:
-    PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-}
+# Hackathon setup: deliberately minimal (spec 13.1, DECISIONS D-002).
+# SQLite + in-process job queue live inside the api container; nothing else
+# to start, so nothing else can fail on demo night. A `web` service will be
+# added with the frontend.
 
 services:
   api:
-    build: *backend-build
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    environment: *backend-env
+    build:
+      context: ./backend
+      args:
+        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-}
+    command: uvicorn vera.api.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/vera
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATA_DIR: /data
     ports:
       - "${API_HOST_PORT:-8000}:8000"
     volumes:
       - ./backend:/app
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-
-  worker:
-    build: *backend-build
-    command: rq worker --url redis://redis:6379/0 default
-    environment: *backend-env
-    volumes:
-      - ./backend:/app
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "${REDIS_HOST_PORT:-6379}:6379"
-    volumes:
-      - redis-data:/data
+      - ./data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
-
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-vera}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vera}
-      POSTGRES_DB: ${POSTGRES_DB:-vera}
-    ports:
-      - "${POSTGRES_HOST_PORT:-5432}:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    restart: unless-stopped
-
-volumes:
-  redis-data:
-  postgres-data:

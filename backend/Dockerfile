@@ -4,13 +4,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-# System libraries required by OpenCV and PyMuPDF
+# Tesseract with Hebrew for OCR. (opencv-python-headless and PyMuPDF wheels
+# need no extra system libraries.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
+    tesseract-ocr \
+    tesseract-ocr-heb \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -27,4 +25,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "vera.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
