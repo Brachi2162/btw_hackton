@@ -3,6 +3,9 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
+    # Parallelism comes from the process pool; a multi-threaded Tesseract per
+    # process oversubscribes the CPUs and stalls everything.
+    OMP_THREAD_LIMIT=1 \
     # Make pip, requests, httpx (Anthropic SDK) trust the system CA store,
     # which includes any extra CAs from certs/ (see below).
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
