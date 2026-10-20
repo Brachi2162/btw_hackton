@@ -19,3 +19,6 @@ eval/reports/
 # Frontend
 node_modules/
 dist/
+
+# Local extra CA certs (see backend/certs/README.md)
+backend/certs/*.crt
