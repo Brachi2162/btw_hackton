@@ -1,0 +1,21 @@
+# LF everywhere, on every OS. Overrides each machine's core.autocrlf, so
+# Windows and Mac/Linux checkouts match and Docker/Linux scripts don't break.
+* text=auto eol=lf
+
+# Windows-only scripts need CRLF
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Binary: never touch
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.heic binary
+*.tif  binary
+*.tiff binary
+*.xlsx binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
