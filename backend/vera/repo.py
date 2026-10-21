@@ -37,8 +37,10 @@ class Repository:
         self.engine = create_db_engine(url)
 
     def init_schema(self) -> None:
-        # Table models (vera/models.py, spec section 14) register on
+        # Table models (vera/db.py, spec section 14.1) register on
         # SQLModel.metadata when imported; create whatever is registered.
+        import vera.db  # noqa: F401
+
         SQLModel.metadata.create_all(self.engine)
 
     @contextmanager
