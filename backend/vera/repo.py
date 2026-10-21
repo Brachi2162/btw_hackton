@@ -9,7 +9,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-from sqlalchemy import event
+from sqlalchemy import event, inspect
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, create_engine, text
 
@@ -42,6 +42,31 @@ class Repository:
         import vera.db  # noqa: F401
 
         SQLModel.metadata.create_all(self.engine)
+        self._add_missing_columns()
+
+    def _add_missing_columns(self) -> None:
+        """create_all() never alters an existing table. Columns added to a
+        model later (always nullable or with a default) are added here, so an
+        existing data/vera.db keeps working. Production would use Alembic."""
+        insp = inspect(self.engine)
+        with self.engine.begin() as conn:
+            for table in SQLModel.metadata.sorted_tables:
+                if not insp.has_table(table.name):
+                    continue
+                have = {c["name"] for c in insp.get_columns(table.name)}
+                for col in table.columns:
+                    if col.name in have:
+                        continue
+                    ddl = col.type.compile(dialect=self.engine.dialect)
+                    default = col.default.arg if col.default is not None else None
+                    sql = f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {ddl}'
+                    if isinstance(default, bool):
+                        sql += f" DEFAULT {int(default)}"
+                    elif isinstance(default, (int, float)):
+                        sql += f" DEFAULT {default}"
+                    elif isinstance(default, str):
+                        sql += " DEFAULT '" + default.replace("'", "''") + "'"
+                    conn.execute(text(sql))
 
     @contextmanager
     def session(self) -> Iterator[Session]:

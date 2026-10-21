@@ -47,6 +47,27 @@ log = logging.getLogger(__name__)
 
 EXT = {"pdf": "pdf", "jpeg": "jpg", "png": "png", "heic": "heic"}
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # spec 16: bound work per upload
+# Fields where one confirmation is offered to the rest of the batch.
+PROPAGATE_FIELDS = {"receipt_date"}
+
+
+def page_quality(image: Path, threshold: float) -> dict:
+    """Sharpness = variance of the Laplacian on a ~1000px-wide grey copy.
+    Low = blurred (phone photo, moved scan). Only a warning: the page is
+    still read; the reader flags what it can't see."""
+    import cv2
+
+    img = cv2.imread(str(image), cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        return {"sharpness": None, "warnings": []}
+    if img.shape[1] > 1000:
+        f = 1000 / img.shape[1]
+        img = cv2.resize(img, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+    sharp = float(cv2.Laplacian(img, cv2.CV_64F).var())
+    return {
+        "sharpness": round(sharp, 1),
+        "warnings": ["blur"] if sharp < threshold else [],
+    }
 
 
 class EventBus:
@@ -205,6 +226,9 @@ class BatchService:
             batch.status = "done"
             s.add(batch)
             s.commit()
+        from vera.followups import create_for_batch
+
+        create_for_batch(self, batch_id)
         counts = self.counts(batch_id)
         self.events.publish(batch_id, "batch_done", counts)
         return counts
@@ -213,6 +237,7 @@ class BatchService:
         src = self.work_dir(batch_id) / "src" / f"{doc_id}.{EXT[kind]}"
         try:
             self._set_page(page_id, status="processing")
+            self._stage(batch_id, page_id, doc_id, "split")
             prep = await self.sv.jobs.run_cpu(
                 prepare_page,
                 src,
@@ -233,10 +258,22 @@ class BatchService:
             )
             r = self.readers()
             image = self.work_dir(batch_id) / rec["image"]
+            quality = await asyncio.to_thread(
+                page_quality, image, self.s.blur_threshold
+            )
+            self._set_page(page_id, quality=quality)
+            if quality["warnings"]:
+                self.events.publish(
+                    batch_id,
+                    "warning",
+                    {"page_id": page_id, "error": "blur", **quality},
+                )
+            self._stage(batch_id, page_id, doc_id, "read")
             vlm = await asyncio.to_thread(
                 read_vlm, r.full, image, rec["sha256"], r.prompt, page_id
             )
             self._set_page(page_id, vlm=vlm)
+            self._stage(batch_id, page_id, doc_id, "verify")
             sub = decide_page(
                 page_id, batch_id, vlm, prep["barcodes"], self.decision, ref
             )
@@ -275,6 +312,14 @@ class BatchService:
             self.events.publish(
                 batch_id, "warning", {"page_id": page_id, "error": type(exc).__name__}
             )
+
+    def _stage(self, batch_id: str, page_id: str, doc_id: str, stage: str) -> None:
+        self._set_page(page_id, stage=stage)
+        self.events.publish(
+            batch_id,
+            "page_stage",
+            {"page_id": page_id, "document_id": doc_id, "stage": stage},
+        )
 
     def _position(self, doc_id: str, page_no: int) -> int:
         with self.sv.repo.session() as s:
@@ -385,6 +430,7 @@ class BatchService:
         user: str,
         force: bool = False,
         via: str = "ui",
+        explanation: str | None = None,
     ) -> Submission:
         """Edit (values given) or accept (values None) one field. Checks run
         on the server; `force` saves a value that fails them, and says so in
@@ -415,7 +461,9 @@ class BatchService:
                 Correction(user=user, at=now(), old_values=old, new_values=new, via=via)
             )
             fr.values, fr.status = new, "human"
-            fr.explanation_he = "אושר ידנית" if action == "accept" else "תוקן ידנית"
+            fr.explanation_he = explanation or (
+                "אושר ידנית" if action == "accept" else "תוקן ידנית"
+            )
             sub.row_status = worst_status([f.status for f in sub.fields.values()])
             row.data = json.loads(sub.model_dump_json())
             row.row_status = sub.row_status
@@ -445,6 +493,75 @@ class BatchService:
             s.commit()
         self.events.publish(sub.batch_id, "submission_updated", self.summary(sub))
         return sub
+
+    # --- "one fix that fixes everything" ---
+
+    def propagation(self, sub: Submission, field: str) -> dict | None:
+        """After a human confirms a value: other forms in the batch whose
+        same field is `likely` with the same value (e.g. one receipt-date
+        stamp on the whole morning's pile)."""
+        if field not in PROPAGATE_FIELDS:
+            return None
+        values = sub.fields[field].values
+        if len(values) != 1:
+            return None
+        ids = [
+            other.id
+            for other in self.submissions(sub.batch_id)
+            if other.id != sub.id
+            and other.fields[field].status == "likely"
+            and other.fields[field].values == values
+        ]
+        if not ids:
+            return None
+        return {
+            "field": field,
+            "value": values[0],
+            "count": len(ids),
+            "submission_ids": ids,
+        }
+
+    def propagate(
+        self, batch_id: str, field: str, value: str, ids: list[str], user: str
+    ) -> dict:
+        """Apply a confirmed value to forms that still hold it as `likely`.
+        Each one is a normal correction (source human, in `corrections`)."""
+        applied, skipped = [], []
+        for sid in ids:
+            try:
+                sub = self.submission(sid)
+            except KeyError:
+                skipped.append(sid)
+                continue
+            fr = sub.fields.get(field)
+            if (
+                sub.batch_id != batch_id
+                or fr is None
+                or fr.status != "likely"
+                or fr.values != [value]
+            ):
+                skipped.append(sid)  # changed since the suggestion was made
+                continue
+            self.correct(
+                sid,
+                field,
+                None,
+                user,
+                explanation="אושר בהחלה על כל הטפסים עם אותה חותמת",
+            )
+            applied.append(sid)
+        with self.sv.repo.session() as s:
+            self.audit(
+                s,
+                user,
+                "propagated",
+                batch_id,
+                field=field,
+                value=value,
+                n=len(applied),
+            )
+            s.commit()
+        return {"applied": applied, "skipped": skipped, "counts": self.counts(batch_id)}
 
     # --- review queue and search (spec 11.10, 11.13) ---
 
