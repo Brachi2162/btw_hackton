@@ -33,7 +33,14 @@ from vera.normalize import (
 from vera.pipeline.decide import FIELDS, MULTI, DecisionConfig, decide_page
 from vera.pipeline.decide import merge_reads
 from vera.pipeline.ingest import UnsupportedFileError, pdf_page_count, sniff_kind
-from vera.pipeline.process import needs_escalation, prepare_page, read_vlm
+from vera.pipeline.process import (
+    crop_region,
+    needs_crop,
+    needs_escalation,
+    prepare_page,
+    read_crop,
+    read_vlm,
+)
 from vera.pipeline.vlm import (
     VlmCache,
     VlmConfig,
@@ -80,6 +87,10 @@ class Readers:
     full: object
     escalated: object
     prompt: str
+    crop: object = None
+    crop_prompt: str = ""
+    crop_version: str = ""
+    crop_max_side: int = 1568
 
 
 class BatchService:
@@ -112,6 +123,20 @@ class BatchService:
                     cfg.commitment_aliases,
                     sender_names(self.s.config_dir),
                 ),
+                crop=(
+                    make_reader(self.s.vlm_mode, cfg, cache, key, model=cfg.crop_model)
+                    if cfg.crop_model
+                    else None
+                ),
+                crop_prompt=(
+                    (self.s.prompts_dir / f"{cfg.crop_prompt}.md").read_text(
+                        encoding="utf-8"
+                    )
+                    if cfg.crop_prompt
+                    else ""
+                ),
+                crop_version=cfg.crop_prompt,
+                crop_max_side=cfg.crop_max_side,
             )
         return self._readers
 
@@ -255,6 +280,30 @@ class BatchService:
                     page_id,
                     batch_id,
                     merge_reads(vlm, esc),
+                    prep["barcodes"],
+                    self.decision,
+                    ref,
+                )
+            else:
+                esc = None
+            if r.crop is not None and needs_crop(sub):
+                merged = merge_reads(vlm, esc)
+                crop = await asyncio.to_thread(
+                    read_crop,
+                    r.crop,
+                    image,
+                    rec["sha256"],
+                    r.crop_prompt,
+                    r.crop_version,
+                    r.crop_max_side,
+                    page_id,
+                    crop_region(merged),
+                )
+                self._set_page(page_id, vlm_crops=crop)
+                sub = decide_page(
+                    page_id,
+                    batch_id,
+                    merge_reads(vlm, esc, crop),
                     prep["barcodes"],
                     self.decision,
                     ref,
