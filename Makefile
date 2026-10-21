@@ -1,4 +1,4 @@
-.PHONY: up down logs dev test test-docker lint pages barcodes gt-template
+.PHONY: up down logs dev test test-docker lint pages barcodes vlm gt-template
 
 up:        ## build and start everything (http://localhost:8000/health)
 	docker compose up --build -d
@@ -23,6 +23,9 @@ pages:     ## sample PDFs -> upright page PNGs in data/work/pages (+ manifest.js
 
 barcodes:  ## barcodes on extracted pages -> data/work/pages/barcodes.json (run `make pages` first)
 	docker compose exec api python -m vera.cli barcodes --pages /data/work/pages
+
+vlm:       ## vision-model read of the dev set -> data/work/pages/vlm.json (cached; costs money once)
+	docker compose exec api python -m vera.cli vlm --pages /data/work/pages --doc part2
 
 gt-template:  ## empty ground-truth workbook (refuses to overwrite a filled one)
 	docker compose exec api python -m vera.cli gt-template "/data/samples/*.pdf" \

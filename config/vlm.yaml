@@ -1,0 +1,30 @@
+# Vision model settings (spec 8). Model names live here, not in code.
+
+# Full-page read: fast and cheap.
+model: claude-haiku-5-5
+# Escalation, only for fields still orange after the decision (spec 8.2).
+escalation_model: claude-sonnet-5-5
+# Thinking depth: low | medium | high. Haiku 5.5 defaults to medium.
+effort: medium
+max_tokens: 16000
+
+prompt: page_extract.v2
+
+# Privacy (spec 8.4): send a downscaled page, no metadata.
+max_side: 1800
+jpeg_quality: 90
+
+# Per call: seconds and SDK retries (429/5xx/connection, with backoff).
+timeout: 90
+max_retries: 3
+# Calls in flight at once.
+concurrency: 4
+
+# Default labels for the commitment number (spec 3.2); a profile can add more.
+commitment_aliases:
+  - התחייבות
+  - מספר התחייבות
+  - דרישה
+  - דגימה
+  - אסמכתא תקציבית
+  - "מס' מעבדה"

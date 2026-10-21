@@ -15,6 +15,6 @@ pytesseract>=0.3.13,<0.4
 zxing-cpp>=2.2,<3.0
 
 # Vision model, config, export
-anthropic>=0.40,<1.0
+anthropic>=1.4,<2.0
 pyyaml>=6.0,<7.0
 openpyxl>=3.1,<4.0
