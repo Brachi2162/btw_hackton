@@ -1,0 +1,11 @@
+# Which sample file is the development set and which is the test set.
+# Tune profiles/thresholds on dev only; test is for measurement only (spec 17.2).
+#
+# The spec's Appendix A labels are swapped relative to the organizers' file
+# names: the set starting with Shamir/Schneider/Assuta (22 pages) is the
+# organizers' "part 2", and the set with the new senders (Meuhedet, Maccabi,
+# Rambam, IDF, Rosenblatt...) is their "part 1". We keep the spec's intent:
+# dev = the Shamir set, test = the new-senders set. See DECISIONS D-003.
+splits:
+  part2: dev   # organizers' "חלק 2", 22 pages (spec appendix "חלק 1")
+  part1: test  # organizers' "חלק 1", 26 pages (spec appendix "חלק 2")

@@ -15,6 +15,7 @@ data/*
 # Outputs
 eval/reports/
 *.xlsx
+!eval/ground_truth.xlsx
 
 # Frontend
 node_modules/
