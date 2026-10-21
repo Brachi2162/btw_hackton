@@ -434,7 +434,10 @@ def _cross_field_conflicts(
             fr.status = "review"
             fr.reasons.append("disagree_sources")
             others = sorted(proposed[_number_key(clash[0])] - {f})
-            fr.explanation_he = f"{clash[0]}: מקור אחד שייך אותו לשדה הזה ומקור אחר ל-{', '.join(others)}"
+            fr.explanation_he = (
+                f"{clash[0]}: נקרא גם כ-{', '.join(others)}; "
+                "המקורות לא מסכימים לאיזה שדה הוא שייך"
+            )
 
 
 def _name_split(first: FieldResult, last: FieldResult) -> None:
