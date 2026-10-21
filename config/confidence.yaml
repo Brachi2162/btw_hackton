@@ -1,0 +1,49 @@
+# Decision weights and thresholds (spec 9.2-9.3). Tune on the dev set only.
+
+# Weight of each independent source that supports a value.
+source_weights:
+  barcode: 1.0
+  ocr: 0.6
+  vlm_full: 0.7
+  vlm_crop: 0.4        # extra read by the same model: at most 1.1 together
+  vlm_escalated: 0.7   # a different model
+  human: 2.0
+
+# Readers that count as the same source (two reads of one model are not two
+# sources, spec 7.1). Agreement needs two different groups.
+source_groups:
+  barcode: barcode
+  ocr: ocr
+  vlm_full: vlm
+  vlm_crop: vlm
+  vlm_escalated: vlm_escalated
+  human: human
+
+anchor_bonus: 0.3      # the right label next to the value
+illegible_penalty: 0.5 # the reader itself said it can't read it
+decoy_penalty: 1.0     # next to a decoy label (spec 3.4)
+# Two values for a single-valued field closer than this -> multiple_candidates.
+competitor_margin: 0.5
+
+# Labels that anchor a field (substring match, spaces/punctuation ignored).
+anchors:
+  central_numbers: ["מרכזי"]
+  receipt_date: ["התקבל"]
+  id_number: ["ת.ז", "תז", "מ.ז", "מספר זהות", "ID"]
+
+# Labels that make a number a decoy, per field.
+decoys:
+  id_number: ["מ.ז. אם", "מז אם", "מ.א", "מקרה", "ביקור", "רשומה", "תיק", "טל"]
+  central_numbers: ["מקרה", "ביקור", "BIOHAZARD"]
+  commitment_numbers: ["מקרה", "ביקור", "BIOHAZARD", "מרכזי"]
+  receipt_date: ["ת.קבלה", "לידה", "הדפסה"]
+  # Other people's names on the same sticker/form.
+  first_name: ["אב", "שם האב", "אם", "שם האם", "רופא", "ד\"ר", "מפעיל"]
+  last_name: ["אב", "שם האב", "אם", "שם האם", "רופא", "ד\"ר", "מפעיל"]
+
+dates:
+  # A receipt date may be at most this many days before the reference date
+  # (the batch export date, not today: spec 3.3).
+  max_age_days: 120
+  # Receipt is normally 0..N days after the form/sample date.
+  max_days_after_form: 10

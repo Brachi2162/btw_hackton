@@ -30,6 +30,7 @@ ReasonCode = Literal[
     "bbox_approx",
     "vlm_invalid",
     "duplicate_in_batch",
+    "illegible",  # D-004: a reader saw something but marked it unreadable
 ]
 
 Reader = Literal["barcode", "ocr", "vlm_full", "vlm_crop", "vlm_escalated", "human"]
