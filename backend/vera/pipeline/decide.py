@@ -306,6 +306,33 @@ def _date_checks(
                 g.problems.append("date_year_anomaly")
 
 
+MODEL_GROUPS = {"vlm", "vlm_escalated"}
+
+
+def _choose_multi(ranked: list[Group], cfg: DecisionConfig) -> list[Group]:
+    """Which values belong to a multi-value field (central, commitment).
+
+    Each model alone also picks up other numbers on the page (case, visit,
+    the other field's number); taking the union adds both models' noise.
+    So: valid, non-decoy values; of those, the ones both models agree on;
+    if they agree on none, the stronger (escalation) model's values. This
+    only selects values: green still needs two sources and the label."""
+    pool = [g for g in ranked if not g.problems] or ranked
+    pool = [g for g in pool if "decoy_proximity" not in g.reasons] or pool[:1]
+    both = [g for g in pool if MODEL_GROUPS <= g.source_groups(cfg)]
+    if both:
+        return both
+    stronger = [g for g in pool if "vlm_escalated" in g.source_groups(cfg)]
+    if stronger:
+        return stronger
+    chosen = [g for g in pool if g.score > 0 or g.value is None] or pool[:1]
+    # Several stickers: when some carry the field's label, unlabeled
+    # numbers are more likely other numbers (case, commitment...).
+    if any(g.anchored for g in chosen):
+        chosen = [g for g in chosen if g.anchored]
+    return chosen
+
+
 def decide_field(
     fname: str,
     cands: list[Candidate],
@@ -350,12 +377,7 @@ def decide_field(
     ranked = sorted(groups.values(), key=lambda g: g.score, reverse=True)
 
     if fname in MULTI:
-        chosen = [g for g in ranked if g.score > 0 or g.value is None]
-        chosen = [g for g in chosen if "decoy_proximity" not in g.reasons] or chosen[:1]
-        # Several stickers: when some carry the field's label, unlabeled
-        # numbers are more likely other numbers (case, commitment...).
-        if any(g.anchored for g in chosen):
-            chosen = [g for g in chosen if g.anchored]
+        chosen = _choose_multi(ranked, cfg)
     else:
         chosen = ranked[:1]
     rejected = [g for g in ranked if g not in chosen] + excluded

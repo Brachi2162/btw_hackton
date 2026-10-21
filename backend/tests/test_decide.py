@@ -332,5 +332,11 @@ def test_models_disagreeing_on_the_field_send_it_to_review(cfg):
     sub = decide_page(
         PAGE, "b1", page, [barcode("512340"), barcode("700100")], cfg, REF
     )
+    # Central keeps only the number both models agree on, and it is green;
+    # the disputed number goes where the stronger model put it, for review.
     central = sub.fields["central_numbers"]
-    assert central.status == "review" and "disagree_sources" in central.reasons
+    assert central.values == ["512340"] and central.status == "verified"
+    assert "700100" in central.alternatives
+    commitment = sub.fields["commitment_numbers"]
+    assert commitment.values == ["700100"]
+    assert commitment.status == "review" and "disagree_sources" in commitment.reasons
