@@ -44,6 +44,43 @@ def cmd_pages(args: argparse.Namespace) -> None:
         )
 
 
+def _page_barcodes(path: Path) -> list[dict]:
+    from PIL import Image
+
+    from vera.pipeline.barcodes import read_barcodes
+
+    with Image.open(path) as img:
+        return [b.to_dict() for b in read_barcodes(img.convert("RGB"))]
+
+
+def cmd_barcodes(args: argparse.Namespace) -> None:
+    import json
+    from concurrent.futures import ProcessPoolExecutor
+
+    pages_dir = Path(args.pages)
+    manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
+    pages = manifest["pages"]
+    t0 = time.time()
+    with ProcessPoolExecutor(max_workers=args.workers) as ex:
+        results = list(ex.map(_page_barcodes, [pages_dir / p["image"] for p in pages]))
+
+    out = {
+        f"{p['doc']}/p{p['page']:02d}": {"sha256": p["sha256"], "barcodes": bcs}
+        for p, bcs in zip(pages, results)
+    }
+    out_path = Path(args.out) if args.out else pages_dir / "barcodes.json"
+    out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    total = sum(len(b) for b in results)
+    from_crops = sum(b["via"] == "crop" for bcs in results for b in bcs)
+    print(
+        f"{total} barcodes on {len(pages)} pages ({from_crops} only in 2x crops) "
+        f"-> {out_path} in {time.time() - t0:.0f}s"
+    )
+    empty = [k for k, v in out.items() if not v["barcodes"]]
+    if empty:
+        print("no barcode: " + ", ".join(empty))
+
+
 def cmd_gt_template(args: argparse.Namespace) -> None:
     from vera.groundtruth import load_splits, write_template
     from vera.pipeline.ingest import pdf_page_count
@@ -80,6 +117,12 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--workers", type=int, default=None)
     p.add_argument("--no-orient", action="store_true", help="skip rotation fix")
     p.set_defaults(func=cmd_pages)
+
+    b = sub.add_parser("barcodes", help="read barcodes on extracted pages")
+    b.add_argument("--pages", default="data/work/pages", help="output of `pages`")
+    b.add_argument("--out", default=None, help="default: <pages>/barcodes.json")
+    b.add_argument("--workers", type=int, default=None)
+    b.set_defaults(func=cmd_barcodes)
 
     g = sub.add_parser("gt-template", help="empty ground-truth workbook")
     g.add_argument("files", nargs="+", help="sample PDFs or globs")
