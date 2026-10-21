@@ -31,7 +31,11 @@ export function Review() {
 function ReviewBatch({ batchId }: { batchId: string }) {
   const batch = useData(() => api.batch(batchId), [batchId], 0);
   const tubes = useData(() => api.tubes(batchId), [batchId]);
-  const [sel, setSel] = useState<Sel | null>(null);
+  // #/review/<submission>/<field> opens on that field (links from elsewhere)
+  const [sel, setSel] = useState<Sel | null>(() => {
+    const [, sid, field] = window.location.hash.replace(/^#\/?/, "").split("/");
+    return sid && field ? { sid, field } : null;
+  });
   const [prop, setProp] = useState<Propagation | null>(null);
   const [rev, setRev] = useState(0); // reloads the panel after a save
   const tableRef = useRef<HTMLDivElement>(null);
@@ -148,7 +152,7 @@ function Cell({ s, field, sel, onSelect }: { s: SubmissionSummary; field: string
   const fr = s.fields[field];
   if (!fr) return null;
   const active = sel?.sid === s.id && sel.field === field;
-  const text = fr.values.map((v) => showValue(field, v)).join(", ");
+  const text = fr.values.map((v) => showValue(field, v, true)).join(", ");
   return (
     <button
       className={`cell st-${fr.status}${active ? " active" : ""}`}

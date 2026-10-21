@@ -60,11 +60,11 @@ export function signatureOf(fields: Record<string, { status: Status }>): Status[
   });
 }
 
-/** Display date from ISO yyyy-mm-dd as dd/mm/yyyy. */
-export function showValue(field: string, v: string): string {
+/** Display date from ISO yyyy-mm-dd as dd/mm/yyyy (or dd/mm/yy, short). */
+export function showValue(field: string, v: string, short = false): string {
   if (field === "receipt_date" && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
     const [y, m, d] = v.split("-");
-    return `${d}/${m}/${y}`;
+    return `${d}/${m}/${short ? y.slice(2) : y}`;
   }
   return v;
 }

@@ -149,8 +149,14 @@ def _draw(path, values: dict, rng: random.Random) -> None:
                 continue
         return ImageFont.load_default(size)
 
-    def rtl(text):  # PIL has no bidi: draw Hebrew-only runs reversed
-        return text[::-1] if any("\u0590" <= c <= "\u05ff" for c in text) else text
+    from PIL import features
+
+    bidi = features.check("raqm")  # with libraqm PIL orders RTL text itself
+
+    def rtl(text):  # without it, draw Hebrew-only runs reversed
+        if bidi or not any("\u0590" <= c <= "\u05ff" for c in text):
+            return text
+        return text[::-1]
 
     img = Image.new("RGB", (W, H), (250, 249, 245))
     d = ImageDraw.Draw(img)

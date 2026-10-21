@@ -7,7 +7,7 @@ import { useData } from "../hooks";
 import { FixError, PropagationBar, useFix } from "./fix";
 import "./CardMode.css";
 
-type Item = { submission_id: string; field: string; status: keyof typeof STATUS_HE; values: string[]; explanation_he: string };
+type Item = { submission_id: string; page_ids: string[]; field: string; status: keyof typeof STATUS_HE; values: string[]; explanation_he: string };
 
 /** One field per card, for a fast pass over everything that needs an eye. */
 export function CardMode() {
@@ -114,8 +114,11 @@ function FieldCard({ item, onSaved, onSkip }: { item: Item; onSaved: (p: Propaga
       <div className="fc-crop">
         {ev?.crop ? (
           <img src={imageUrl(ev.crop.page_id, { crop: ev.crop.bbox, scale: 2.5, maxSide: 1400 })} alt={`${FIELD_HE[item.field]} מתוך הטופס`} />
+        ) : ev && item.page_ids[0] ? (
+          // nothing to crop (e.g. a missing field): show the whole form
+          <img className="fc-page" src={imageUrl(item.page_ids[0], { maxSide: 900 })} alt="הטופס כולו" />
         ) : (
-          <span className="muted">{ev ? "אין מיקום בעמוד" : "טוען…"}</span>
+          <span className="muted">טוען…</span>
         )}
       </div>
       <p className="fc-reason">{item.explanation_he}</p>

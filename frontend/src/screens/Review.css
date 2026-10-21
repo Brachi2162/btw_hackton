@@ -1,6 +1,6 @@
 .review-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 370px);
   gap: 18px;
   align-items: start;
 }
@@ -18,7 +18,7 @@
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .forms th {
@@ -35,7 +35,7 @@
 }
 
 .forms td {
-  padding: 5px 6px;
+  padding: 4px 3px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -54,9 +54,9 @@
   gap: 6px;
   border: 1.5px solid transparent;
   border-radius: 7px;
-  padding: 4px 8px;
+  padding: 3px 6px;
   text-align: start;
-  min-height: 30px;
+  min-height: 28px;
   white-space: nowrap;
   transition: border-color 0.12s, box-shadow 0.12s;
 }
@@ -79,7 +79,7 @@
 .cell-text {
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px;
+  max-width: 110px;
 }
 
 .tube {

@@ -158,9 +158,10 @@ def letter(bs, sender: str, end: date | None = None) -> dict:
     if row is None:
         raise KeyError(sender)
     issues = [row["top_reason_he"]] if row["top_reason_he"] else []
+    d0, d1 = (date.fromisoformat(rep[k]).strftime("%d/%m/%Y") for k in ("from", "to"))
     text = (
         f"לכבוד {sender},\n\n"
-        f"בשבוע {rep['from']} עד {rep['to']} קיבלנו מכם {row['forms']} טפסי "
+        f"בשבוע {d0} עד {d1} קיבלנו מכם {row['forms']} טפסי "
         f"התחייבות. ב-{row['needs_eye_pct']}% מהשדות נדרשה בדיקה ידנית"
         + (f", בעיקר בגלל: {', '.join(issues)}" if issues else "")
         + ".\n\n"

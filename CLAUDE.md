@@ -21,10 +21,12 @@ VERA קוראת טפסי התחייבות סרוקים/מצולמים/מפקס, 
 
 ## פקודות
 ```
-make up           # docker compose up (api + web)
-make dev          # הרצה מקומית עם reload
+make up           # docker compose up (api + web), ממשק ב-http://localhost:8080
+make dev          # כמו up (D-005); הרצת ה-API מקומית: make dev-local
+make dtest        # כל הבדיקות ב-Docker: pytest + lint, ו-tsc + vitest של הממשק
 make test         # pytest מקומי (בדיקות Tesseract מדולגות)
-make test-docker  # כל הבדיקות בתוך הקונטיינר
+make test-docker  # בדיקות השרת בתוך הקונטיינר
+make seed-demo    # 4 שבועות היסטוריה מומצאת (demo=true); make clear-demo מוחק
 make lint         # black --check + flake8
 make eval         # דוח דיוק מול eval/ground_truth.xlsx → eval/reports/<ts>/
 make demo-replay  # הדגמה בלי רשת (VLM_MODE=replay, מהמטמון)

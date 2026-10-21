@@ -2,10 +2,24 @@ name: vera
 
 # Hackathon setup: deliberately minimal (spec 13.1, DECISIONS D-002).
 # SQLite + in-process job queue live inside the api container; nothing else
-# to start, so nothing else can fail on demo night. A `web` service will be
-# added with the frontend.
+# to start, so nothing else can fail on demo night. `web` serves the built
+# frontend and proxies /api to `api`.
 
 services:
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NETFREE_REFRESH_CERTS: ${NETFREE_REFRESH_CERTS:-0}
+        NPM_STRICT_SSL: ${NPM_STRICT_SSL:-true}
+    ports:
+      - "${WEB_HOST_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
   api:
     build:
       context: ./backend

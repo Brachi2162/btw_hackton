@@ -99,6 +99,10 @@
   display: block;
 }
 
+.fc-crop .fc-page {
+  max-height: 360px;
+}
+
 .fc-reason {
   margin: 0;
 }
