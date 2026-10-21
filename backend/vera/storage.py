@@ -23,7 +23,15 @@ class LocalStorage:
 
     def _path(self, key: str) -> Path:
         rel = PurePosixPath(key)
-        if rel.is_absolute() or ".." in rel.parts or not rel.parts:
+        # "\" and ":" are separators/drives on Windows (`make dev`): reject them
+        # so a key can't escape root there either.
+        if (
+            rel.is_absolute()
+            or ".." in rel.parts
+            or not rel.parts
+            or "\\" in key
+            or ":" in key
+        ):
             raise ValueError(f"invalid storage key: {key!r}")
         return self.root.joinpath(*rel.parts)
 
