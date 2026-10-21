@@ -305,11 +305,15 @@ class ClaudeReader:
 
 
 def make_reader(
-    mode: str, cfg: VlmConfig, cache: VlmCache, api_key: str = ""
+    mode: str,
+    cfg: VlmConfig,
+    cache: VlmCache,
+    api_key: str = "",
+    model: str | None = None,
 ) -> VisionReader:
     if mode == "replay":
-        return ReplayReader(cfg, cache)
-    return ClaudeReader(cfg, cache, api_key=api_key)
+        return ReplayReader(cfg, cache, model=model)
+    return ClaudeReader(cfg, cache, api_key=api_key, model=model)
 
 
 def to_candidates(
