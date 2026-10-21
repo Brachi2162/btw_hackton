@@ -1,0 +1,30 @@
+name: vera
+
+# Hackathon setup: deliberately minimal (spec 13.1, DECISIONS D-002).
+# SQLite + in-process job queue live inside the api container; nothing else
+# to start, so nothing else can fail on demo night. A `web` service will be
+# added with the frontend.
+
+services:
+  api:
+    build:
+      context: ./backend
+      args:
+        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-}
+    command: uvicorn vera.api.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/vera
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATA_DIR: /data
+    ports:
+      - "${API_HOST_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped

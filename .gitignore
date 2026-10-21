@@ -1,0 +1,24 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Runtime data: uploads, page images, DB, VLM cache. Contains personal data.
+data/*
+!data/samples/
+*.db
+*.db-wal
+*.db-shm
+
+# Outputs
+eval/reports/
+*.xlsx
+
+# Frontend
+node_modules/
+dist/
+
+# Local extra CA certs (see backend/certs/README.md)
+backend/certs/*.crt

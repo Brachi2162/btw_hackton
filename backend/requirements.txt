@@ -1,0 +1,20 @@
+# API
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+pydantic>=2.7,<3.0
+pydantic-settings>=2.4,<3.0
+python-multipart>=0.0.9
+sqlmodel>=0.0.22,<0.1
+
+# Documents, CV, OCR, barcodes
+pymupdf>=1.24,<2.0
+opencv-python-headless>=4.10,<5.0
+pillow>=10.4,<12.0
+pillow-heif>=0.18,<2.0
+pytesseract>=0.3.13,<0.4
+zxing-cpp>=2.2,<3.0
+
+# Vision model, config, export
+anthropic>=0.40,<1.0
+pyyaml>=6.0,<7.0
+openpyxl>=3.1,<4.0
