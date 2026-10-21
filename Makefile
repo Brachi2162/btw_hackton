@@ -1,4 +1,4 @@
-.PHONY: up down logs dev test test-docker lint pages barcodes vlm decide eval gt-template
+.PHONY: up down logs dev test test-docker lint pages barcodes vlm escalate decide eval gt-template
 
 up:        ## build and start everything (http://localhost:8000/health)
 	docker compose up --build -d
@@ -26,6 +26,9 @@ barcodes:  ## barcodes on extracted pages -> data/work/pages/barcodes.json (run 
 
 vlm:       ## vision-model read of the dev set -> data/work/pages/vlm.json (cached; costs money once)
 	docker compose exec api python -m vera.cli vlm --pages /data/work/pages --doc part2
+
+escalate:  ## re-read pages with orange/grey fields with the stronger model (after `make decide`)
+	docker compose exec api python -m vera.cli vlm --pages /data/work/pages --doc part2 --escalate
 
 # Samples are from Jun-Aug 2026: judge dates against 1/9/2026, not today (D-004).
 REF_DATE ?= 2026-09-01

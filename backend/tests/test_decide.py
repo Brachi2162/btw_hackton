@@ -12,7 +12,12 @@ from vera.normalize import (
     norm_id,
     parse_date,
 )
-from vera.pipeline.decide import DecisionConfig, decide_field, decide_page
+from vera.pipeline.decide import (
+    DecisionConfig,
+    decide_field,
+    decide_page,
+    merge_reads,
+)
 
 # Synthetic values only, never from the sample forms (iron rule 5).
 REF = date(2026, 9, 1)
@@ -231,3 +236,81 @@ def test_unreadable_page_puts_every_field_in_review(cfg):
     sub = decide_page(PAGE, "b1", {"error": "VlmInvalid"}, [], cfg, REF)
     assert sub.row_status == "review"
     assert all(f.reasons == ["vlm_invalid"] for f in sub.fields.values())
+
+
+# --- escalation (a second, different model) ---
+
+
+def esc(field, value, label=None, legible=True):
+    c = vlm(field, value, label=label, legible=legible)
+    return c.model_copy(update={"reader": "vlm_escalated"})
+
+
+def test_two_different_models_agreeing_are_two_sources(cfg):
+    fr = decide_field(
+        "receipt_date",
+        [
+            vlm("receipt_date", "20/08/2026", label="התקבל"),
+            esc("receipt_date", "20.8.26", label="התקבל"),
+        ],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert fr.status == "verified" and fr.values == ["2026-08-20"]
+
+
+def test_two_reads_of_the_same_model_are_one_source(cfg):
+    crop = vlm("receipt_date", "20.8.26", label="התקבל").model_copy(
+        update={"reader": "vlm_crop"}
+    )
+    fr = decide_field(
+        "receipt_date",
+        [vlm("receipt_date", "20/08/2026", label="התקבל"), crop],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert fr.status == "likely" and "sources_dependent" in fr.reasons
+
+
+def test_merge_reads_keeps_both_models_and_survives_a_failed_base():
+    base = {"page_kind": "form", "sender_guess": "a", "candidates": [{"x": 1}]}
+    extra = {
+        "page_kind": "form",
+        "sender_guess": "b",
+        "model": "m2",
+        "candidates": [{"y": 2}],
+    }
+    m = merge_reads(base, extra)
+    assert m["candidates"] == [{"x": 1}, {"y": 2}]
+    assert m["escalated_sender_guess"] == "b" and m["sender_guess"] == "a"
+    m = merge_reads({"error": "VlmInvalid"}, extra)
+    assert m["candidates"] == [{"y": 2}] and "error" not in m
+    assert merge_reads(base, None) is base
+
+
+def test_screenshot_date_next_to_central_becomes_receipt_date(cfg):
+    page = {
+        "page_kind": "screenshot",
+        "candidates": [
+            vlm("central_numbers", "512340-25.8", label="מרכזי").model_dump()
+        ],
+    }
+    sub = decide_page(PAGE, "b1", page, [], cfg, REF)
+    assert sub.fields["central_numbers"].values == ["512340"]
+    assert sub.fields["receipt_date"].values == ["2026-08-25"]
+
+
+def test_parent_organization_sender_is_never_green(cfg):
+    page = {
+        "page_kind": "form",
+        "sender_guess": "כללית",
+        "escalated_sender_guess": "כללית",
+        "candidates": [],
+    }
+    sub = decide_page(PAGE, "b1", page, [], cfg, REF)
+    assert sub.fields["sender"].values == ["כללית"]
+    assert sub.fields["sender"].status == "likely"

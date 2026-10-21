@@ -165,5 +165,8 @@ class SenderIndex:
     def name(self, sid: str) -> str:
         return self.by_id[sid]["name"]
 
+    def has_children(self, sid: str) -> bool:
+        return any(s.get("parent") == sid for s in self.by_id.values())
+
     def parent(self, sid: str) -> str | None:
         return self.by_id[sid].get("parent")

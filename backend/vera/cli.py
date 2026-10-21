@@ -103,8 +103,16 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     s = get_settings()
     cfg = VlmConfig.load(s.config_dir)
     mode = args.mode or s.vlm_mode
+    # Escalation (spec 8.2.3): a stronger, different model re-reads only the
+    # pages that still have an orange/grey field; it counts as its own source.
+    model = cfg.escalation_model if args.escalate else cfg.model
+    reader_name = "vlm_escalated" if args.escalate else "vlm_full"
     reader = make_reader(
-        mode, cfg, VlmCache(s.data_dir / "cache" / "vlm"), s.anthropic_api_key
+        mode,
+        cfg,
+        VlmCache(s.data_dir / "cache" / "vlm"),
+        s.anthropic_api_key,
+        model=model,
     )
     prompt = render_prompt(
         s.prompts_dir, cfg.prompt, cfg.commitment_aliases, sender_names(s.config_dir)
@@ -113,6 +121,15 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     pages_dir = Path(args.pages)
     manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
     pages = [p for p in manifest["pages"] if not args.doc or p["doc"] in args.doc]
+    if args.escalate:
+        subs = json.loads((pages_dir / "submissions.json").read_text(encoding="utf-8"))
+        todo = {
+            pid
+            for sub in subs
+            if any(f["status"] in ("review", "missing") for f in sub["fields"].values())
+            for pid in sub["page_ids"]
+        }
+        pages = [p for p in pages if f"{p['doc']}/p{p['page']:02d}" in todo]
     if args.limit:
         pages = pages[: args.limit]
 
@@ -133,7 +150,8 @@ def cmd_vlm(args: argparse.Namespace) -> None:
             "sender_guess": r.reading.sender_guess,
             "page_marker": r.reading.page_marker,
             "candidates": [
-                c.model_dump(mode="json") for c in to_candidates(r, page_id)
+                c.model_dump(mode="json")
+                for c in to_candidates(r, page_id, reader=reader_name)
             ],
         }
 
@@ -141,14 +159,15 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     with ThreadPoolExecutor(max_workers=cfg.concurrency) as ex:
         out = dict(ex.map(run, pages))
 
-    out_path = Path(args.out) if args.out else pages_dir / "vlm.json"
+    default = "vlm_escalated.json" if args.escalate else "vlm.json"
+    out_path = Path(args.out) if args.out else pages_dir / default
     out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     ok = [v for v in out.values() if "error" not in v]
     fresh = [v for v in ok if not v["cached"]]
     tokens_in = sum(v["usage"].get("input_tokens", 0) for v in fresh)
     tokens_out = sum(v["usage"].get("output_tokens", 0) for v in fresh)
     print(
-        f"{len(ok)}/{len(out)} pages read ({mode}, {cfg.model}), "
+        f"{len(ok)}/{len(out)} pages read ({mode}, {model}), "
         f"{len(fresh)} live calls, {tokens_in} in / {tokens_out} out tokens, "
         f"{time.time() - t0:.0f}s -> {out_path}"
     )
@@ -168,13 +187,20 @@ def cmd_decide(args: argparse.Namespace) -> None:
     from collections import Counter
 
     from vera.config import get_settings
-    from vera.pipeline.decide import FIELDS, DecisionConfig, decide_page
+    from vera.pipeline.decide import FIELDS, DecisionConfig, decide_page, merge_reads
 
     s = get_settings()
     cfg = DecisionConfig.load(s.config_dir)
     pages_dir = Path(args.pages)
     vlm = json.loads((pages_dir / "vlm.json").read_text(encoding="utf-8"))
     barcodes = json.loads((pages_dir / "barcodes.json").read_text(encoding="utf-8"))
+    esc_path = pages_dir / "vlm_escalated.json"
+    escalated = (
+        json.loads(esc_path.read_text(encoding="utf-8"))
+        if esc_path.is_file() and not args.no_escalated
+        else {}
+    )
+    vlm = {pid: merge_reads(v, escalated.get(pid)) for pid, v in vlm.items()}
     ref = _ref_date(args.ref_date)
 
     subs = [
@@ -286,6 +312,11 @@ def main(argv: list[str] | None = None) -> None:
     v.add_argument("--limit", type=int, default=0, help="first N pages only")
     v.add_argument("--mode", choices=["live", "replay"], default=None)
     v.add_argument("--out", default=None, help="default: <pages>/vlm.json")
+    v.add_argument(
+        "--escalate",
+        action="store_true",
+        help="re-read pages with orange/grey fields with the escalation model",
+    )
     v.set_defaults(func=cmd_vlm)
 
     d = sub.add_parser("decide", help="barcodes + VLM -> statuses per field")
@@ -293,6 +324,9 @@ def main(argv: list[str] | None = None) -> None:
     d.add_argument("--batch", default="samples")
     d.add_argument("--ref-date", default=None, help="batch reference date, ISO")
     d.add_argument("--out", default=None, help="default: <pages>/submissions.json")
+    d.add_argument(
+        "--no-escalated", action="store_true", help="ignore vlm_escalated.json"
+    )
     d.set_defaults(func=cmd_decide)
 
     e = sub.add_parser("eval", help="accuracy report against the ground truth")
