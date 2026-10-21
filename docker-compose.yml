@@ -11,6 +11,7 @@ services:
       context: ./backend
       args:
         PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-}
+        NETFREE_REFRESH_CERTS: ${NETFREE_REFRESH_CERTS:-0}
     command: uvicorn vera.api.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/vera
     env_file:
       - path: .env

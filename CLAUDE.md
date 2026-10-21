@@ -23,8 +23,10 @@ VERA קוראת טפסי התחייבות סרוקים/מצולמים/מפקס, 
 ```
 make up           # docker compose up (api + web)
 make dev          # הרצה מקומית עם reload
-make test         # ruff + pytest, eslint + tsc
-make eval         # דוח דיוק מול eval/ground_truth.csv → eval/reports/<ts>/
+make test         # pytest מקומי (בדיקות Tesseract מדולגות)
+make test-docker  # כל הבדיקות בתוך הקונטיינר
+make lint         # black --check + flake8
+make eval         # דוח דיוק מול eval/ground_truth.xlsx → eval/reports/<ts>/
 make demo-replay  # הדגמה בלי רשת (VLM_MODE=replay, מהמטמון)
 make seed         # טעינת אצוות דוגמה
 ```
