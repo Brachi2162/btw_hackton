@@ -81,6 +81,82 @@ def cmd_barcodes(args: argparse.Namespace) -> None:
         print("no barcode: " + ", ".join(empty))
 
 
+def cmd_vlm(args: argparse.Namespace) -> None:
+    import json
+    from concurrent.futures import ThreadPoolExecutor
+
+    import anthropic
+    from PIL import Image
+
+    from vera.config import get_settings
+    from vera.pipeline.vlm import (
+        CacheMiss,
+        VlmCache,
+        VlmConfig,
+        VlmInvalid,
+        make_reader,
+        render_prompt,
+        sender_names,
+        to_candidates,
+    )
+
+    s = get_settings()
+    cfg = VlmConfig.load(s.config_dir)
+    mode = args.mode or s.vlm_mode
+    reader = make_reader(
+        mode, cfg, VlmCache(s.data_dir / "cache" / "vlm"), s.anthropic_api_key
+    )
+    prompt = render_prompt(
+        s.prompts_dir, cfg.prompt, cfg.commitment_aliases, sender_names(s.config_dir)
+    )
+
+    pages_dir = Path(args.pages)
+    manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
+    pages = [p for p in manifest["pages"] if not args.doc or p["doc"] in args.doc]
+    if args.limit:
+        pages = pages[: args.limit]
+
+    def run(p: dict) -> tuple[str, dict]:
+        page_id = f"{p['doc']}/p{p['page']:02d}"
+        try:
+            with Image.open(pages_dir / p["image"]) as img:
+                r = reader.read_page(img, p["sha256"], prompt)
+        except (VlmInvalid, CacheMiss, anthropic.APIError) as e:
+            # One bad page (or a network drop) must not sink the batch.
+            return page_id, {"error": type(e).__name__, "detail": str(e)[:200]}
+        return page_id, {
+            "model": r.model,
+            "cached": r.cached,
+            "usage": r.usage,
+            "page_kind": r.reading.page_kind,
+            "upright": r.reading.upright,
+            "sender_guess": r.reading.sender_guess,
+            "page_marker": r.reading.page_marker,
+            "candidates": [
+                c.model_dump(mode="json") for c in to_candidates(r, page_id)
+            ],
+        }
+
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=cfg.concurrency) as ex:
+        out = dict(ex.map(run, pages))
+
+    out_path = Path(args.out) if args.out else pages_dir / "vlm.json"
+    out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    ok = [v for v in out.values() if "error" not in v]
+    fresh = [v for v in ok if not v["cached"]]
+    tokens_in = sum(v["usage"].get("input_tokens", 0) for v in fresh)
+    tokens_out = sum(v["usage"].get("output_tokens", 0) for v in fresh)
+    print(
+        f"{len(ok)}/{len(out)} pages read ({mode}, {cfg.model}), "
+        f"{len(fresh)} live calls, {tokens_in} in / {tokens_out} out tokens, "
+        f"{time.time() - t0:.0f}s -> {out_path}"
+    )
+    for page_id, v in out.items():
+        if "error" in v:
+            print(f"  {page_id}: {v['error']} {v['detail']}")
+
+
 def cmd_gt_template(args: argparse.Namespace) -> None:
     from vera.groundtruth import load_splits, write_template
     from vera.pipeline.ingest import pdf_page_count
@@ -123,6 +199,14 @@ def main(argv: list[str] | None = None) -> None:
     b.add_argument("--out", default=None, help="default: <pages>/barcodes.json")
     b.add_argument("--workers", type=int, default=None)
     b.set_defaults(func=cmd_barcodes)
+
+    v = sub.add_parser("vlm", help="vision-model read of extracted pages (cached)")
+    v.add_argument("--pages", default="data/work/pages", help="output of `pages`")
+    v.add_argument("--doc", nargs="*", help="only these docs, e.g. part2")
+    v.add_argument("--limit", type=int, default=0, help="first N pages only")
+    v.add_argument("--mode", choices=["live", "replay"], default=None)
+    v.add_argument("--out", default=None, help="default: <pages>/vlm.json")
+    v.set_defaults(func=cmd_vlm)
 
     g = sub.add_parser("gt-template", help="empty ground-truth workbook")
     g.add_argument("files", nargs="+", help="sample PDFs or globs")
