@@ -55,6 +55,7 @@ class PageRow(SQLModel, table=True):
     barcodes: list = Field(default_factory=list, sa_column=Column(JSON))
     vlm: dict = Field(default_factory=dict, sa_column=Column(JSON))
     vlm_escalated: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    vlm_crops: dict = Field(default_factory=dict, sa_column=Column(JSON))
 
 
 class SubmissionRow(SQLModel, table=True):

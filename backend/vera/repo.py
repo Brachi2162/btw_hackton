@@ -9,7 +9,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-from sqlalchemy import event
+from sqlalchemy import event, inspect
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, create_engine, text
 
@@ -42,6 +42,23 @@ class Repository:
         import vera.db  # noqa: F401
 
         SQLModel.metadata.create_all(self.engine)
+        self._add_missing_columns()
+
+    def _add_missing_columns(self) -> None:
+        """create_all() makes new tables but never alters old ones. A column
+        added to a model later is added here (nullable, no data rewrite), so
+        an existing database keeps working. Anything bigger needs Alembic."""
+        insp = inspect(self.engine)
+        with self.engine.begin() as conn:
+            for table in SQLModel.metadata.sorted_tables:
+                if not insp.has_table(table.name):
+                    continue
+                have = {c["name"] for c in insp.get_columns(table.name)}
+                for col in table.columns:
+                    if col.name not in have:
+                        ddl = col.type.compile(dialect=self.engine.dialect)
+                        sql = f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" '
+                        conn.execute(text(sql + ddl))
 
     @contextmanager
     def session(self) -> Iterator[Session]:

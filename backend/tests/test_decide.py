@@ -264,18 +264,44 @@ def test_two_different_models_agreeing_are_two_sources(cfg):
 
 
 def test_two_reads_of_the_same_model_are_one_source(cfg):
-    crop = vlm("receipt_date", "20.8.26", label="התקבל").model_copy(
-        update={"reader": "vlm_crop"}
-    )
     fr = decide_field(
         "receipt_date",
-        [vlm("receipt_date", "20/08/2026", label="התקבל"), crop],
+        [
+            vlm("receipt_date", "20/08/2026", label="התקבל"),
+            vlm("receipt_date", "20.8.26", label="התקבל"),
+        ],
         [],
         PAGE,
         cfg,
         REF,
     )
-    assert fr.status == "likely" and "sources_dependent" in fr.reasons
+    assert fr.status == "likely" and "source_single" in fr.reasons
+
+
+def test_crop_read_by_a_third_model_is_its_own_source(cfg):
+    crop = vlm("id_number", "12345674").model_copy(update={"reader": "vlm_crop"})
+    fr = decide_field(
+        "id_number",
+        [vlm("id_number", "12345674", label="ת.ז"), crop],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert fr.status == "verified"
+
+
+def test_handwriting_prefers_valid_then_crop_reading(cfg):
+    crop = vlm("id_number", "12345674").model_copy(update={"reader": "vlm_crop"})
+    fr = decide_field(
+        "id_number",
+        [vlm("id_number", "12345675", label="ת.ז"), crop],  # first fails check
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert fr.values == ["012345674"]
 
 
 def test_merge_reads_keeps_both_models_and_survives_a_failed_base():
@@ -291,7 +317,7 @@ def test_merge_reads_keeps_both_models_and_survives_a_failed_base():
     assert m["escalated_sender_guess"] == "b" and m["sender_guess"] == "a"
     m = merge_reads({"error": "VlmInvalid"}, extra)
     assert m["candidates"] == [{"y": 2}] and "error" not in m
-    assert merge_reads(base, None) is base
+    assert merge_reads(base, None) == base
 
 
 def test_screenshot_date_next_to_central_becomes_receipt_date(cfg):
@@ -332,5 +358,11 @@ def test_models_disagreeing_on_the_field_send_it_to_review(cfg):
     sub = decide_page(
         PAGE, "b1", page, [barcode("512340"), barcode("700100")], cfg, REF
     )
+    # Central keeps only the number both models agree on, and it is green;
+    # the disputed number goes where the stronger model put it, for review.
     central = sub.fields["central_numbers"]
-    assert central.status == "review" and "disagree_sources" in central.reasons
+    assert central.values == ["512340"] and central.status == "verified"
+    assert "700100" in central.alternatives
+    commitment = sub.fields["commitment_numbers"]
+    assert commitment.values == ["700100"]
+    assert commitment.status == "review" and "disagree_sources" in commitment.reasons
