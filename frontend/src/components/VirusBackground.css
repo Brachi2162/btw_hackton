@@ -1,0 +1,29 @@
+.virus-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--teal);
+  z-index: 0;
+}
+
+.virus-bg.dark {
+  color: var(--glow);
+}
+
+.virus-float {
+  position: absolute;
+  animation: drift 40s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(26px, -18px) rotate(40deg);
+  }
+  100% {
+    transform: translate(-14px, 22px) rotate(85deg);
+  }
+}

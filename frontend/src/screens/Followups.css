@@ -1,0 +1,105 @@
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.column {
+  background: #e9eef2;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.column h2 {
+  padding: 4px 6px 10px;
+}
+
+.column-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty-col {
+  padding: 8px 6px;
+  margin: 0;
+}
+
+.fu {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-width: 1.5px;
+}
+
+.fu.overdue {
+  border-color: #e5484d;
+  box-shadow: 0 0 0 1px #e5484d inset, var(--shadow);
+}
+
+.fu-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fu h3 {
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.fu-detail {
+  margin: 0;
+  font-size: 13px;
+}
+
+.timer {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.timer.late {
+  color: #c7353a;
+  font-weight: 600;
+}
+
+.kind-missing_field {
+  background: var(--missing-bg);
+  color: var(--missing-text);
+}
+
+.kind-invalid_id {
+  background: var(--review-bg);
+  color: var(--review-text);
+}
+
+.kind-tube_orphan {
+  background: var(--likely-bg);
+  color: var(--likely-text);
+}
+
+.fu-draft {
+  width: 100%;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.fu-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.fu-actions .btn {
+  padding: 5px 10px;
+  font-size: 13px;
+}
+
+@media (max-width: 1000px) {
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

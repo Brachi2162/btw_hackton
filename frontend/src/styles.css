@@ -1,0 +1,270 @@
+:root {
+  --navy: #0d1b2a;
+  --navy-2: #15273b;
+  --bg: #f3f6f8;
+  --card: #ffffff;
+  --border: #e2e8ee;
+  --text: #0e1a2b;
+  --muted: #5b6b7c;
+  --teal: #0e9f9a;
+  --glow: #5fd0cb;
+
+  --verified: #1f9d55;
+  --verified-bg: #e7f6ee;
+  --verified-text: #14673a;
+  --likely: #e0a93b;
+  --likely-bg: #fdf3dc;
+  --likely-text: #7a5410;
+  --review: #dd6b20;
+  --review-bg: #fdebdd;
+  --review-text: #9a4413;
+  --missing: #c3ccd5;
+  --missing-bg: #eef1f4;
+  --missing-text: #7a8796;
+
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(14, 26, 43, 0.04), 0 4px 16px rgba(14, 26, 43, 0.05);
+  --font: "IBM Plex Sans Hebrew", "Segoe UI", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.num {
+  font-family: var(--mono);
+  font-feature-settings: "tnum";
+  unicode-bidi: isolate;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 22px;
+}
+
+h2 {
+  font-size: 17px;
+}
+
+h3 {
+  font-size: 15px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+  border-color: #c8d3dd;
+  background: #f8fafb;
+}
+
+.btn.primary {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+.btn.primary:hover {
+  background: #0b8a85;
+}
+
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--teal);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: #fff;
+  min-width: 0;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(14, 159, 154, 0.15);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge.demo {
+  background: #e9e5fb;
+  color: #4b3c9e;
+}
+
+/* status chips */
+.st-verified,
+.st-human {
+  background: var(--verified-bg);
+  color: var(--verified-text);
+}
+.st-likely {
+  background: var(--likely-bg);
+  color: var(--likely-text);
+}
+.st-review {
+  background: var(--review-bg);
+  color: var(--review-text);
+}
+.st-missing {
+  background: var(--missing-bg);
+  color: var(--missing-text);
+}
+
+.page {
+  padding: 28px 32px 48px;
+  max-width: 1500px;
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.page-head .grow {
+  flex: 1;
+}
+
+.empty {
+  padding: 48px;
+  text-align: center;
+  color: var(--muted);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 6px 2px rgba(221, 107, 32, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px 6px rgba(221, 107, 32, 0.6);
+  }
+}
+
+@keyframes blink {
+  0%,
+  60%,
+  100% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 18px 16px 40px;
+  }
+}

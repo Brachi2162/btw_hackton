@@ -1,0 +1,59 @@
+.fix-error {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  background: var(--review-bg);
+  color: var(--review-text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.prop-bar {
+  position: fixed;
+  bottom: 22px;
+  inset-inline-start: calc(220px + 32px);
+  inset-inline-end: 210px; /* clear of the assistant button */
+  z-index: 60;
+  background: var(--navy);
+  color: #fff;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  box-shadow: 0 16px 40px rgba(13, 27, 42, 0.35);
+  animation: bar-in 0.25s ease-out;
+}
+
+.prop-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn.dark {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn.dark:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@keyframes bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (max-width: 900px) {
+  .prop-bar {
+    inset-inline-start: calc(64px + 16px);
+    inset-inline-end: 16px;
+  }
+}

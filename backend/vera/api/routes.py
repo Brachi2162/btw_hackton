@@ -8,6 +8,7 @@ import asyncio
 import io
 import json
 from datetime import date
+from urllib.parse import unquote
 
 from fastapi import APIRouter, File, Header, HTTPException, Query, Request
 from fastapi import UploadFile
@@ -28,7 +29,8 @@ def svc(request: Request) -> BatchService:
 
 
 def user_of(x_user: str | None) -> str:
-    return (x_user or "lab").strip()[:50] or "lab"
+    # The UI URL-encodes the header: HTTP headers can't carry Hebrew as is.
+    return unquote(x_user or "lab").strip()[:50] or "lab"
 
 
 # --- batches ---
