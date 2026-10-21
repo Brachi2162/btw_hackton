@@ -314,3 +314,21 @@ def test_parent_organization_sender_is_never_green(cfg):
     sub = decide_page(PAGE, "b1", page, [], cfg, REF)
     assert sub.fields["sender"].values == ["כללית"]
     assert sub.fields["sender"].status == "likely"
+
+
+def test_models_disagreeing_on_the_field_send_it_to_review(cfg):
+    # A 6-digit commitment looks like a central number (spec 3.2).
+    page = {
+        "page_kind": "form",
+        "candidates": [
+            vlm("central_numbers", "512340", label="מרכזי").model_dump(),
+            vlm("central_numbers", "700100", label="מרכזי").model_dump(),
+            esc("central_numbers", "512340", label="מרכזי").model_dump(),
+            esc("commitment_numbers", "700100").model_dump(),
+        ],
+    }
+    sub = decide_page(
+        PAGE, "b1", page, [barcode("512340"), barcode("700100")], cfg, REF
+    )
+    central = sub.fields["central_numbers"]
+    assert central.status == "review" and "disagree_sources" in central.reasons

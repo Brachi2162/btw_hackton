@@ -86,19 +86,11 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     from concurrent.futures import ThreadPoolExecutor
 
     import anthropic
-    from PIL import Image
 
     from vera.config import get_settings
-    from vera.pipeline.vlm import (
-        CacheMiss,
-        VlmCache,
-        VlmConfig,
-        VlmInvalid,
-        make_reader,
-        render_prompt,
-        sender_names,
-        to_candidates,
-    )
+    from vera.pipeline.process import page_id_of, read_vlm
+    from vera.pipeline.vlm import VlmCache, VlmConfig, make_reader, render_prompt
+    from vera.pipeline.vlm import sender_names
 
     s = get_settings()
     cfg = VlmConfig.load(s.config_dir)
@@ -134,26 +126,19 @@ def cmd_vlm(args: argparse.Namespace) -> None:
         pages = pages[: args.limit]
 
     def run(p: dict) -> tuple[str, dict]:
-        page_id = f"{p['doc']}/p{p['page']:02d}"
+        page_id = page_id_of(p["doc"], p["page"])
         try:
-            with Image.open(pages_dir / p["image"]) as img:
-                r = reader.read_page(img, p["sha256"], prompt)
-        except (VlmInvalid, CacheMiss, anthropic.APIError) as e:
+            return page_id, read_vlm(
+                reader,
+                pages_dir / p["image"],
+                p["sha256"],
+                prompt,
+                page_id,
+                reader_name,
+            )
+        except anthropic.APIError as e:
             # One bad page (or a network drop) must not sink the batch.
             return page_id, {"error": type(e).__name__, "detail": str(e)[:200]}
-        return page_id, {
-            "model": r.model,
-            "cached": r.cached,
-            "usage": r.usage,
-            "page_kind": r.reading.page_kind,
-            "upright": r.reading.upright,
-            "sender_guess": r.reading.sender_guess,
-            "page_marker": r.reading.page_marker,
-            "candidates": [
-                c.model_dump(mode="json")
-                for c in to_candidates(r, page_id, reader=reader_name)
-            ],
-        }
 
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=cfg.concurrency) as ex:

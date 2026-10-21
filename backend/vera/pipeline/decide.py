@@ -410,6 +410,33 @@ def decide_field(
     )
 
 
+def _number_key(text: str) -> str:
+    return re.sub(r"[^0-9A-Z]", "", text.upper()).lstrip("0")
+
+
+def _cross_field_conflicts(
+    fields: dict[str, FieldResult],
+    by_field: dict[str, list[Candidate]],
+    cfg: DecisionConfig,
+) -> None:
+    """One number, two fields: when one model reads a number as the central
+    number and another as the commitment (6-digit commitments exist, spec
+    3.2), the sources disagree on the field and a human decides."""
+    proposed: dict[str, set[str]] = defaultdict(set)
+    for f in BARCODE_FIELDS:
+        for c in by_field.get(f, []):
+            if c.reader != "barcode":
+                proposed[_number_key(c.value_raw)].add(f)
+    for f in BARCODE_FIELDS:
+        fr = fields[f]
+        clash = [v for v in fr.values if proposed.get(_number_key(v), {f}) - {f}]
+        if clash and fr.status in ("verified", "likely"):
+            fr.status = "review"
+            fr.reasons.append("disagree_sources")
+            others = sorted(proposed[_number_key(clash[0])] - {f})
+            fr.explanation_he = f"{clash[0]}: מקור אחד שייך אותו לשדה הזה ומקור אחר ל-{', '.join(others)}"
+
+
 def _name_split(first: FieldResult, last: FieldResult) -> None:
     """The prompt returns a one-line name in both fields when the order is
     unclear; the same value in both is a split we can't trust."""
@@ -547,6 +574,7 @@ def decide_page(
         ref,
         exclude=taken,
     )
+    _cross_field_conflicts(fields, by_field, cfg)
     _name_split(fields["first_name"], fields["last_name"])
     sender = fields["sender"]
     if sender.values and sender.values[0] in cfg.senders.by_id:
