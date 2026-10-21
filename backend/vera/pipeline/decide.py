@@ -307,6 +307,7 @@ def _date_checks(
 
 
 MODEL_GROUPS = {"vlm", "vlm_escalated"}
+HANDWRITING_FIELDS = {"first_name", "last_name", "id_number"}
 
 
 def _choose_multi(ranked: list[Group], cfg: DecisionConfig) -> list[Group]:
@@ -374,7 +375,22 @@ def decide_field(
             excluded.append(groups.pop(k))  # e.g. a commitment equal to a central
     for g in groups.values():
         _score(g, fname, cfg)
-    ranked = sorted(groups.values(), key=lambda g: g.score, reverse=True)
+    if fname in HANDWRITING_FIELDS:
+        # A reading that passes the field's checks (the ID check digit) first;
+        # then agreement between sources; then the crop read, made for
+        # handwriting by the strongest model (D-005); then the score.
+        ranked = sorted(
+            groups.values(),
+            key=lambda g: (
+                not g.problems,
+                len(g.source_groups(cfg) - {"barcode"}),
+                "vlm_crop" in g.source_groups(cfg),
+                g.score,
+            ),
+            reverse=True,
+        )
+    else:
+        ranked = sorted(groups.values(), key=lambda g: g.score, reverse=True)
 
     if fname in MULTI:
         chosen = _choose_multi(ranked, cfg)
@@ -472,21 +488,27 @@ def _name_split(first: FieldResult, last: FieldResult) -> None:
                 fr.reasons.append("name_split_ambiguous")
 
 
-def merge_reads(base: dict | None, escalated: dict | None) -> dict:
-    """One page dict with the candidates of both models (each keeps its own
+def merge_reads(
+    base: dict | None, escalated: dict | None, crop: dict | None = None
+) -> dict:
+    """One page dict with the candidates of every model (each keeps its own
     `reader`, so they count as separate sources)."""
-    if not escalated or "error" in escalated:
+    merged = dict(base) if base and "error" not in base else None
+    if escalated and "error" not in escalated:
+        if merged is None:
+            merged = {k: v for k, v in escalated.items() if k != "candidates"}
+            merged["candidates"], merged["sender_guess"] = [], ""
+        merged["candidates"] = list(merged.get("candidates", [])) + list(
+            escalated.get("candidates", [])
+        )
+        merged["escalated_sender_guess"] = escalated.get("sender_guess", "")
+        merged["escalated_model"] = escalated.get("model")
+    if merged is None:
         return base or {"error": "missing"}
-    if not base or "error" in base:
-        base = {k: v for k, v in escalated.items() if k != "candidates"}
-        base["candidates"] = []
-        base["sender_guess"] = ""
-    merged = dict(base)
-    merged["candidates"] = list(base.get("candidates", [])) + list(
-        escalated.get("candidates", [])
-    )
-    merged["escalated_sender_guess"] = escalated.get("sender_guess", "")
-    merged["escalated_model"] = escalated.get("model")
+    if crop and "error" not in crop:
+        merged["candidates"] = list(merged["candidates"]) + list(
+            crop.get("candidates", [])
+        )
     return merged
 
 
