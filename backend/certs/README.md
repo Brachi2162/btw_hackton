@@ -14,7 +14,7 @@ Get-ChildItem Cert:\LocalMachine\Root, Cert:\CurrentUser\Root |
   Where-Object { $_.Subject -match 'O=NetFree' -and $_.NotAfter -gt (Get-Date) } |
   Sort-Object Thumbprint -Unique | ForEach-Object {
     $b64 = [Convert]::ToBase64String($_.RawData, 'InsertLineBreaks').Replace("`r`n", "`n")
-    [IO.File]::WriteAllText("backend\certs\netfree-$($_.Thumbprint.Substring(0,8)).crt",
+    [IO.File]::WriteAllText("$PWD\backend\certs\netfree-$($_.Thumbprint.Substring(0,8)).crt",
       "-----BEGIN CERTIFICATE-----`n$b64`n-----END CERTIFICATE-----`n")
   }
 ```
@@ -27,15 +27,17 @@ save it here with a `.crt` extension.
 Since 2026-10, NetFree signs sites with a "NetFree Node Intermediate CA" and
 sends two copies of it: one under an issuer that isn't distributed ("NetFree
 Sign ,Yossi"), and one under "NetFree Intermediate CA 2026#09" -> NetFree Root
-CA. OpenSSL picks the first and gives up. Add the good intermediates as well
-(trust still has to end at a NetFree root, so this widens nothing):
+CA. OpenSSL picks the first and gives up.
 
-```bash
-echo | openssl s_client -connect pypi.org:443 -servername pypi.org -showcerts 2>/dev/null \
-  | awk '/BEGIN CERT/{n++} n>0{print > ("chain" n ".pem")}'
-openssl x509 -in chain3.pem -noout -issuer   # expect: NetFree Intermediate CA 2026#09
-cp chain3.pem backend/certs/netfree-node-intermediate.crt
-cp chain4.pem backend/certs/netfree-intermediate-2026-09.crt
+The good node intermediate is reissued every ~2 days, so a copy saved here
+expires quickly. Instead, set this in `.env` and rebuild:
+
+```
+NETFREE_REFRESH_CERTS=1
 ```
 
-Check the issuers first: the order of the chain may differ. Then rebuild.
+`backend/netfree-certs.sh` then fetches the current good intermediates during
+the build (right before `pip install`) and on every container start. Trust
+still has to end at a NetFree root from this folder, so this widens nothing.
+If the container stays up for more than ~2 days, restart it
+(`docker compose restart api`).

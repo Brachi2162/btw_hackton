@@ -16,6 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # need no extra system libraries.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    openssl \
     tesseract-ocr \
     tesseract-ocr-heb \
     && rm -rf /var/lib/apt/lists/*
@@ -25,17 +26,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY certs/ /usr/local/share/ca-certificates/extra/
 RUN update-ca-certificates
 
+# NetFree's node intermediate rotates every ~2 days; see netfree-certs.sh.
+COPY netfree-certs.sh /usr/local/bin/netfree-certs
+RUN chmod +x /usr/local/bin/netfree-certs
+
 WORKDIR /app
 
+ARG NETFREE_REFRESH_CERTS=0
 # Fallback, build-time only: hosts pip may reach without TLS verification,
 # if you can't add your filter's CA to certs/. Leave empty everywhere else.
 ARG PIP_TRUSTED_HOST=""
 
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Refresh in the same layer as pip, so a cached layer never holds stale certs.
+RUN netfree-certs \
+    && pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
 
 EXPOSE 8000
 
+ENTRYPOINT ["netfree-certs"]
 CMD ["uvicorn", "vera.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

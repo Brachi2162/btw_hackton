@@ -21,7 +21,9 @@ def test_local_storage_roundtrip(tmp_path):
     assert not st.exists("batch1/page1.png")
 
 
-@pytest.mark.parametrize("key", ["../escape", "/abs/path", "a/../../b", ""])
+@pytest.mark.parametrize(
+    "key", ["../escape", "/abs/path", "a/../../b", "", "..\\..\\b", "C:x", "c:/x"]
+)
 def test_local_storage_rejects_unsafe_keys(tmp_path, key):
     with pytest.raises(ValueError):
         LocalStorage(tmp_path).put(key, b"x")
