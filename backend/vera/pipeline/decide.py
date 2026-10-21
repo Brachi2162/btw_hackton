@@ -420,6 +420,50 @@ def _name_split(first: FieldResult, last: FieldResult) -> None:
                 fr.reasons.append("name_split_ambiguous")
 
 
+def merge_reads(base: dict | None, escalated: dict | None) -> dict:
+    """One page dict with the candidates of both models (each keeps its own
+    `reader`, so they count as separate sources)."""
+    if not escalated or "error" in escalated:
+        return base or {"error": "missing"}
+    if not base or "error" in base:
+        base = {k: v for k, v in escalated.items() if k != "candidates"}
+        base["candidates"] = []
+        base["sender_guess"] = ""
+    merged = dict(base)
+    merged["candidates"] = list(base.get("candidates", [])) + list(
+        escalated.get("candidates", [])
+    )
+    merged["escalated_sender_guess"] = escalated.get("sender_guess", "")
+    merged["escalated_model"] = escalated.get("model")
+    return merged
+
+
+# "947501-25.8": a central number with the receipt date written next to it,
+# the usual way on screenshots (spec 3.1, 3.3).
+_CENTRAL_WITH_DATE = re.compile(
+    r"\d{6}\s*[-–]\s*(\d{1,2}\s*[./]\s*\d{1,2}(?:\s*[./]\s*\d{2,4})?)"
+)
+
+
+def _dates_next_to_centrals(cands: list[Candidate]) -> list[Candidate]:
+    out = []
+    for c in cands:
+        m = _CENTRAL_WITH_DATE.search(c.value_raw)
+        if m:
+            out.append(
+                c.model_copy(
+                    update={
+                        "field": "receipt_date",
+                        "value_raw": m.group(1),
+                        "value_norm": None,
+                        "label_nearby": "ליד מרכזי",
+                        "signals": dict(c.signals),
+                    }
+                )
+            )
+    return out
+
+
 def decide_page(
     page_id: str,
     batch_id: str,
@@ -455,18 +499,25 @@ def decide_page(
     for c in vlm_page.get("candidates", []):
         cand = Candidate.model_validate(c)
         by_field[cand.field].append(cand)
-    guess = vlm_page.get("sender_guess", "")
-    if guess and guess != "unknown":
-        by_field["sender"].append(
-            Candidate(
-                field="sender",
-                value_raw=guess,
-                reader="vlm_full",
-                model=vlm_page.get("model"),
-                page_id=page_id,
-                evidence_text="sender_guess",
+    for key, reader, model in (
+        ("sender_guess", "vlm_full", vlm_page.get("model")),
+        ("escalated_sender_guess", "vlm_escalated", vlm_page.get("escalated_model")),
+    ):
+        guess = vlm_page.get(key, "")
+        if guess and guess != "unknown":
+            by_field["sender"].append(
+                Candidate(
+                    field="sender",
+                    value_raw=guess,
+                    reader=reader,
+                    model=model,
+                    page_id=page_id,
+                    evidence_text="sender_guess",
+                )
             )
-        )
+    by_field["receipt_date"] += _dates_next_to_centrals(
+        [c for f in ("central_numbers", "id_number") for c in by_field.get(f, [])]
+    )
 
     aux = {
         k: [d for c in by_field.get(k, []) if (d := parse_date(c.value_raw, ref))]
@@ -497,10 +548,16 @@ def decide_page(
         exclude=taken,
     )
     _name_split(fields["first_name"], fields["last_name"])
-    if fields["sender"].values:
-        sid = fields["sender"].values[0]
-        if sid in cfg.senders.by_id:
-            fields["sender"].values = [cfg.senders.name(sid)]
+    sender = fields["sender"]
+    if sender.values and sender.values[0] in cfg.senders.by_id:
+        sid = sender.values[0]
+        sender.values = [cfg.senders.name(sid)]
+        # A parent organization (כללית) may hide a more specific hospital on
+        # the form, and the most specific one is required (spec 3.5): agreement
+        # on the parent is not enough for green.
+        if sender.status == "verified" and cfg.senders.has_children(sid):
+            sender.status = "likely"
+            sender.explanation_he = cfg.reasons_he.get("sender_parent_only", "")
 
     fields = {f: fields[f] for f in FIELDS}
     page_kind: PageKind = vlm_page.get("page_kind", "unknown")
