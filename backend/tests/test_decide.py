@@ -215,6 +215,7 @@ def test_handwriting_beats_print_and_father_is_a_decoy(cfg):
 
 
 def test_page_commitment_never_equals_central_and_row_is_worst(cfg):
+    # The same number offered for two fields is a conflict, even from one model.
     page = {
         "page_kind": "form",
         "sender_guess": "כללית",
@@ -225,11 +226,12 @@ def test_page_commitment_never_equals_central_and_row_is_worst(cfg):
         ],
     }
     sub = decide_page(PAGE, "b1", page, [barcode("512340")], cfg, REF)
-    assert sub.fields["central_numbers"].status == "verified"
+    assert sub.fields["central_numbers"].status == "review"
+    assert "disagree_sources" in sub.fields["central_numbers"].reasons
     assert sub.fields["commitment_numbers"].values == ["88120"]
     assert sub.fields["sender"].values == ["כללית"]
     assert sub.fields["first_name"].status == "missing"
-    assert sub.row_status == "missing"
+    assert sub.row_status == "review"  # the worst field wins
 
 
 def test_unreadable_page_puts_every_field_in_review(cfg):
@@ -314,3 +316,21 @@ def test_parent_organization_sender_is_never_green(cfg):
     sub = decide_page(PAGE, "b1", page, [], cfg, REF)
     assert sub.fields["sender"].values == ["כללית"]
     assert sub.fields["sender"].status == "likely"
+
+
+def test_models_disagreeing_on_the_field_send_it_to_review(cfg):
+    # A 6-digit commitment looks like a central number (spec 3.2).
+    page = {
+        "page_kind": "form",
+        "candidates": [
+            vlm("central_numbers", "512340", label="מרכזי").model_dump(),
+            vlm("central_numbers", "700100", label="מרכזי").model_dump(),
+            esc("central_numbers", "512340", label="מרכזי").model_dump(),
+            esc("commitment_numbers", "700100").model_dump(),
+        ],
+    }
+    sub = decide_page(
+        PAGE, "b1", page, [barcode("512340"), barcode("700100")], cfg, REF
+    )
+    central = sub.fields["central_numbers"]
+    assert central.status == "review" and "disagree_sources" in central.reasons
