@@ -84,6 +84,10 @@
   name: המרכז הרפואי שמיר (אסף הרופא)
   type: hospital
   aliases: ["שמיר", "אסף הרופא", "Shamir", "Assaf Harofeh"]
+- id: hillel_yaffe
+  name: המרכז הרפואי הלל יפה
+  type: hospital
+  aliases: ["הלל יפה", "Hillel Yaffe"]
 - id: barzilai
   name: המרכז הרפואי ברזילי
   type: hospital

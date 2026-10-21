@@ -157,6 +157,86 @@ def cmd_vlm(args: argparse.Namespace) -> None:
             print(f"  {page_id}: {v['error']} {v['detail']}")
 
 
+def _ref_date(text: str | None):
+    from datetime import date
+
+    return date.fromisoformat(text) if text else date.today()
+
+
+def cmd_decide(args: argparse.Namespace) -> None:
+    import json
+    from collections import Counter
+
+    from vera.config import get_settings
+    from vera.pipeline.decide import FIELDS, DecisionConfig, decide_page
+
+    s = get_settings()
+    cfg = DecisionConfig.load(s.config_dir)
+    pages_dir = Path(args.pages)
+    vlm = json.loads((pages_dir / "vlm.json").read_text(encoding="utf-8"))
+    barcodes = json.loads((pages_dir / "barcodes.json").read_text(encoding="utf-8"))
+    ref = _ref_date(args.ref_date)
+
+    subs = [
+        decide_page(
+            page_id,
+            args.batch,
+            v,
+            barcodes.get(page_id, {}).get("barcodes", []),
+            cfg,
+            ref,
+        )
+        for page_id, v in vlm.items()
+    ]
+    out_path = Path(args.out) if args.out else pages_dir / "submissions.json"
+    out_path.write_text(
+        json.dumps(
+            [x.model_dump(mode="json") for x in subs], ensure_ascii=False, indent=2
+        ),
+        encoding="utf-8",
+    )
+    print(f"{len(subs)} submissions (ref date {ref}) -> {out_path}")
+    print(f"{'field':20s} verified likely review missing")
+    for f in FIELDS:
+        c = Counter(x.fields[f].status for x in subs)
+        print(
+            f"{f:20s} {c['verified']:8d} {c['likely']:6d} {c['review']:6d} "
+            f"{c['missing']:7d}"
+        )
+    rows = Counter(x.row_status for x in subs)
+    print("rows: " + ", ".join(f"{k} {v}" for k, v in sorted(rows.items())))
+
+
+def cmd_eval(args: argparse.Namespace) -> None:
+    import json
+    from datetime import datetime
+
+    from vera.config import get_settings
+    from vera.evaluate import dump, evaluate, to_markdown
+    from vera.groundtruth import load_ground_truth
+    from vera.models import Submission
+    from vera.pipeline.decide import DecisionConfig
+
+    s = get_settings()
+    cfg = DecisionConfig.load(s.config_dir)
+    subs_list = json.loads(Path(args.submissions).read_text(encoding="utf-8"))
+    subs = {d["id"]: Submission.model_validate(d) for d in subs_list}
+    rep = evaluate(
+        subs,
+        load_ground_truth(Path(args.gt)),
+        cfg.senders,
+        _ref_date(args.ref_date),
+        split=args.split,
+    )
+    out_dir = Path(args.reports) / datetime.now().strftime("%Y%m%d-%H%M%S")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    md = to_markdown(rep)
+    (out_dir / "report.md").write_text(md, encoding="utf-8")
+    (out_dir / "report.json").write_text(dump(rep), encoding="utf-8")
+    print(md.split("## לפי סטטוס")[0])
+    print(f"-> {out_dir}")
+
+
 def cmd_gt_template(args: argparse.Namespace) -> None:
     from vera.groundtruth import load_splits, write_template
     from vera.pipeline.ingest import pdf_page_count
@@ -207,6 +287,21 @@ def main(argv: list[str] | None = None) -> None:
     v.add_argument("--mode", choices=["live", "replay"], default=None)
     v.add_argument("--out", default=None, help="default: <pages>/vlm.json")
     v.set_defaults(func=cmd_vlm)
+
+    d = sub.add_parser("decide", help="barcodes + VLM -> statuses per field")
+    d.add_argument("--pages", default="data/work/pages", help="output of `pages`")
+    d.add_argument("--batch", default="samples")
+    d.add_argument("--ref-date", default=None, help="batch reference date, ISO")
+    d.add_argument("--out", default=None, help="default: <pages>/submissions.json")
+    d.set_defaults(func=cmd_decide)
+
+    e = sub.add_parser("eval", help="accuracy report against the ground truth")
+    e.add_argument("--submissions", default="data/work/pages/submissions.json")
+    e.add_argument("--gt", default="eval/ground_truth.xlsx")
+    e.add_argument("--split", default="dev", help="dev | test | empty for all")
+    e.add_argument("--ref-date", default=None)
+    e.add_argument("--reports", default="eval/reports")
+    e.set_defaults(func=cmd_eval)
 
     g = sub.add_parser("gt-template", help="empty ground-truth workbook")
     g.add_argument("files", nargs="+", help="sample PDFs or globs")
