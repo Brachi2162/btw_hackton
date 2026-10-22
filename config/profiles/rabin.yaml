@@ -3,7 +3,7 @@
 # patterns and places, never values from the samples (iron rule 5).
 id: rabin
 name: טופס השרון / רבין
-senders: [rabin]
+senders: [rabin, rabin_beilinson, rabin_hasharon]
 page_kinds: [form]
 commitment_regex: '^\d{9}$'
 commitment_regions: [middle-left]

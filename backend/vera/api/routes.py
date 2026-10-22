@@ -23,6 +23,13 @@ from vera.pipeline.ingest import UnsupportedFileError
 
 router = APIRouter(prefix="/api")
 
+# Page quality warnings (batch.page_quality, vera.pipeline.enhance).
+QUALITY_HE = {
+    "blur": "העמוד מטושטש, כדאי לסרוק שוב",
+    "skewed": "הסריקה עקומה; כדאי לבדוק שהערכים נקראו נכון או לסרוק שוב",
+    "dark": "הסריקה הייתה חשוכה והובהרה אוטומטית; כדאי לבדוק את הערכים",
+}
+
 
 def svc(request: Request) -> BatchService:
     return request.app.state.batches
@@ -97,15 +104,16 @@ def _progress(service: BatchService, batch_id: str) -> dict:
         )
         for p in ps:
             q = p.quality or {}
-            if "blur" in q.get("warnings", []):
+            found = [QUALITY_HE[w] for w in q.get("warnings", []) if w in QUALITY_HE]
+            if found:
                 warnings.append(
                     {
                         "page_id": p.id,
                         "filename": d.filename,
                         "page_no": p.page_no,
                         "sharpness": q.get("sharpness"),
-                        "message_he": f"{d.filename} עמ' {p.page_no}: העמוד מטושטש, "
-                        "כדאי לסרוק שוב",
+                        "message_he": f"{d.filename} עמ' {p.page_no}: "
+                        + "; ".join(found),
                     }
                 )
     return {"documents": documents, "quality_warnings": warnings}

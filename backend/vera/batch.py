@@ -30,6 +30,7 @@ from vera.normalize import (
     norm_id,
     norm_name,
 )
+from vera.pipeline.assemble import attach_continuations
 from vera.pipeline.decide import FIELDS, MULTI, DecisionConfig, decide_page
 from vera.pipeline.decide import merge_reads
 from vera.pipeline.gvision import VisionOcr
@@ -432,6 +433,7 @@ class BatchService:
                 self._claimed.discard(job[0])
 
         await asyncio.gather(*(one(j) for j in jobs))
+        self._attach_continuations(batch_id)
         with self.sv.repo.session() as s:
             batch = s.get(BatchRow, batch_id)
             batch.status = "done"
@@ -456,6 +458,8 @@ class BatchService:
                 self.work_dir(batch_id),
                 self.dpi,
                 self.orient,
+                self.s.deskew_min_angle,
+                self.s.dark_mean_threshold,
             )
             rec = prep["record"]
             self._set_page(
@@ -472,12 +476,19 @@ class BatchService:
             quality = await asyncio.to_thread(
                 page_quality, image, self.s.blur_threshold
             )
+            # Edge cases fixed (dark) or only measured (skew) in prepare_page.
+            tilted = abs(rec.get("skew", 0.0)) >= self.s.skew_warn_angle
+            if tilted and not rec.get("deskewed"):
+                quality["warnings"].append("skewed")
+            if rec.get("brightened"):
+                quality["warnings"].append("dark")
+            quality["skew"] = rec.get("skew", 0.0)
             self._set_page(page_id, quality=quality)
             if quality["warnings"]:
                 self.events.publish(
                     batch_id,
                     "warning",
-                    {"page_id": page_id, "error": "blur", **quality},
+                    {"page_id": page_id, "error": quality["warnings"][0], **quality},
                 )
             self._stage(batch_id, page_id, doc_id, "read")
             vlm = await asyncio.to_thread(
@@ -700,6 +711,21 @@ class BatchService:
             "row_status": sub.row_status,
             "fields": {f: _field_summary(fr) for f, fr in sub.fields.items()},
         }
+
+    def _attach_continuations(self, batch_id: str) -> None:
+        """Pages -> forms: continuation pages join the form before them."""
+        forms, joined = attach_continuations(self.submissions(batch_id))
+        if not joined:
+            return
+        with self.sv.repo.session() as s:
+            for sub_id in joined:
+                row = s.get(SubmissionRow, sub_id)
+                if row is not None:
+                    s.delete(row)
+            s.commit()
+        for sub in forms:
+            if len(sub.page_ids) > 1:
+                self._save_submission(sub)
 
     def submissions(self, batch_id: str) -> list[Submission]:
         with self.sv.repo.session() as s:

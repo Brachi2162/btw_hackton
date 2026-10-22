@@ -21,12 +21,25 @@ def page_id_of(doc: str, page_no: int) -> str:
 
 
 def prepare_page(
-    src: Path, index: int, out_dir: Path, dpi: int = 300, orient: bool = True
+    src: Path,
+    index: int,
+    out_dir: Path,
+    dpi: int = 300,
+    orient: bool = True,
+    deskew_min: float = 0.0,
+    dark_below: float = 150.0,
 ) -> dict:
-    """Render + orient + save one page, then read its barcodes.
-    Picklable in and out, so it can run in a process pool."""
+    """Render + orient + fix (skew, dark) + save one page, then read its
+    barcodes. Picklable in and out, so it can run in a process pool."""
     record = _process_page(
-        Path(src), index, file_sha256(Path(src)), out_dir, dpi, orient
+        Path(src),
+        index,
+        file_sha256(Path(src)),
+        out_dir,
+        dpi,
+        orient,
+        deskew_min,
+        dark_below,
     )
     with Image.open(Path(out_dir) / record.image) as img:
         page = img.convert("RGB")

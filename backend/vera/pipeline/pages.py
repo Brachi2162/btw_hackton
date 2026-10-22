@@ -17,6 +17,7 @@ from vera.pipeline.ingest import (
     page_count,
     sniff_kind,
 )
+from vera.pipeline.enhance import fix_page
 from vera.pipeline.orient import detect_orientation, rotate_cw
 
 
@@ -37,6 +38,10 @@ class PageRecord:
     height: int
     dpi: int | None
     image: str  # path relative to the output dir
+    # Edge cases (vera.pipeline.enhance): measured skew, and what was fixed.
+    skew: float = 0.0
+    deskewed: bool = False
+    brightened: bool = False
 
 
 def file_sha256(path: Path) -> str:
@@ -48,13 +53,21 @@ def file_sha256(path: Path) -> str:
 
 
 def _process_page(
-    path: Path, index: int, file_hash: str, out_dir: Path, dpi: int, orient: bool
+    path: Path,
+    index: int,
+    file_hash: str,
+    out_dir: Path,
+    dpi: int,
+    orient: bool,
+    deskew_min: float = 0.0,
+    dark_below: float = 150.0,
 ) -> PageRecord:
     is_pdf = sniff_kind(path.read_bytes()[:16]) == "pdf"
     raw = load_page(path, index, dpi)
     o = detect_orientation(raw) if orient else None
     angle = o.angle if o else 0
     img = rotate_cw(raw, angle)
+    img, fix = fix_page(img, deskew_min, dark_below)
 
     rel = Path(path.stem) / f"p{index + 1:02d}.png"
     (out_dir / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -76,6 +89,9 @@ def _process_page(
         height=img.height,
         dpi=dpi if is_pdf else None,
         image=rel.as_posix(),
+        skew=fix.skew,
+        deskewed=fix.deskewed,
+        brightened=fix.brightened,
     )
 
 
