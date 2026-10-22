@@ -6,7 +6,7 @@ import { useToast } from "../components/Toast";
 import "./Assistant.css";
 
 type Msg = { role: "user" | "assistant"; content: string; actions?: ChatReply["actions"] };
-const START = ["מה מחכה לי עכשיו?", "אילו מבחנות הגיעו בלי טופס?", "אילו בירורים פתוחים יותר מיממה?", "איך היה השבוע?"];
+const START = ["מה מחכה לי עכשיו?", "אילו בירורים פתוחים יותר מיממה?", "איך היה השבוע?"];
 
 /** "שאלי את VERA": a floating button and a 400x600 chat panel. Changes the
  * assistant proposes come back as confirm cards; nothing runs until the

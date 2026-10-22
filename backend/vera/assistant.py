@@ -118,7 +118,6 @@ WRITE_NAMES = {t["name"] for t in WRITE_TOOLS}
 STATUS_HE = {"open": "פתוח", "sent": "נשלחה פנייה", "closed": "נסגר"}
 SUGGESTIONS = [
     "מה מחכה לי עכשיו?",
-    "אילו מבחנות הגיעו בלי טופס?",
     "אילו בירורים פתוחים יותר מיממה?",
     "איך היה השבוע?",
 ]
@@ -451,10 +450,10 @@ class Assistant:
         else:
             o = self.run_tool("work_overview", {})
             text = (
-                f"מחכים עכשיו {o['review_waiting']} שדות לבדיקה, "
-                f"{o['open_followups']} בירורים פתוחים "
-                f"({o['overdue_followups']} באיחור), "
-                f"ו-{o['forms_waiting_for_tube']} טפסים שמחכים למבחנה."
+                f"מחכים עכשיו {o['review_waiting']} שדות לבדיקה "
+                f"ו-{o['open_followups']} בירורים פתוחים "
+                f"({o['overdue_followups']} באיחור). "
+                f"{o['batches_not_exported']} אצוות עוד לא יוצאו."
             )
             used = ["work_overview"]
         return {**self._reply(text, [], used), "mode": "offline"}

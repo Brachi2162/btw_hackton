@@ -103,9 +103,11 @@ def propagate(
 
 
 @router.get("/inbox")
-def inbox_preview(request: Request, path: str = "", today: bool = False):
+def inbox_preview(
+    request: Request, path: str = "", today: bool = False, recursive: bool = False
+):
     try:
-        return inbox.scan(svc(request), path, today_only=today)
+        return inbox.scan(svc(request), path, today_only=today, recursive=recursive)
     except inbox.InboxError as e:
         raise HTTPException(422, str(e))
 
@@ -113,6 +115,7 @@ def inbox_preview(request: Request, path: str = "", today: bool = False):
 class ImportIn(BaseModel):
     path: str = ""
     today_only: bool = False
+    recursive: bool = False
 
 
 @router.post("/inbox/import")
@@ -123,7 +126,9 @@ async def inbox_import(
     upload, without sending files through the browser."""
     service = svc(request)
     try:
-        out = inbox.import_folder(service, body.path, user_of(x_user), body.today_only)
+        out = inbox.import_folder(
+            service, body.path, user_of(x_user), body.today_only, body.recursive
+        )
     except inbox.InboxError as e:
         raise HTTPException(422, str(e))
     if out["added"]:

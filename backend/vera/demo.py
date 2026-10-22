@@ -1,7 +1,7 @@
 """Made-up history for the demo: `python -m vera.cli seed-demo`.
 
 Four weeks of morning batches (Sunday-Thursday) with forms, corrections,
-tubes and follow-ups, so the weekly report, follow-ups board and handover
+follow-ups and handover notes, so the weekly report, follow-ups board and handover
 have something to show. Everything is marked demo=true (the UI shows a
 "נתוני דוגמה" badge) and `clear-demo` removes exactly that.
 
@@ -353,55 +353,7 @@ def seed(bs, weeks: int = 4, seed_value: int = 7, today: date | None = None) -> 
         totals["batches"] += 1
         totals["forms"] += n
 
-        # tubes: most forms get theirs; now and then one comes alone
-        scanned = rng.sample(subs, k=len(subs) - rng.randint(0, 2))
-        if is_today:
-            scanned = subs[:6]
-        with bs.sv.repo.session() as s:
-            slot = 0
-            for sub in scanned:
-                c = sub.fields["central_numbers"].values
-                if not c:
-                    continue
-                s.add(
-                    TubeScanRow(
-                        batch_id=bid,
-                        number=c[0],
-                        raw=c[0],
-                        submission_id=sub.id,
-                        slot=slot,
-                        scanned_at=created + timedelta(minutes=5 + slot),
-                        demo=True,
-                    )
-                )
-                slot += 1
-            for _ in range(1 if is_today else rng.choice([0, 0, 1, 2])):
-                num = str(central + rng.randint(500, 900))
-                s.add(
-                    TubeScanRow(
-                        batch_id=bid,
-                        number=num,
-                        raw=num,
-                        submission_id=None,
-                        slot=slot,
-                        scanned_at=created + timedelta(minutes=40),
-                        demo=True,
-                    )
-                )
-                s.add(
-                    FollowupRow(
-                        kind="tube_orphan",
-                        batch_id=bid,
-                        title_he=f"מבחנה {num} הגיעה בלי טופס",
-                        detail_he=f"נסרקה באצווה בוקר {day:%d/%m}",
-                        created_at=created + timedelta(minutes=40),
-                        demo=True,
-                    )
-                )
-                slot += 1
-            totals["tubes"] += slot
-            s.commit()
-
+        # (no tube scans: the tubes screen was removed from the UI)
         create_for_batch(bs, bid)
         with bs.sv.repo.session() as s:  # age them; most old ones are done
             for f in s.exec(select(FollowupRow).where(FollowupRow.batch_id == bid)):

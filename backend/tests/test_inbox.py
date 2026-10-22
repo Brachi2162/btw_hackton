@@ -70,17 +70,33 @@ def test_resolve_accepts_host_paths_and_subfolders(inbox):
     assert resolve(inbox, HOST, '"C:/Users/lab/Scans/2026-10-22/"') == day.resolve()
     assert resolve(inbox, HOST, "2026-10-22") == day.resolve()
     assert resolve(inbox, HOST, "") == inbox.resolve()
-    with pytest.raises(InboxError, match="לא נמצאת"):
+    assert (
+        resolve(inbox, HOST, "file:///C:/Users/lab/Scans/2026-10-22") == day.resolve()
+    )
+    with pytest.raises(InboxError, match="אין גישה"):
         resolve(inbox, HOST, r"D:\Elsewhere")
+    # web addresses are scanned by inbox_url before resolve; a network share
+    # can't be reached from the container
+    with pytest.raises(InboxError, match="תיקיית רשת"):
+        resolve(inbox, HOST, r"\\server\scans")
     with pytest.raises(InboxError):
         resolve(inbox, HOST, "../../etc")
     with pytest.raises(InboxError, match="לא קיימת"):
         resolve(inbox, HOST, "nope")
 
 
+def test_resolve_with_a_whole_drive_mounted(tmp_path):
+    (tmp_path / "Users" / "lab" / "Downloads").mkdir(parents=True)
+    got = resolve(tmp_path, "C:\\", r"C:\Users\lab\Downloads")
+    assert got == (tmp_path / "Users" / "lab" / "Downloads").resolve()
+    assert resolve(tmp_path, "C:\\", "C:") == tmp_path.resolve()
+
+
 def test_preview_picks_only_relevant_files(client):
     c, _ = client
-    r = c.get("/api/inbox", params={"path": rf"{HOST}\2026-10-22"}).json()
+    r = c.get(
+        "/api/inbox", params={"path": rf"{HOST}\2026-10-22", "recursive": True}
+    ).json()
     why = {f["path"]: f["reason"] for f in r["files"]}
     assert why == {
         "forms.pdf": "ok",

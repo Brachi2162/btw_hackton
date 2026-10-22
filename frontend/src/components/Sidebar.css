@@ -1,7 +1,7 @@
 .sidebar {
-  background: var(--navy);
-  color: #c9d4df;
-  width: 220px;
+  background: var(--dark-grad);
+  color: #d3dde6;
+  width: 230px;
   flex: none;
   display: flex;
   flex-direction: column;
@@ -9,27 +9,50 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow: hidden;
+}
+
+/* a soft brand glow in the corner */
+.sidebar::before {
+  content: "";
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  top: -160px;
+  inset-inline-end: -160px;
+  background: radial-gradient(circle, rgba(14, 159, 154, 0.28), transparent 65%);
+  pointer-events: none;
 }
 
 .logo {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 10px 26px;
+  padding: 0 10px 24px;
   color: #fff;
+  border: 0;
+  background: none;
+  text-align: start;
 }
 
 .logo-icon {
   color: var(--glow);
+  filter: drop-shadow(0 0 6px rgba(14, 159, 154, 0.6));
 }
 
 .logo-text {
   font-weight: 600;
   font-size: 19px;
   letter-spacing: 0.32em;
+  background: linear-gradient(90deg, #bdeeea, #8fdcd6 50%, #9fc3d8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .sidebar ul {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -39,6 +62,7 @@
 }
 
 .nav-item {
+  position: relative;
   width: 100%;
   display: flex;
   align-items: center;
@@ -47,27 +71,37 @@
   background: transparent;
   color: inherit;
   padding: 9px 12px;
-  border-radius: 8px;
+  border-radius: 9px;
   text-align: start;
   font-weight: 500;
   transition: background 0.15s, color 0.15s;
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
 
 .nav-item.active {
-  background: rgba(14, 159, 154, 0.16);
+  background: linear-gradient(120deg, rgba(95, 208, 203, 0.18), rgba(14, 159, 154, 0.18) 50%, rgba(13, 27, 42, 0.22));
   color: #fff;
-  box-shadow: inset -3px 0 0 var(--teal);
+}
+
+.nav-item.active::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: -14px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--orange), var(--pink), var(--purple));
 }
 
 .nav-icon {
   width: 18px;
   text-align: center;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .nav-label {
@@ -75,7 +109,7 @@
 }
 
 .nav-count {
-  background: var(--review);
+  background: var(--grad);
   color: #fff;
   font-size: 12px;
   font-weight: 600;
@@ -92,6 +126,7 @@
 }
 
 .sidebar-foot {
+  position: relative;
   margin-top: auto;
   display: flex;
   flex-direction: column;
@@ -102,12 +137,26 @@
   font-size: 14px;
 }
 
+.partner-logo {
+  display: block;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.partner-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .listening {
   display: flex;
   align-items: center;
   gap: 9px;
   font-size: 13px;
-  color: #8fa2b5;
+  color: #9fb3c4;
   padding: 0 12px;
 }
 
@@ -127,7 +176,8 @@
   }
   .logo-text,
   .nav-label,
-  .listening {
+  .listening,
+  .partner-logo {
     display: none;
   }
 }

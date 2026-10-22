@@ -3,10 +3,9 @@ import { Virus } from "./Virus";
 import "./Sidebar.css";
 
 const ITEMS: { key: string; label: string; icon: string }[] = [
+  { key: "home", label: "ברוכים הבאים", icon: "✦" },
   { key: "intake", label: "קליטה", icon: "⇣" },
   { key: "review", label: "בדיקה", icon: "◉" },
-  { key: "cards", label: "כרטיסיות", icon: "▤" },
-  { key: "tubes", label: "מבחנות", icon: "⫼" },
   { key: "followups", label: "בירורים", icon: "↺" },
   { key: "reports", label: "דוחות", icon: "▥" },
   { key: "export", label: "ייצוא", icon: "⇪" },
@@ -17,10 +16,10 @@ export function Sidebar({ active }: { active: string }) {
   const waiting = overview?.review_waiting ?? 0;
   return (
     <nav className="sidebar" aria-label="ניווט ראשי">
-      <div className="logo">
+      <button className="logo" onClick={() => go("home")} aria-label="VERA, עמוד הבית">
         <Virus size={30} spikes={9} className="logo-icon" />
         <span className="logo-text">VERA</span>
-      </div>
+      </button>
       <ul>
         {ITEMS.map((it) => (
           <li key={it.key}>
@@ -55,6 +54,9 @@ export function Sidebar({ active }: { active: string }) {
         <div className="listening">
           <span className="live-dot" aria-hidden="true" />
           מאזינה לתיקיית הסורק
+        </div>
+        <div className="partner-logo">
+          <img src="/logo-partners.png" alt="משרד הבריאות · המעבדה המרכזית לנגיפים" width={229} height={92} />
         </div>
       </div>
     </nav>

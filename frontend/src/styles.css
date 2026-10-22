@@ -1,6 +1,15 @@
 :root {
+  /* Brand: navy and teal. The gradient tokens are shades of the same teal:
+     --orange / --pink / --purple are the light, middle and deep stops
+     (names kept so the welcome page and its effects need no changes). */
+  --orange: #3cc4bd;
+  --pink: #0e9f9a;
+  --purple: #0b6f78;
+  --grad: linear-gradient(120deg, #2cb8b1 0%, #0e9f9a 50%, #0b6f78 100%);
+  --grad-soft: linear-gradient(120deg, #eefaf9 0%, #e6f6f5 50%, #eaf1f6 100%);
   --navy: #0d1b2a;
   --navy-2: #15273b;
+  --dark-grad: linear-gradient(170deg, #15273b 0%, #0d1b2a 55%, #0a1622 100%);
   --bg: #f3f6f8;
   --card: #ffffff;
   --border: #e2e8ee;
@@ -41,7 +50,11 @@ body,
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(14, 159, 154, 0.07), transparent 60%),
+    radial-gradient(900px 500px at 0% 0%, rgba(13, 27, 42, 0.06), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
   font-size: 15px;
@@ -121,13 +134,23 @@ h3 {
 }
 
 .btn.primary {
-  background: var(--teal);
-  border-color: var(--teal);
+  background: var(--grad);
+  border-color: transparent;
   color: #fff;
+  box-shadow: 0 4px 14px rgba(14, 159, 154, 0.25);
 }
 
 .btn.primary:hover {
-  background: #0b8a85;
+  background: var(--grad);
+  filter: brightness(1.06) saturate(1.05);
+}
+
+/* gradient text for headings that carry the brand */
+.grad-text {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .btn.ghost {

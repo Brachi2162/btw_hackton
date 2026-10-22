@@ -62,8 +62,6 @@ export function Handover() {
             <dd className="num">{d.done.pages_read}</dd>
             <dt>שדות תוקנו או אושרו</dt>
             <dd className="num">{d.done.fields_fixed}</dd>
-            <dt>מבחנות נסרקו</dt>
-            <dd className="num">{d.done.tubes_scanned}</dd>
             <dt>אצוות יוצאו</dt>
             <dd className="num">{d.done.batches_exported}</dd>
           </dl>
@@ -87,11 +85,6 @@ export function Handover() {
                   (<span className="num">{p.overdue_followups}</span> יותר מיממה)
                 </span>
               )}
-            </li>
-            <li>
-              <button className="link" onClick={() => go("tubes")}>
-                <span className="num">{p.forms_waiting_for_tube}</span> טפסים מחכים למבחנה
-              </button>
             </li>
             <li>
               <button className="link" onClick={() => go("export")}>
