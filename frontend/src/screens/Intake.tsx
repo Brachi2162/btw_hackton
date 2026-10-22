@@ -24,13 +24,32 @@ const todayName = () => {
 };
 
 export function Intake() {
-  const { setBatchId, go, overview, refreshOverview } = useApp();
+  const { batchId, setBatchId, go, overview, refreshOverview } = useApp();
   const toast = useToast();
   const uploadDone = useUploadDone();
   const [over, setOver] = useState(false);
   const [batch, setBatch] = useState<Batch | null>(null);
   const [rejected, setRejected] = useState<{ filename: string; error: string }[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  // Coming back to this screen mid-reading: the reading never stopped (it
+  // runs on the server), so pick that batch up again instead of showing an
+  // empty screen. The batch being read, else the one just uploaded to.
+  useEffect(() => {
+    let alive = true;
+    api
+      .batches()
+      .then(async (list) => {
+        const live = list.find((b) => b.status === "processing" && !b.demo);
+        const mine = list.find((b) => b.id === batchId && b.status === "new");
+        const id = live?.id ?? mine?.id;
+        if (alive && id) setBatch(await api.batch(id));
+      })
+      .catch(() => {});
+    return () => void (alive = false);
+    // once, when the screen opens
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!batch || batch.status === "done") return;
@@ -51,6 +70,7 @@ export function Intake() {
     if (!files.length) return;
     try {
       const b = await api.createBatch(todayName());
+      setBatchId(b.id); // known before the upload ends: leaving mid-upload is fine
       const r = await api.upload(b.id, files);
       setRejected(r.rejected);
       if (r.added.length) {
