@@ -1,0 +1,140 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "60626ac4a0de1f0ffd9084c249b4fa74f1bfdd361f6704405cdd59e2cb29566f",
+ "request_id": "req_011CgFUHe9tjgkd3AFAC3y75",
+ "usage": {
+  "input_tokens": 5684,
+  "output_tokens": 1100
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז שניידר לרפואת ילדים",
+  "page_marker": "Page 1 of 1",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "illegible handwriting",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי",
+     "evidence_text": "שם פרטי: [handwritten blue scribble]",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "illegible handwriting",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה",
+     "evidence_text": "שם משפחה: [handwritten blue scribble]",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "4223844",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת. זהות",
+     "evidence_text": "ת. זהות: 4223844 (handwritten blue, highlighted)",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "1122 3344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "sticker",
+     "evidence_text": "handwritten blue number under barcode sticker 1122 3344",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "107646",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "2-0 חוץ",
+     "evidence_text": "barcode sticker 107646",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "948205",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode at top",
+     "evidence_text": "948205 highlighted barcode",
+     "region": "top-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026 המעבדה המרכזית לנגיפים",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז שניידר לרפואת ילדים",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "header",
+     "evidence_text": "מרכז שניידר לרפואת ילדים",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "כללית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "logo",
+     "evidence_text": "כללית",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2925357417-01",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "sticker",
+     "evidence_text": "2925357417-01",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "292240",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מח עצם",
+     "evidence_text": "מח עצם 292240",
+     "region": "middle-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "30/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בקשה לבדיקות מעבדה מחוץ לבית החולים מתאריך",
+     "evidence_text": "מתאריך 30/08/2026",
+     "region": "top-center"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "14:43 30/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך ושעה",
+     "evidence_text": "14:43 30/08/2026",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

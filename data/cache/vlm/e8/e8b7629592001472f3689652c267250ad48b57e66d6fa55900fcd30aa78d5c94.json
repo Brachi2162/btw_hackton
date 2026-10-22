@@ -1,0 +1,141 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "23865c30b9ca9cdc48db88d92985f8cf2bebd4f6ba5273821efbd05ab40f6206",
+ "crop": null,
+ "request_id": "req_011CgHtzqxVxeVzBezktAmZd",
+ "usage": {
+  "input_tokens": 6273,
+  "output_tokens": 1149
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "רמב\"ם - הקריה הרפואית לבריאות האדם",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יוסף",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם הנבדק",
+     "evidence_text": "handwritten blue name next to ID under highlighter",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Mesa Tioi",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם הנבדק",
+     "evidence_text": "handwritten blue scribble next to שם הנבדק",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "פנימית ד'",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "גורם שולח",
+     "evidence_text": "פנימית ד'",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תעודת זהות",
+     "evidence_text": "1122 3344 handwritten blue on highlighter",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "112233344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז",
+     "evidence_text": "11223344 ת.ז handwritten near signature",
+     "region": "bottom-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945505",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "barcode sticker 945505 with vertical text",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "10-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל stamp 1 0 -08- 2026 המעבדה המרכזית לנגיפים",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "רמב\"ם - הקריה הרפואית לבריאות האדם",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "header",
+     "evidence_text": "רמב\"ם הקריה הרפואית לבריאות האדם",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "944000352",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר דגימה",
+     "evidence_text": "מספר דגימה: 944000352",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "944000352 2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "944 000352 2026 barcode sticker",
+     "region": "bottom-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "06/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "06/08/2026 at top left of letter",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "06/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך לקיחת חומר הדגימה",
+     "evidence_text": "תאריך לקיחת חומר הדגימה: 06/08/2026",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "06/08/206",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך אריזת הדגימה",
+     "evidence_text": "תאריך אריזת הדגימה: 06/08/206",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

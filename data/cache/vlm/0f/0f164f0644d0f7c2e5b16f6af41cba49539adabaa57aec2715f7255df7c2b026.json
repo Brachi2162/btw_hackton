@@ -1,0 +1,63 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "84852728671001fe80d80678d7241b770aea6941e1b6826a6a25cd9d5d6a437f",
+ "request_id": "req_011CgF8SiLaY1omehsAuCukY",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 378
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "30778872",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מין / מקרה",
+     "evidence_text": "30778872",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [],
+   "receipt_date": [],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "08240",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "08240 30.08.2026 30.08.2026",
+     "region": "bottom-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "30.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "30.08.2026",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "30.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ביקור",
+     "evidence_text": "30.08.2026",
+     "region": "top-left"
+    }
+   ]
+  }
+ }
+}

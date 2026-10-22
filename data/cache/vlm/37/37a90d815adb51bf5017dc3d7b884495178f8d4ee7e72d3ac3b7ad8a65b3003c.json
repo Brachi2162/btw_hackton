@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "3e29cece49b2ca8a54a6894b19bb085e987848ac8dc1a8b7b693d1504791b09d",
+ "crop": [
+  497,
+  0,
+  1990,
+  1590
+ ],
+ "request_id": "pRbaav_sJIuKvdIPrr6d6AY",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 4656
+ },
+ "reading": {
+  "first_name": "יונתן",
+  "last_name": "ספרא",
+  "id_number": "01122334",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

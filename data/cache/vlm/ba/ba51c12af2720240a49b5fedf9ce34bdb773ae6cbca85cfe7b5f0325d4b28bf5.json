@@ -1,0 +1,108 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "b59906378ca99f0bc7d9e0ad86dfdf2bd659a07d1579034e2b886da21378ce65",
+ "request_id": "req_011CgFUteqHYLGEf9wF3JAfm",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 805
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי הלל יפה",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Yoel Gabay",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם החולה",
+     "evidence_text": "שם החולה : handwritten blue name over printed line",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Yoel Gabay",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם החולה",
+     "evidence_text": "שם החולה : handwritten blue name over printed line",
+     "region": "top-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "112233344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "112233344 highlighted blue handwriting near 54",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945740",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "945740 barcode sticker with vertical מרכזי label",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "11.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "11.8.26 handwritten blue under central number sticker",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי הלל יפה",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "הלל יפה logo and מעבדה הלל יפה stamp",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "00879",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "2648 00879 printed barcode number with highlight",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27.07.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "27.07.26",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "25.07.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "25.07.26 handwritten near PCR-ZIKA",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

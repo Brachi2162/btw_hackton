@@ -1,0 +1,100 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "3e29cece49b2ca8a54a6894b19bb085e987848ac8dc1a8b7b693d1504791b09d",
+ "crop": null,
+ "request_id": "req_011CgHttB1Gwc5wY5pcE2KaG",
+ "usage": {
+  "input_tokens": 6338,
+  "output_tokens": 1882
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "כללית",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ישראלי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מטופל",
+     "evidence_text": "מטופל ישראלי (כתב יד כחול חלקי ליד 01122334)",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ישראלי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מטופל",
+     "evidence_text": "מטופל ישראלי (כתב יד כחול חלקי ליד 01122334)",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "01122334",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מטופל",
+     "evidence_text": "01122334 (כחול, כתב יד) ליד 03-5303030",
+     "region": "top-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "939539",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "939539 מתחת לברקוד",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "21-06-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 2 1 -06- 2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "כללית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "כללית",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "304497989",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לטיפולים אמבולטוריים מספר",
+     "evidence_text": "התחייבות לתשלום עבור שירותי בריאות טופס 17 לטיפולים אמבולטוריים מספר:304497989",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "21/06/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "העתק תאריך: 21/06/2026",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

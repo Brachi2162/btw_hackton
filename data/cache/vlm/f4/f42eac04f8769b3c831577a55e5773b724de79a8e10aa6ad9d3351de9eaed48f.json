@@ -1,0 +1,90 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "f46975d0ecc86751be8588f171126bd670b08339221b1fcc079abdc8f79fc194",
+ "request_id": "req_011CgFUv9TX9rJ6vUob3D7rH",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 612
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "כללית",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [
+    {
+     "value_raw": "",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם המשפחה",
+     "evidence_text": "שם המשפחה (empty box)",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "948258",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "948258",
+     "region": "bottom-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "כללית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקבוצת",
+     "evidence_text": "מקבוצת כללית",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2825751832-01",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "2825751832-01",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "12.9.18",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "תאריך לקיחת הדגימה 12 9 018 16",
+     "region": "middle-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "12/09/2018",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "1 2 | 9 | 0 1 8 | 2 | 6",
+     "region": "middle-left"
+    }
+   ]
+  }
+ }
+}

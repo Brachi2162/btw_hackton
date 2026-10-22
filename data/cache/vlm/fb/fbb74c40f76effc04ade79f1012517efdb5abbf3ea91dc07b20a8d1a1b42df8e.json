@@ -1,0 +1,26 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v3",
+ "page_sha256": "f46975d0ecc86751be8588f171126bd670b08339221b1fcc079abdc8f79fc194",
+ "crop": [
+  995,
+  0,
+  2488,
+  1586
+ ],
+ "request_id": "req_011CgHe2C4kQPunxmJoZjoYC",
+ "usage": {
+  "input_tokens": 4481,
+  "output_tokens": 1828
+ },
+ "reading": {
+  "first_name": "אלי",
+  "first_name_alt": "אכלי",
+  "last_name": "יוסף",
+  "last_name_alt": "יוסי",
+  "id_number": "11223344",
+  "first_name_legible": false,
+  "last_name_legible": false,
+  "id_legible": true
+ }
+}

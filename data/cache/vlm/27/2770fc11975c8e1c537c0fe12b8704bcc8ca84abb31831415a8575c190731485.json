@@ -1,0 +1,42 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v2",
+ "page_sha256": "f46975d0ecc86751be8588f171126bd670b08339221b1fcc079abdc8f79fc194",
+ "crop": [
+  995,
+  0,
+  2488,
+  1586
+ ],
+ "request_id": "req_011CgHRSpd5uVRjHC8VubpCg",
+ "usage": {
+  "input_tokens": 4683,
+  "output_tokens": 1438
+ },
+ "reading": {
+  "name_line": "יוסף אריאל (cursive, uncertain)",
+  "first_name_letters": [
+   "א",
+   "ר",
+   "י",
+   "א",
+   "ל"
+  ],
+  "first_name": "אריאל",
+  "last_name_letters": [
+   "י",
+   "ו",
+   "ס",
+   "ף"
+  ],
+  "last_name": "יוסף",
+  "id_number": "11223344",
+  "first_name_legible": false,
+  "last_name_legible": false,
+  "id_legible": true,
+  "box_left": 245,
+  "box_top": 590,
+  "box_right": 550,
+  "box_bottom": 670
+ }
+}

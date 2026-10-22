@@ -1,0 +1,107 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "4fa37bbfc60db80ee3c5fa00a9d3b3e46d3232deae797c834f7b0fd15ac8a3da",
+ "request_id": "req_011CgF8PoS61MKBSce7t2G21",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 698
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Dengue",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "הבדיקה הנדרשת",
+     "evidence_text": "Dengue",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "122334",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "122334",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "436702",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "436702",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "946621",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "946621",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "התקבל",
+     "evidence_text": "18 08 2026",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי בני ציון",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "המרכז הרפואי בני ציון",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "10982927",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה",
+     "evidence_text": "מקרה: 10982927",
+     "region": "top-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "14.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "14.8.26",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "14.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "14.8.26",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

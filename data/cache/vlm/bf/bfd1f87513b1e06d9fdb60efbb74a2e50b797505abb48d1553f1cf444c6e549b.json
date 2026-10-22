@@ -1,0 +1,90 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "1aa76740a773460e9e8404a8b5829060a28d9c493947797c81aba3edf345ea06",
+ "request_id": "req_011CgF8QA3aDjoF4quoCTpoA",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 1515
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי ברזילי",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "unclear blue handwriting",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "שם: (blue handwriting)",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "11223312",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז. 11223312 (green handwriting)",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945992",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode sticker",
+     "evidence_text": "945992",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "13.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "central number",
+     "evidence_text": "13.8.26",
+     "region": "top-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי ברזילי",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "logo",
+     "evidence_text": "ברזילי medical center",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "1?0001",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מס' התחייבות",
+     "evidence_text": "מס' התחייבות",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "12/08/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "12/08/26",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

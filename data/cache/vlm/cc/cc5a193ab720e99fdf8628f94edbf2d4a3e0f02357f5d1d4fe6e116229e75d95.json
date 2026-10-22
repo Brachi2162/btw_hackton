@@ -1,0 +1,90 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "a1e0636557fbc349128a30be8f8d9d80166ccf1c91b53d5b878c6df04ceca868",
+ "request_id": "req_011CgF8ca6GDsqr834gCEUMn",
+ "usage": {
+  "input_tokens": 7292,
+  "output_tokens": 1965
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יוסף",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי",
+     "evidence_text": "handwritten blue name over the top-left patient sticker, partly obscured",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "10982910",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ת.ז.: 10982910 printed on the top-left patient sticker",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946622",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "barcode sticker 946622 with vertical printed label מרכזי",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-08-2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "yellow-highlighted faint date 18-08-2026 near bottom centre",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי בני ציון",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "המרכז הרפואי",
+     "evidence_text": "logo header המרכז הרפואי בני ציון top-right",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "436703",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode sticker with printed number 436703 top-right",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [],
+   "sample_date": [
+    {
+     "value_raw": "18.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "handwritten date next to תאריך לקיחת הדגימה",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,80 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "34d9eafb3d5dc06120e524cd5a3ad9ec45ff1fd7d45aa872e78866fe53da2ca3",
+ "request_id": "req_011CgF8gXMRedDdRm4Xun6BK",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 582
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז רפואי מאיר",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "948257",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מזכירות",
+     "evidence_text": "barcode sticker with 948257 near מזכירות",
+     "region": "bottom-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז רפואי מאיר",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בית החולים",
+     "evidence_text": "מרכז רפואי מאיר מסונף לפקולטה לרפואה, אוניברסיטת תל אביב",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue number above patient sticker",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "82857",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "vertical number 82857 on barcode sticker",
+     "region": "top-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "13.09.24",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תל",
+     "evidence_text": "13.09.24 תל on patient sticker",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

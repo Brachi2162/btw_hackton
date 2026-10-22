@@ -1,0 +1,116 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "a1e0636557fbc349128a30be8f8d9d80166ccf1c91b53d5b878c6df04ceca868",
+ "request_id": "req_011CgFUJ6brhKyLCPpcLXxFY",
+ "usage": {
+  "input_tokens": 5684,
+  "output_tokens": 888
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Maze",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי",
+     "evidence_text": "handwritten blue ink over patient sticker next to שם פרטי",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Fase",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה",
+     "evidence_text": "handwritten blue ink over patient sticker near שם פרטי / שם משפחה",
+     "region": "top-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "handwritten blue digits 11223344 on sticker under name",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946622",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "barcode sticker 946622 with vertical text",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-08-2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "faint highlighted stamp 18 -08- 2026 above signatures",
+     "region": "middle-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "בני ציון",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "המרכז הרפואי",
+     "evidence_text": "המרכז הרפואי בני ציון (highlighted logo)",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "436703",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "436703 on barcode sticker top right",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "10982910",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה",
+     "evidence_text": "10982910 מקרה",
+     "region": "top-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "21/06/2022",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מק\"ט",
+     "evidence_text": "2001205 :מק\"ט | 21/06/2022",
+     "region": "bottom-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "18.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "handwritten 18.8.26 next to תאריך לקיחת הדגימה",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

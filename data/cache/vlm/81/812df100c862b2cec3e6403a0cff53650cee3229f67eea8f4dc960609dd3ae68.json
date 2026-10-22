@@ -1,0 +1,99 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "fd1e17fdf13af91811d6bb44a9fa34c6b1fb49fa2c49d8950e55537a8422a80f",
+ "request_id": "req_011CgFUJBiwDuohESUZtA2hp",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 723
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי ברזילי",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ישפא שפא",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "אבקשו",
+     "evidence_text": "handwritten blue/black text over patient sticker name line next to מ.ז.",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ישפא שפא",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "אבקשו",
+     "evidence_text": "handwritten blue/black text over patient sticker name line next to מ.ז.",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז. 11223344",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946908",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode sticker 946908",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "20.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "946908",
+     "evidence_text": "handwritten date under barcode 946908, highlighted",
+     "region": "top-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "ברזילי",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "Barzilai Medical Center",
+     "evidence_text": "ברזילי Barzilai Medical Center; מרכז רפואי ברזילי",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "110224",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מס' התחייבות",
+     "evidence_text": "handwritten number on highlighted line next to מס' התחייבות",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "19/08/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten underlined date at top left",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

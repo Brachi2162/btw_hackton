@@ -1,0 +1,89 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "cde584257579568ee7759863653e7ea874b67d393e0eb860d0c8a5509015c050",
+ "request_id": "req_011CgFUvLJ8m4qgPRLwTtKaX",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 1993
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז רפואי קפלן",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מרכזי",
+     "evidence_text": "1122334 (blue handwriting under 1500 on sticker, near מרכזי)",
+     "region": "top-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "20-08-2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "20-08-2026 (highlighted stamp under table row 3)",
+     "region": "middle-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז רפואי קפלן",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "המרכז הרפואי",
+     "evidence_text": "המרכז הרפואי קפלן (logo)",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "66608446",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "66608446 (barcode with highlighted number)",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "946834",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מכבי",
+     "evidence_text": "946834 (barcode with vertical label)",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "11/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "תאריך: 11/8/26",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "09.08.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "09.08.26",
+     "region": "top-right"
+    }
+   ]
+  }
+ }
+}

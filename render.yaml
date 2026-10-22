@@ -1,0 +1,17 @@
+# Render blueprint: the API (screens are on Vercel, see frontend/).
+# Replay mode: the sample forms are read from data/cache/vlm, no model key and
+# no cost. Don't upload real patient forms here (spec 8.4).
+services:
+  - type: web
+    name: vera-api
+    runtime: docker
+    dockerfilePath: ./deploy/api.Dockerfile
+    dockerContext: .
+    # 2GB: the 512MB plans run out of memory on a 22-page PDF (measured)
+    plan: standard
+    healthCheckPath: /health
+    envVars:
+      - key: VLM_MODE
+        value: replay
+      - key: CORS_ORIGIN_REGEX
+        value: https://.*\.vercel\.app

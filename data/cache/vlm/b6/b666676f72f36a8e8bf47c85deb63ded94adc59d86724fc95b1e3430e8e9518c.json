@@ -1,0 +1,116 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "4fa37bbfc60db80ee3c5fa00a9d3b3e46d3232deae797c834f7b0fd15ac8a3da",
+ "request_id": "req_011CgFUHeLYxWnedcKh9mHco",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 853
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Casl.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: handwritten blue over highlighter on patient sticker",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "אבראהים",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "אב",
+     "evidence_text": "אבראהים : אב",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "Casl. Pasd",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "handwritten blue over highlighter next to שם:",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "11223344 highlighted blue handwritten near ת.ז.",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946621",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode sticker",
+     "evidence_text": "946621 barcode highlighted yellow",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "התקבל",
+     "evidence_text": "18-08-2026 handwritten highlighted over faint received stamp",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "בני ציון",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "המרכז הרפואי",
+     "evidence_text": "המרכז הרפואי בני ציון",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "436702",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode",
+     "evidence_text": "436702 barcode highlighted yellow",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "21/06/2022",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מק\"ט",
+     "evidence_text": "מק\"ט: 2001205 | 21/06/2022",
+     "region": "bottom-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "14.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "14.8.26",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,140 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "7f13ae05aebd0e620883ff6f32cbd7bec9eac3702e9e81fb3e3a1dc7ba41b7dc",
+ "request_id": "req_011CgFUJqnuT8hMCHVUD9nzH",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 1051
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי וולפסון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Pze. Cool",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: handwritten blue scribble over highlighted sticker line",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Pze. Cool",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: handwritten blue scribble over highlighted sticker line",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223347",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז. 11223347 handwritten blue",
+     "region": "top-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "7254627",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "7254627 vertical barcode sticker",
+     "region": "bottom-left"
+    },
+    {
+     "value_raw": "947468",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "947468 barcode sticker",
+     "region": "middle-left"
+    },
+    {
+     "value_raw": "947469",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "947469 barcode sticker",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "25-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "faint stamp 25-08-2026",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "שיבא",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "לכבוד ביה\"ח",
+     "evidence_text": "לכבוד ביה\"ח handwritten שיבא",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "המרכז הרפואי ע\"ש אדית וולפסון",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "המרכז הרפואי האוניברסיטאי ע\"ש אדית וולפסון",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "116904302",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "BIOHAZARD",
+     "evidence_text": "116904302 on biohazard sticker",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "25.08.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "תאריך: 25.08.26",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "25.08",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך הדגימה",
+     "evidence_text": "25.08",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "25.08",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך הדגימה",
+     "evidence_text": "25.08",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

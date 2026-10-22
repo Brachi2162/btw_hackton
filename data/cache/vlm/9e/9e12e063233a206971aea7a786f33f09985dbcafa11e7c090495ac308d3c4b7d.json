@@ -1,0 +1,91 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "623bf68b3af03301b10a6c996eae8ee8e19fd9fbe452d1831a8c2d3a0fe1386f",
+ "crop": null,
+ "request_id": "req_011CgHtySRcq8AjAPLBGGKj7",
+ "usage": {
+  "input_tokens": 6338,
+  "output_tokens": 2083
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מכבי",
+  "page_marker": "1/2",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יוסף ישפר",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: יוסף ישפר (blue handwriting next to שם:)",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "יוסף ישפר",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: יוסף ישפר (blue handwriting next to שם:)",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "112233444",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ת.ז.: 112233 44 (blue handwriting) and 00112233 44 (green highlight)",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "מכבי",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "להכוונה וסיוע: מוקד 3555* https://www.maccabi4u.co.il מכבי שירותי הבריאות הטובים בישראל",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "260630224",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות: 260630224",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "16/06/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך: 16/06/2026 שעה: 17:01:33",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "18/06/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך כניסה/טיפול",
+     "evidence_text": "תאריך כניסה/טפול 18/06/2026",
+     "region": "middle-left"
+    }
+   ]
+  }
+ }
+}

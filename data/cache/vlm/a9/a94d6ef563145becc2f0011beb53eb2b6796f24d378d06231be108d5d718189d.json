@@ -1,0 +1,42 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v2",
+ "page_sha256": "cd11322cefa8d663090312ce0f82fbd8c369cfd7d2ff92623724d817ff35f5bd",
+ "crop": [
+  1408,
+  0,
+  3521,
+  1116
+ ],
+ "request_id": "req_011CgHRUQLACSRUB2KkYt5qo",
+ "usage": {
+  "input_tokens": 3395,
+  "output_tokens": 1238
+ },
+ "reading": {
+  "name_line": "7112 23374 ·[שוס·] [ןיוסו]",
+  "first_name_letters": [
+   "י",
+   "ש",
+   "ו",
+   "ס"
+  ],
+  "first_name": "ישוס",
+  "last_name_letters": [
+   "ו",
+   "ס",
+   "ו",
+   "י",
+   "ן"
+  ],
+  "last_name": "וסוין",
+  "id_number": "711223374",
+  "first_name_legible": false,
+  "last_name_legible": false,
+  "id_legible": false,
+  "box_left": 310,
+  "box_top": 80,
+  "box_right": 760,
+  "box_bottom": 175
+ }
+}

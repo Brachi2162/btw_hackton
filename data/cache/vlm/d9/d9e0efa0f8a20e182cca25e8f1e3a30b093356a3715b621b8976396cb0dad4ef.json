@@ -1,0 +1,108 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "2b632b93ce72d7b99f50e65df45113c736d46f2f5b4550c27838f2b359d252e2",
+ "crop": null,
+ "request_id": "req_011CgHfuCDDJCzVB67dcaXWy",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 776
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי לניאדו",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "פיקסבל",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "handwritten name over the patient sticker next to שם",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "גבסון",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "משפחה",
+     "evidence_text": "handwritten text at the משפחה line above the sticker",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "948246",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תוצאה",
+     "evidence_text": "barcode sticker with 948246 highlighted",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "132797",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "משפחה",
+     "evidence_text": "X132797 barcode sticker at top right",
+     "region": "top-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי לניאדו",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לניאדו",
+     "evidence_text": "לניאדו מרכז רפואי צאנז",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "כללית",
+     "evidence_text": "blue handwritten number on the white sticker",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "27/8/26 תאריך",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "26/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "פנימית ב",
+     "evidence_text": "26/08/2026 on the sticker",
+     "region": "top-center"
+    }
+   ]
+  }
+ }
+}

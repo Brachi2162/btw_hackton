@@ -1,0 +1,99 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "cde584257579568ee7759863653e7ea874b67d393e0eb860d0c8a5509015c050",
+ "request_id": "req_011CgFUL3inFGALQmJ1iu4ga",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 701
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז רפואי קפלן",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יוסף",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue text above ID 11223344 on patient sticker",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Israel",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue text on patient sticker next to 11223344",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue number under name on sticker, highlighted yellow",
+     "region": "top-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946834",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "barcode sticker 946834 with vertical text",
+     "region": "top-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "20-08-2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "faint stamp 20-08-2026 highlighted yellow",
+     "region": "middle-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי קפלן",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "המרכז הרפואי קפלן logo; כללית logo at bottom",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "66608446",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode with number 66608446 highlighted yellow",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "11/8/26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "תאריך: 11/8/26",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

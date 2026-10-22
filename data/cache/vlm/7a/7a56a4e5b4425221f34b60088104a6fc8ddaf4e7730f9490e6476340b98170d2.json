@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "1295bc60e5f4a7d85ad29dbb861af5875cde1f5586e19cbcd4086ffa0a20e6d2",
+ "crop": [
+  995,
+  0,
+  2488,
+  1590
+ ],
+ "request_id": "xRbaatLhIev5xN8P7__RmAs",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 5784
+ },
+ "reading": {
+  "first_name": "יסמין",
+  "last_name": "ושדי",
+  "id_number": "",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

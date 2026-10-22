@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     review_seconds_per_field: int = 15
 
     cors_origins: str = "http://localhost:3000,http://localhost:5173"
+    # Also any origin matching this, e.g. https://.*\.vercel\.app in the cloud,
+    # where every Vercel deploy has its own address (render.yaml).
+    cors_origin_regex: str = ""
 
     @property
     def resolved_database_url(self) -> str:

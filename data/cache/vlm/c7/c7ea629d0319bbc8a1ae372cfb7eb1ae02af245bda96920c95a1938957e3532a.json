@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "a1e0636557fbc349128a30be8f8d9d80166ccf1c91b53d5b878c6df04ceca868",
+ "crop": [
+  0,
+  0,
+  1482,
+  1590
+ ],
+ "request_id": "8BfaaoanBYyNkdUPyvDVwA8",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 3326
+ },
+ "reading": {
+  "first_name": "פרח",
+  "last_name": "כהן",
+  "id_number": "11223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

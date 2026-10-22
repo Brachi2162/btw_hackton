@@ -1,0 +1,23 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "240bbdd11dab0445f5e875a166cdbc1fd0c3830990da3486bda7e7a36594efa8",
+ "crop": [
+  998,
+  883,
+  2496,
+  2650
+ ],
+ "request_id": "req_011CgH5by1nhdMCKcnBH2Qda",
+ "usage": {
+  "input_tokens": 3450,
+  "output_tokens": 786
+ },
+ "reading": {
+  "first_name": "יוסי",
+  "last_name": "כהן",
+  "id_number": "0011223344",
+  "name_legible": false,
+  "id_legible": false
+ }
+}

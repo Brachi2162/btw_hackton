@@ -1,0 +1,124 @@
+{
+ "model": "gemini-3.8-flash",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "a1e0636557fbc349128a30be8f8d9d80166ccf1c91b53d5b878c6df04ceca868",
+ "crop": null,
+ "request_id": "cL3ZaoSaLLDexs0Pnd2ByAc",
+ "usage": {
+  "input_tokens": 1970,
+  "output_tokens": 6157
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Fadi",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "שם פרטי:",
+     "evidence_text": "שם פרטי: Fadi",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "Rze. Fadi",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי:",
+     "evidence_text": "Rze. Fadi",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Rze.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה:",
+     "evidence_text": "Rze. Fadi",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "Rze. Fadi",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה:",
+     "evidence_text": "Rze. Fadi",
+     "region": "top-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מ.ז.:",
+     "evidence_text": "11223344 מ.ז.:",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946622",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "946622 מרכזי",
+     "region": "middle-left"
+    },
+    {
+     "value_raw": "436703",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "436703",
+     "region": "top-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18 -08- 2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "18 -08- 2026",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי בני ציון",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "המרכז הרפואי בני ציון",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [],
+   "form_date": [
+    {
+     "value_raw": "14.08.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ח.מיון כללי",
+     "evidence_text": "14.08.26 ח.מיון כללי",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "17.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה:",
+     "evidence_text": "תאריך לקיחת הדגימה: 17.8.26",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

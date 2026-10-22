@@ -1,0 +1,54 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "34d9eafb3d5dc06120e524cd5a3ad9ec45ff1fd7d45aa872e78866fe53da2ca3",
+ "request_id": "req_011CgF8RqF2vC3cuKnjUZRWk",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 1886
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": false,
+  "sender_guess": "מרכז רפואי מאיר",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "948257",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מזכירות",
+     "evidence_text": "948257",
+     "region": "bottom-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז רפואי מאיר",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכז רפואי",
+     "evidence_text": "מרכז רפואי מאיר",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [],
+   "form_date": [],
+   "sample_date": []
+  }
+ }
+}

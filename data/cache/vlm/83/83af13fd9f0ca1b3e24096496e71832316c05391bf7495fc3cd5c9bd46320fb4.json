@@ -1,0 +1,100 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "3952ba75ef003849e7a82cb6a2164018ad5ed940632316c0f588e56dcbfb29b6",
+ "crop": null,
+ "request_id": "req_011CgGvWDLnMEzWjAk2KEPBc",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 693
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "כללית",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ועטוי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue text at top after 0011223344",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Toori",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue text at top next to 0011223344",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "0011223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue digits at top, highlighted",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "939135",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten 939135 above 16/6/26, highlighted",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "16/6/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "under central number",
+     "evidence_text": "16/6/26",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "שרותי בריאות כללית מחוז דן",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "שם מבטח",
+     "evidence_text": "שרותי בריאות כללית מחוז דן - 110020",
+     "region": "middle-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "000302651707",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות 000302651707 21.12.2026 20.01.2026",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "16.06.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 16.06.2026",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

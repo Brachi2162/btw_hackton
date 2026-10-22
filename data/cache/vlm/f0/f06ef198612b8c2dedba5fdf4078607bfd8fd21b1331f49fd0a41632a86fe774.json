@@ -1,0 +1,132 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "7f13ae05aebd0e620883ff6f32cbd7bec9eac3702e9e81fb3e3a1dc7ba41b7dc",
+ "request_id": "req_011CgF8rtd8YQUMeczRJTa4m",
+ "usage": {
+  "input_tokens": 5733,
+  "output_tokens": 972
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי וולפסון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Az- Cool",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: handwritten blue over highlighter on patient sticker",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Az- Cool",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: handwritten blue over highlighter on patient sticker",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223347",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז. 11223347 handwritten blue",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "7254627",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "vertical barcode sticker 7254627 highlighted",
+     "region": "bottom-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "25-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "faint stamp date 25-08-2026 above stamp",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "שבא",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "לכבוד ביה\"ח",
+     "evidence_text": "לכבוד ביה\"ח handwritten, וולפסון header printed",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "947468",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode sticker 947468",
+     "region": "middle-left"
+    },
+    {
+     "value_raw": "947469",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode sticker 947469",
+     "region": "middle-left"
+    },
+    {
+     "value_raw": "12043641",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה:",
+     "evidence_text": "מקרה: 12043641",
+     "region": "middle-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "25.08.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "תאריך: 25.08.26 highlighted",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "25.08",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך הדגימה",
+     "evidence_text": "25.08 in sample date column",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "25.08",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך הדגימה",
+     "evidence_text": "25.08 second row",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

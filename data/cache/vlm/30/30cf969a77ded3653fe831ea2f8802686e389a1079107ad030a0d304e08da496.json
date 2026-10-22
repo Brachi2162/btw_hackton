@@ -1,0 +1,44 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v2",
+ "page_sha256": "34d9eafb3d5dc06120e524cd5a3ad9ec45ff1fd7d45aa872e78866fe53da2ca3",
+ "crop": [
+  988,
+  0,
+  2471,
+  1586
+ ],
+ "request_id": "req_011CgHRSi3wwjXjejJugCdja",
+ "usage": {
+  "input_tokens": 4683,
+  "output_tokens": 1125
+ },
+ "reading": {
+  "name_line": "ישראל ישראלי",
+  "first_name_letters": [
+   "י",
+   "ש",
+   "ר",
+   "א",
+   "ל"
+  ],
+  "first_name": "ישראל",
+  "last_name_letters": [
+   "י",
+   "ש",
+   "ר",
+   "א",
+   "ל",
+   "י"
+  ],
+  "last_name": "ישראלי",
+  "id_number": "11223344",
+  "first_name_legible": false,
+  "last_name_legible": false,
+  "id_legible": true,
+  "box_left": 290,
+  "box_top": 505,
+  "box_right": 570,
+  "box_bottom": 605
+ }
+}

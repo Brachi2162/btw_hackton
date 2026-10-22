@@ -1,0 +1,124 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "b42ed5a01670a2c8d7eb44af08abf1515216dc4664254ee0a449c439c64b7fcd",
+ "crop": null,
+ "request_id": "req_011CgH5ayhwBYG7f5ucBeHPZ",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 980
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי שמיר (אסף הרופא)",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ט.מ. בילוד / ט.מ.בילוד",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "פוז",
+     "evidence_text": "ט.מ. בילוד / ט.מ.בילוד",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "Israel",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "handwritten blue name above the sticker next to 11223344",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ט.מ. בילוד / ט.מ.בילוד",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "פוז",
+     "evidence_text": "ט.מ. בילוד / ט.מ.בילוד",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "Israel",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "handwritten blue name above the sticker next to 11223344",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "11223344 ת.ז.",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947984",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "barcode 947984",
+     "region": "top-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "30-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 30-08-2026 stamp",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "27/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "27/8/26 תאריך:",
+     "region": "top-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי שמיר (אסף הרופא)",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "header",
+     "evidence_text": "המרכז הרפואי שמיר (אסף הרופא) מסונף לפקולטה לרפואה",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2657",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות 2657",
+     "region": "middle-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "27/8/26 תאריך:",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

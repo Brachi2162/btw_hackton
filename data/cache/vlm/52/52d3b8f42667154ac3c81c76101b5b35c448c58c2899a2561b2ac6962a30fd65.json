@@ -1,0 +1,64 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "4f5b66fc9ee43e2e69ebbe7c948b7cd167911e335e1797cf5ce8145db58cdb7a",
+ "crop": null,
+ "request_id": "req_011CgH5Wxing5TVn4Su6DBNd",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 491
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי הגריאטרי ביה\"ח שמואל הרופא",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "112233 14",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ת.ז. ... מס' גליון",
+     "region": "middle-center"
+    }
+   ],
+   "central_numbers": [],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי שמיר (אסף הרופא)",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "המרכז הרפואי הגריאטרי",
+     "evidence_text": "המרכז הרפואי הגריאטרי ביה\"ח \"שמואל-הרופא\" מסונף לביה\"ס לרפואה ע\"ש סאקלר אוניברסיטת ת\"א",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "947683",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "947683",
+     "region": "top-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "26.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 26.8.26",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

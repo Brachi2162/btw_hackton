@@ -1,0 +1,79 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "7f13ae05aebd0e620883ff6f32cbd7bec9eac3702e9e81fb3e3a1dc7ba41b7dc",
+ "request_id": "req_011CgF8YaUxkhZpYmTocyMKr",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 3127
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי וולפסון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "1122334",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז. 1122334 שם",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [],
+   "receipt_date": [],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "947468",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ברקוד בדיקה",
+     "evidence_text": "947468 Monkey pox PCR",
+     "region": "middle-left"
+    },
+    {
+     "value_raw": "947469",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ברקוד בדיקה",
+     "evidence_text": "947469 Monkey pox PCR",
+     "region": "middle-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "25.08.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "25.08.26 תאריך:",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "25.08",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך הדגימה",
+     "evidence_text": "25.08 לוג Monkey pox PCR",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "25.09",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך הדגימה",
+     "evidence_text": "25.09 Monkey pox PCR",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

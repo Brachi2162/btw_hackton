@@ -1,0 +1,72 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "0f5dd0714e42dce7054ab1965bf633440a55299f265f6447ad401166bffab71d",
+ "request_id": "req_011CgF8Qx9EEfoKRqg2VQUEy",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 1861
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "כללית",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ייטס",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם החולה",
+     "evidence_text": "שם החולה blue handwriting near top-middle",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "311223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מספר הזיהוי",
+     "evidence_text": "מספר הזיהוי 311223344 (blue, highlighted)",
+     "region": "middle-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945599",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "945599 printed under barcode next to vertical מרכזי label",
+     "region": "middle-center"
+    }
+   ],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "כללית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "כללית logo",
+     "evidence_text": "כללית logo top-right",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "375365755",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "האבחנה המשוערת ופרטים רפואיים",
+     "evidence_text": "375365755 handwritten green highlight in diagnosis area",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [],
+   "sample_date": []
+  }
+ }
+}

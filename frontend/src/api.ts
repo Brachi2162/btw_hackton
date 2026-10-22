@@ -250,8 +250,12 @@ function user(): string {
   }
 }
 
+/** Where the API is. Empty: the same site (nginx in Docker, Vite in dev);
+ * in the cloud the screens are on Vercel and the API on Render. */
+const API = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API}/api${path}`, {
     method,
     headers: {
       "X-User": encodeURIComponent(user()),
@@ -349,5 +353,5 @@ export const imageUrl = (pageId: string, opts: { crop?: number[]; scale?: number
   if (opts.scale) q.set("scale", String(opts.scale));
   if (opts.maxSide) q.set("max_side", String(opts.maxSide));
   const s = q.toString();
-  return `/api/pages/${pageId}/image${s ? `?${s}` : ""}`;
+  return `${API}/api/pages/${pageId}/image${s ? `?${s}` : ""}`;
 };

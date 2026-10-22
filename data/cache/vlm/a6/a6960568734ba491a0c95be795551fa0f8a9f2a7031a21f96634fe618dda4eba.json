@@ -1,0 +1,132 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "f6b72000bc7d5ff2d34eb6d168cea02586f0da5b8495f91daf2885e21acfe7db",
+ "request_id": "req_011CgFUKFKGaWVrKFgEFwQSB",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 989
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי וולפסון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "חיים",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "אב",
+     "evidence_text": "אב : חיים",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "Prof. Prof.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "handwritten blue text over sticker name line next to שם",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Prof. Prof.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "handwritten blue text over sticker name line next to שם",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "112233944",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז. : 112233944 (blue handwriting)",
+     "region": "middle-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "948023",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "barcode sticker 948023 with vertical מרכזי",
+     "region": "middle-left"
+    },
+    {
+     "value_raw": "7254647",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "vertical number 7254647 beside barcode",
+     "region": "bottom-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "30.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "30.8.26 blue handwriting highlighted yellow",
+     "region": "bottom-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי וולפסון",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "המרכז הרפואי האוניברסיטאי ע\"ש אדית וולפסון",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "58153",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מס'",
+     "evidence_text": "מס' 58153",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "12043017",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה",
+     "evidence_text": "מקרה: 12043017",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27/08/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך: 27/08/26",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "27/08/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך הדגימה",
+     "evidence_text": "27/08/26 in table under תאריך הדגימה",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

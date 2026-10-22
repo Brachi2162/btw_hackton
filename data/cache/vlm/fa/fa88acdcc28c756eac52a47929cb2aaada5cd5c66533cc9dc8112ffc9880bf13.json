@@ -1,0 +1,81 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "fd1e17fdf13af91811d6bb44a9fa34c6b1fb49fa2c49d8950e55537a8422a80f",
+ "request_id": "req_011CgF8QE8t1NARsE243Z41S",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 1684
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי ברזילי",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "אורי",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "אב",
+     "evidence_text": "אב : אורי",
+     "region": "middle-right"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז. 11223344",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946908",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode sticker (vertical label)",
+     "evidence_text": "946908",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "19/08/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "19/08/26",
+     "region": "top-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי ברזילי",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "logo",
+     "evidence_text": "ברזילי",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "17024",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מס' התחייבות",
+     "evidence_text": "מס' התחייבות",
+     "region": "middle-right"
+    }
+   ],
+   "form_date": [],
+   "sample_date": []
+  }
+ }
+}
