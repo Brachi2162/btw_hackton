@@ -4,6 +4,7 @@ import { useApp } from "../app-context";
 import { RichText } from "../components/RichText";
 import { Virus } from "../components/Virus";
 import { useToast } from "../components/Toast";
+import { playSound } from "../sound";
 import "./Assistant.css";
 
 type Msg = { role: "user" | "assistant"; content: string; actions?: ChatReply["actions"] };
@@ -43,6 +44,7 @@ export function Assistant() {
     } catch (e) {
       setMsgs([...next, { role: "assistant", content: `לא הצלחתי לענות (${e instanceof Error ? e.message : "שגיאה"}).` }]);
     } finally {
+      playSound("reply");
       setBusy(false);
     }
   }
@@ -72,7 +74,9 @@ export function Assistant() {
       {open && (
         <section className="chat" role="dialog" aria-label="שיחה עם VERA">
           <header>
-            <Virus size={22} spikes={8} className="chat-logo" />
+            <button className="chat-logo-btn" onClick={() => setOpen(false)} aria-label="סגירת השיחה (השיחה נשמרת)" title="סגירה">
+              <Virus size={22} spikes={8} className="chat-logo" />
+            </button>
             <h2>VERA</h2>
             <span className="grow" />
             <button className="btn ghost dark-x" onClick={() => setOpen(false)} aria-label="הקטנה (השיחה נשמרת)" title="הקטנה">
@@ -139,8 +143,8 @@ export function Assistant() {
           {msgs.length > 0 && (
             <div className="chips" aria-label="שאלות מוכנות">
               {chips.map((c) => (
-                <button key={c} className="chip" onClick={() => send(c)} disabled={busy}>
-                  <span aria-hidden="true">{iconFor(c)}</span> {c}
+                <button key={c} className="chip" onClick={() => send(c)} disabled={busy} title={c} aria-label={c}>
+                  <span aria-hidden="true">{iconFor(c)}</span>
                 </button>
               ))}
             </div>

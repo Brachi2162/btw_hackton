@@ -337,13 +337,13 @@
   gap: 6px;
 }
 
-/* During a conversation: one tidy, scrollable row of small pills. */
+/* During a conversation: a row of icon-only buttons (the question is in the
+   tooltip), wrapping instead of scrolling. */
 .chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
   padding: 8px 12px 2px;
-  scrollbar-width: thin;
   border-top: 1px solid var(--border);
 }
 
@@ -355,8 +355,11 @@
   border: 1px solid var(--border);
   background: #fff;
   border-radius: 999px;
-  padding: 4px 12px;
-  font-size: 12.5px;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 16px;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -390,8 +393,29 @@
   line-height: 1.45;
   padding: 9px 12px;
   overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.chat-text::-webkit-scrollbar {
+  display: none;
 }
 
 .chat-input .btn {
   height: 56px;
+}
+
+/* The virus in the header closes the chat, like the minimize button. */
+.chat-logo-btn {
+  display: inline-flex;
+  background: none;
+  border: 0;
+  padding: 2px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: inherit;
+  transition: transform 0.15s;
+}
+
+.chat-logo-btn:hover {
+  transform: rotate(30deg) scale(1.1);
 }

@@ -3,6 +3,7 @@ import { api, type Batch, type InboxPreview, type WatchStatus } from "../api";
 import { useApp } from "../app-context";
 import { useToast } from "../components/Toast";
 import { VirusBackground } from "../components/VirusBackground";
+import { useDoneChime } from "../sound";
 import "./Intake.css";
 
 const STAGES = ["פיצול", "זיהוי שולח", "קריאה משלושה מקורות", "אימות"];
@@ -39,6 +40,7 @@ export function Intake() {
   useEffect(() => {
     if (batch?.status === "done") refreshOverview();
   }, [batch?.status, refreshOverview]);
+  useDoneChime(batch?.status, true);
 
   async function follow(id: string) {
     setBatchId(id);

@@ -6,7 +6,8 @@
 }
 
 .table-wrap {
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   max-height: calc(100vh - 220px);
 }
 
@@ -18,10 +19,24 @@
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
+  table-layout: fixed;
   font-size: 13px;
 }
 
+/* Fixed column widths sized to typical values, so the table always fits its
+   card (no sideways scroll); longer values slide on hover (see .sliding). */
+.forms .col-sender { width: 17%; }
+.forms .col-sig { width: 40px; }
+.forms .col-first_name,
+.forms .col-last_name { width: 11%; }
+.forms .col-id_number,
+.forms .col-central_numbers { width: 13%; }
+.forms .col-commitment_numbers { width: 14%; }
+.forms .col-receipt_date { width: 12%; }
+
 .forms th {
+  overflow: hidden;
+  text-overflow: ellipsis;
   position: sticky;
   top: 0;
   background: #f8fafb;
@@ -49,6 +64,8 @@
 
 .cell {
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -77,9 +94,29 @@
 }
 
 .cell-text {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 110px;
+  white-space: nowrap;
+}
+
+.cell-text.sliding {
+  text-overflow: clip;
+}
+
+.cell-text.sliding .cell-inner {
+  display: inline-block;
+  animation: cell-slide var(--dur, 2s) ease-in-out 0.25s infinite alternate;
+}
+
+@keyframes cell-slide {
+  0%, 12% { transform: translateX(0); }
+  88%, 100% { transform: translateX(var(--shift, 0)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell-text.sliding .cell-inner { animation: none; }
 }
 
 .panel {
