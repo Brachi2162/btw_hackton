@@ -17,6 +17,39 @@ CENTRAL_RE = r"^\d{6}$"
 NAME_RE = re.compile(r"^[A-Za-zא-ת][A-Za-zא-ת '\-׳״\"]{0,29}$")
 
 
+# Invisible direction marks that come with copied Hebrew text.
+_BIDI = re.compile("[\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]")
+
+# What a reader writes instead of a value it couldn't read. It is not a
+# value: the field stays empty and flagged (iron rule 1).
+PLACEHOLDERS = {
+    "לא קריא",
+    "לא ברור",
+    "לא ידוע",
+    "לא רשום",
+    "לא מופיע",
+    "לא צוין",
+    "אין",
+    "ריק",
+    "unknown",
+    "illegible",
+    "unreadable",
+    "unclear",
+    "n/a",
+    "na",
+    "none",
+    "null",
+    "?",
+    "??",
+    "???",
+}
+
+
+def is_placeholder(raw: str) -> bool:
+    v = _BIDI.sub("", raw or "").strip(" .,:;|_-()[]\"'").lower()
+    return v in PLACEHOLDERS
+
+
 @dataclass
 class Norm:
     value: str | None
@@ -46,6 +79,8 @@ def norm_id(raw: str) -> Norm:
             return Norm(d, ["validation_failed"], "עד 9 ספרות")
         d = d[-9:]
     d = d.zfill(9)
+    if not d.strip("0"):  # all zeros passes the check digit, but is no ID
+        return Norm(d, ["validation_failed"], "לא אפסים בלבד")
     if len(_digits(raw)) < 5:
         return Norm(d, ["validation_failed"], "לפחות 5 ספרות")
     if not israeli_id_ok(d):
@@ -59,14 +94,14 @@ def norm_central(raw: str) -> Norm:
     d = _digits(m.group(1) if m else raw)
     if not d:
         return Norm(None, ["validation_failed"], "6 ספרות")
-    if not re.match(CENTRAL_RE, d):
+    if not re.match(CENTRAL_RE, d) or not d.strip("0"):
         return Norm(d, ["validation_failed"], "6 ספרות")
     return Norm(d)
 
 
 def norm_commitment(raw: str, regex: str = DEFAULT_COMMITMENT_RE) -> Norm:
     """Text, never a number: keep leading zeros, upper-case the letter."""
-    v = re.sub(r"[\s\-_/.]", "", raw).upper()
+    v = re.sub(r"[\s\-_/.]", "", _BIDI.sub("", raw)).upper()
     if not v:
         return Norm(None, ["validation_failed"], regex)
     if not re.match(regex, v):
@@ -75,7 +110,7 @@ def norm_commitment(raw: str, regex: str = DEFAULT_COMMITMENT_RE) -> Norm:
 
 
 def norm_name(raw: str) -> Norm:
-    v = "".join(ch for ch in raw if unicodedata.category(ch) != "Mn")  # niqqud
+    v = "".join(ch for ch in _BIDI.sub("", raw) if unicodedata.category(ch) != "Mn")
     v = re.sub(r"\s+", " ", v).strip(" .,:;|_-")
     if not v:
         return Norm(None, ["validation_failed"], "אותיות")
@@ -85,12 +120,20 @@ def norm_name(raw: str) -> Norm:
 
 
 _DATE = re.compile(r"(\d{1,2})\s*[./\-]\s*(\d{1,2})(?:\s*[./\-]\s*(\d{2,4}))?")
+# Year first (2026-08-25), as a model or a system export may write it.
+_ISO = re.compile(r"\b(\d{4})\s*[./\-]\s*(\d{1,2})\s*[./\-]\s*(\d{1,2})\b")
 
 
 def parse_date(raw: str, ref: date) -> date | None:
     """Day-first Israeli dates: 25/08/2026, 27-08-2026, 27.8.26, 25.8.
     A missing year is the reference year, or the year before if that would
-    put the date after the reference."""
+    put the date after the reference. Year-first dates are read as such."""
+    iso = _ISO.search(raw)
+    if iso:
+        try:
+            return date(int(iso.group(1)), int(iso.group(2)), int(iso.group(3)))
+        except ValueError:
+            return None
     m = _DATE.search(raw)
     if not m:
         return None

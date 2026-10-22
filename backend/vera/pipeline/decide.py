@@ -43,6 +43,7 @@ from vera.normalize import (
     norm_commitment,
     norm_date,
     norm_id,
+    is_placeholder,
     norm_name,
     parse_date,
 )
@@ -419,6 +420,21 @@ def decide_field(
     exclude: set[str] | None = None,
     ocr: list[dict] | None = None,
 ) -> FieldResult:
+    # "לא קריא", "unknown"... is a reader saying it couldn't read: not a value.
+    unread = [c for c in cands if is_placeholder(c.value_raw)]
+    cands = [c for c in cands if not is_placeholder(c.value_raw)]
+    if unread and not cands:
+        return FieldResult(
+            field=fname,
+            values=[],
+            status="review",
+            score=0.0,
+            reasons=["illegible"],
+            explanation_he=(
+                "המקור ראה שכתוב משהו אבל לא הצליח לקרוא אותו; השדה נשאר ריק"
+            ),
+            sources=[_source(c) for c in unread],
+        )
     for c in cands:
         n = _normalize(fname, c.value_raw, cfg, ref)
         c.value_norm = n.value

@@ -33,7 +33,7 @@ from vera.normalize import (
 from vera.pipeline.decide import FIELDS, MULTI, DecisionConfig, decide_page
 from vera.pipeline.decide import merge_reads
 from vera.pipeline.gvision import VisionOcr
-from vera.pipeline.ingest import UnsupportedFileError, pdf_page_count, sniff_kind
+from vera.pipeline.ingest import UnsupportedFileError, page_count, sniff_kind
 from vera.pipeline.process import (
     crop_region,
     needs_crop,
@@ -57,7 +57,15 @@ from vera.services import Services
 
 log = logging.getLogger(__name__)
 
-EXT = {"pdf": "pdf", "jpeg": "jpg", "png": "png", "heic": "heic"}
+EXT = {
+    "pdf": "pdf",
+    "jpeg": "jpg",
+    "png": "png",
+    "heic": "heic",
+    "tiff": "tif",
+    "webp": "webp",
+    "bmp": "bmp",
+}
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # spec 16: bound work per upload
 # Fields where one confirmation is offered to the rest of the batch.
 PROPAGATE_FIELDS = {"receipt_date"}
@@ -149,6 +157,28 @@ class BatchService:
         self.decision = DecisionConfig.load(self.s.config_dir)
         self._readers: Readers | None = None
         self.dpi, self.orient = 300, True  # tests turn these down
+        # Pages a running process_batch has taken: a second upload to the
+        # same batch must not read them again (the queue is in-process).
+        self._claimed: set[str] = set()
+        self.recover_interrupted()
+
+    def recover_interrupted(self) -> int:
+        """At startup no job runs, so a page still queued or processing was
+        cut off (a restart mid-batch). It becomes failed with the reason, and
+        "נסי שוב" (retry-failed) reads it again."""
+        with self.sv.repo.session() as s:
+            stuck = s.exec(
+                select(PageRow).where(PageRow.status.in_(["queued", "processing"]))
+            ).all()
+            for p in stuck:
+                p.status, p.stage = "failed", None
+                p.error = "העיבוד נקטע כי השרת הופעל מחדש. אפשר ללחוץ 'נסי שוב'."
+                s.add(p)
+            for b in s.exec(select(BatchRow).where(BatchRow.status == "processing")):
+                b.status = "done"
+                s.add(b)
+            s.commit()
+        return len(stuck)
 
     # --- helpers ---
 
@@ -247,7 +277,7 @@ class BatchService:
 
     def add_file(self, batch_id: str, filename: str, data: bytes, user: str) -> dict:
         if len(data) > MAX_UPLOAD_BYTES:
-            raise UnsupportedFileError("file too large (max 50MB)")
+            raise UnsupportedFileError("הקובץ גדול מ-50MB")
         kind = sniff_kind(data[:16])  # by content, never by extension (spec 16)
         with self.sv.repo.session() as s:
             batch = s.get(BatchRow, batch_id)
@@ -261,7 +291,12 @@ class BatchService:
             src = self.work_dir(batch_id) / "src" / f"{doc_id}.{EXT[kind]}"
             src.parent.mkdir(parents=True, exist_ok=True)
             src.write_bytes(data)
-            count = pdf_page_count(src) if kind == "pdf" else 1
+            try:
+                count = page_count(src)
+            except UnsupportedFileError:
+                src.unlink(missing_ok=True)
+                self.sv.storage.delete(key)
+                raise
             seq = len(
                 s.exec(
                     select(DocumentRow.id).where(DocumentRow.batch_id == batch_id)
@@ -327,7 +362,12 @@ class BatchService:
                 .where(PageRow.batch_id == batch_id, PageRow.status == "queued")
                 .join(DocumentRow, PageRow.document_id == DocumentRow.id)
             ).all()
-            jobs = [(p.id, d.id, d.kind, p.page_no) for p, d in pages]
+            jobs = [
+                (p.id, d.id, d.kind, p.page_no)
+                for p, d in pages
+                if p.id not in self._claimed
+            ]
+            self._claimed.update(j[0] for j in jobs)
 
         problem = self.vlm_problem()
         if problem:
@@ -335,6 +375,7 @@ class BatchService:
             # step; fail them now, with the reason, so the screen can say so.
             for page_id, *_ in jobs:
                 self._set_page(page_id, status="failed", error=problem)
+                self._claimed.discard(page_id)
             self.events.publish(
                 batch_id, "warning", {"error": "vlm", "message": problem}
             )
@@ -343,8 +384,11 @@ class BatchService:
         sem = asyncio.Semaphore(max(1, self.s.max_concurrent_jobs))
 
         async def one(job):
-            async with sem:
-                await self._process_page(batch_id, ref, *job)
+            try:
+                async with sem:
+                    await self._process_page(batch_id, ref, *job)
+            finally:
+                self._claimed.discard(job[0])
 
         await asyncio.gather(*(one(j) for j in jobs))
         with self.sv.repo.session() as s:
