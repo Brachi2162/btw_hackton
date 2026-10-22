@@ -3,9 +3,12 @@ read-only tools, and proposes changes that a person confirms in the UI.
 
 Write tools never act: they return a confirmation card. The UI calls
 POST /api/assistant/confirm, which runs the same code as the normal screens
-(source "assistant" in the audit log). Without an API key, a small keyword
-router answers the common questions from the same tools, so the demo works
-offline.
+(source "assistant" in the audit log).
+
+Models (D-010): Gemini first, Claude when Gemini fails (quota, network,
+filter), and without either a small keyword router answers the common
+questions from the same tools. A model error never reaches the user as a
+server error: the next one in line answers.
 """
 
 import json
@@ -114,11 +117,36 @@ SUGGESTIONS = [
 MAX_ROUNDS = 6
 
 
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+)
+_GEMINI_BLOCKED = {"SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII"}
+
+
+class Refused(Exception):
+    """The model won't answer this; another model wouldn't either."""
+
+
 class Assistant:
-    def __init__(self, bs, client=None):
+    def __init__(self, bs, client=None, gemini_http=None):
         self.bs = bs
         self.model = bs.s.assistant_model
+        self.fallback_model = bs.s.assistant_fallback_model
         self._client = client
+        self._http = gemini_http
+
+    def _chain(self) -> list[tuple[str, str]]:
+        """(provider, model) in the order they are tried."""
+        out = []
+        for model in (self.model, self.fallback_model):
+            if not model:
+                continue
+            if model.startswith("gemini"):
+                if self.bs.s.gemini_api_key or self._http is not None:
+                    out.append(("gemini", model))
+            elif self.client is not None:
+                out.append(("claude", model))
+        return out
 
     @property
     def client(self):
@@ -130,10 +158,10 @@ class Assistant:
             )
         return self._client
 
-    def _create(self, **kw):
+    def _create(self, model: str | None = None, **kw):
         # Refusals fall back server-side to a model that can answer.
         return self.client.beta.messages.create(
-            model=self.model,
+            model=model or self.model,
             output_config={"effort": "low"},
             betas=["server-side-fallback-2026-07-01"],
             fallbacks="default",
@@ -232,19 +260,47 @@ class Assistant:
         ]
         if not history or history[-1]["role"] != "user":
             raise ValueError("the last message must be from the user")
-        if self.client is None:
-            return self._offline(history[-1]["content"])
+        for provider, model in self._chain():
+            try:
+                if provider == "gemini":
+                    return self._gemini_chat(model, history)
+                return self._claude_chat(model, history)
+            except Refused:
+                return self._reply("אין לי אפשרות לעזור בזה.", [], [])
+            except Exception as e:  # quota, network, NetFree: the next one answers
+                log.warning("assistant %s failed: %s", model, str(e)[:300])
+        return self._offline(history[-1]["content"])
 
+    def _tool(self, name: str, args: dict, actions: list) -> dict:
+        """Runs a read tool, or turns a write tool into a confirmation card."""
+        try:
+            if name in WRITE_NAMES:
+                actions.append(
+                    {
+                        "tool": name,
+                        "args": args,
+                        "summary_he": self.describe(name, args),
+                    }
+                )
+                return {"pending_confirmation": True}
+            # Plain JSON (dates etc.): both APIs take it back as JSON.
+            return json.loads(json.dumps(self.run_tool(name, args), default=str))
+        except Exception as e:  # a bad tool call is the model's to fix
+            return {"error": f"{type(e).__name__}: {e}"}
+
+    def _claude_chat(self, model: str, history: list[dict]) -> dict:
+        history = list(history)
         actions, used = [], []
         for _ in range(MAX_ROUNDS):
             resp = self._create(
+                model=model,
                 max_tokens=4000,
                 system=SYSTEM,
                 tools=READ_TOOLS + WRITE_TOOLS,
                 messages=history,
             )
             if resp.stop_reason == "refusal":
-                return self._reply("אין לי אפשרות לעזור בזה.", actions, used)
+                raise Refused()
             calls = [b for b in resp.content if b.type == "tool_use"]
             if resp.stop_reason != "tool_use" or not calls:
                 text = "".join(b.text for b in resp.content if b.type == "text")
@@ -254,35 +310,96 @@ class Assistant:
             for c in calls:
                 used.append(c.name)
                 args = c.input if isinstance(c.input, dict) else {}
-                try:
-                    if c.name in WRITE_NAMES:
-                        actions.append(
-                            {
-                                "tool": c.name,
-                                "args": args,
-                                "summary_he": self.describe(c.name, args),
-                            }
-                        )
-                        out = {"pending_confirmation": True}
-                    else:
-                        out = self.run_tool(c.name, args)
-                    results.append(
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": c.id,
-                            "content": json.dumps(out, ensure_ascii=False, default=str),
-                        }
-                    )
-                except Exception as e:  # a bad tool call is the model's to fix
-                    results.append(
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": c.id,
-                            "content": f"Error: {type(e).__name__}: {e}",
-                            "is_error": True,
-                        }
-                    )
+                out = self._tool(c.name, args, actions)
+                results.append(
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": c.id,
+                        "content": json.dumps(out, ensure_ascii=False),
+                        **({"is_error": True} if "error" in out else {}),
+                    }
+                )
             history.append({"role": "user", "content": results})
+        return self._reply("לא הצלחתי לסיים. נסי לשאול בצורה אחרת.", actions, used)
+
+    def _gemini(self, model: str, body: dict) -> dict:
+        """One Gemini call. Any failure raises, and the chain moves on."""
+        if self._http is None:
+            import httpx
+
+            self._http = httpx.Client(timeout=60)
+        r = self._http.post(
+            GEMINI_URL.format(model=model),
+            headers={"x-goog-api-key": self.bs.s.gemini_api_key},
+            json=body,
+        )
+        if r.status_code != 200:
+            # The error names the problem (quota, model), never the key.
+            raise RuntimeError(f"gemini HTTP {r.status_code}: {r.text[:300]}")
+        resp = r.json()
+        if resp.get("promptFeedback", {}).get("blockReason"):
+            raise Refused()
+        return resp
+
+    @staticmethod
+    def _gemini_text(resp: dict) -> str:
+        cand = (resp.get("candidates") or [{}])[0]
+        if cand.get("finishReason") in _GEMINI_BLOCKED:
+            raise Refused()
+        parts = cand.get("content", {}).get("parts", [])
+        return "".join(p.get("text", "") for p in parts if not p.get("thought"))
+
+    def _gemini_chat(self, model: str, history: list[dict]) -> dict:
+        contents = [
+            {
+                "role": "user" if m["role"] == "user" else "model",
+                "parts": [{"text": m["content"]}],
+            }
+            for m in history
+        ]
+        tools = [
+            {
+                "functionDeclarations": [
+                    {
+                        "name": t["name"],
+                        "description": t["description"],
+                        "parametersJsonSchema": t["input_schema"],
+                    }
+                    for t in READ_TOOLS + WRITE_TOOLS
+                ]
+            }
+        ]
+        actions, used = [], []
+        for _ in range(MAX_ROUNDS):
+            resp = self._gemini(
+                model,
+                {
+                    "systemInstruction": {"parts": [{"text": SYSTEM}]},
+                    "contents": contents,
+                    "tools": tools,
+                    "generationConfig": {"maxOutputTokens": 4000},
+                },
+            )
+            text = self._gemini_text(resp)
+            parts = resp["candidates"][0].get("content", {}).get("parts", [])
+            calls = [p["functionCall"] for p in parts if "functionCall" in p]
+            if not calls:
+                if not text.strip():
+                    raise RuntimeError("gemini: empty answer")
+                return self._reply(text.strip(), actions, used)
+            # The model's turn goes back as it came (thought signatures included).
+            contents.append({"role": "model", "parts": parts})
+            answers = []
+            for c in calls:
+                used.append(c["name"])
+                answer = {
+                    "name": c["name"],
+                    "response": self._tool(c["name"], c.get("args") or {}, actions),
+                }
+                if c.get("id"):
+                    answer["id"] = c["id"]
+                answers.append({"functionResponse": answer})
+            contents.append({"role": "user", "parts": answers})
         return self._reply("לא הצלחתי לסיים. נסי לשאול בצורה אחרת.", actions, used)
 
     def _reply(self, text: str, actions: list, used: list) -> dict:
@@ -338,9 +455,7 @@ class Assistant:
 
     def draft_letter(self, facts: dict) -> tuple[str | None, str | None]:
         """A short Hebrew letter from the given facts only. Returns
-        (None, None) when no model is available or the call fails."""
-        if self.client is None:
-            return None, None
+        (None, None) when no model is available or every call fails."""
         prompt = (
             "Write a short, polite letter in Hebrew from the lab "
             f"({fu.LAB}) to the sender of a commitment form, asking them to fix "
@@ -348,14 +463,23 @@ class Assistant:
             "numbers or dates. Plain text, no subject line, sign as the lab.\n\n"
             + json.dumps(facts, ensure_ascii=False)
         )
-        try:
-            resp = self._create(
-                max_tokens=2000, messages=[{"role": "user", "content": prompt}]
-            )
-        except Exception:  # the template is a fine answer too
-            log.exception("draft failed")
-            return None, None
-        if resp.stop_reason == "refusal":
-            return None, None
-        text = "".join(b.text for b in resp.content if b.type == "text").strip()
-        return (text or None), "model"
+        for provider, model in self._chain():
+            try:
+                if provider == "gemini":
+                    body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
+                    text = self._gemini_text(self._gemini(model, body))
+                else:
+                    resp = self._create(
+                        model=model,
+                        max_tokens=2000,
+                        messages=[{"role": "user", "content": prompt}],
+                    )
+                    if resp.stop_reason == "refusal":
+                        continue
+                    text = "".join(b.text for b in resp.content if b.type == "text")
+            except Exception:  # the next model, or the template, is fine too
+                log.exception("draft with %s failed", model)
+                continue
+            if text.strip():
+                return text.strip(), "model"
+        return None, None

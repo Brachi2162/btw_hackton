@@ -43,7 +43,9 @@ class Settings(BaseSettings):
     google_vision_api_key: str = ""
 
     # Assistant (spec 15) and drafted letters. Empty key = template answers.
-    assistant_model: str = "claude-opus-5-5"
+    # Gemini first, then the fallback when it fails (D-010).
+    assistant_model: str = "gemini-3.5-flash"
+    assistant_fallback_model: str = "claude-opus-5-5"
     # Scanner folder for "import from folder" (vera/inbox.py): where it is
     # mounted in the container, and its path on the host as people type it.
     inbox_dir: Path = Path("/inbox")

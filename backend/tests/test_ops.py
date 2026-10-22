@@ -376,3 +376,69 @@ def test_old_database_gets_new_columns(tmp_path):
         cols = {r[1] for r in conn.execute(text("PRAGMA table_info(batches)"))}
     repo.close()
     assert "demo" in cols
+
+
+class FakeGemini:
+    """Gemini REST: queued (status, body) answers, in order."""
+
+    def __init__(self, *answers):
+        self.answers, self.calls = list(answers), []
+
+    def post(self, url, headers, json):
+        self.calls.append({"url": url, "json": json})
+        status, body = self.answers.pop(0)
+        return SimpleNamespace(
+            status_code=status, json=lambda: body, text=str(body)[:300]
+        )
+
+
+def gemini_parts(*parts):
+    return (200, {"candidates": [{"content": {"parts": list(parts)}}]})
+
+
+def test_assistant_asks_gemini_first_with_tools(demo):
+    c, app, _, _ = demo
+    fake = FakeGemini(
+        gemini_parts(
+            {
+                "functionCall": {"name": "work_overview", "args": {}},
+                "thoughtSignature": "s",
+            }
+        ),
+        gemini_parts(
+            {"text": "חושבת...", "thought": True}, {"text": "יש 3 שדות לבדיקה."}
+        ),
+    )
+    app.state.assistant._http = fake
+    r = c.post(
+        "/api/assistant/chat",
+        json={"messages": [{"role": "user", "content": "מה מחכה?"}]},
+    ).json()
+    assert r["mode"] == "model" and r["reply"] == "יש 3 שדות לבדיקה."
+    assert r["tools_used"] == ["work_overview"]
+    assert "gemini-3.5-flash:generateContent" in fake.calls[0]["url"]
+    tools = fake.calls[0]["json"]["tools"][0]["functionDeclarations"]
+    assert {"work_overview", "correct_field"} <= {t["name"] for t in tools}
+    second = fake.calls[1]["json"]["contents"]
+    assert second[1]["parts"][0]["thoughtSignature"] == "s"  # sent back as it came
+    answer = second[2]["parts"][0]["functionResponse"]
+    assert answer["name"] == "work_overview" and "review_waiting" in answer["response"]
+
+
+def test_assistant_falls_back_to_claude_then_to_the_data(demo):
+    c, app, _, _ = demo
+    ask = {"messages": [{"role": "user", "content": "איך היה השבוע?"}]}
+    app.state.assistant._http = FakeGemini((429, {"error": {"message": "quota"}}))
+    app.state.assistant._client = FakeClient()
+    r = c.post("/api/assistant/chat", json=ask).json()
+    assert r["mode"] == "model" and r["reply"].startswith("השבוע")
+
+    broken = SimpleNamespace(
+        beta=SimpleNamespace(
+            messages=SimpleNamespace(create=lambda **kw: 1 / 0)  # any failure
+        )
+    )
+    app.state.assistant._http = FakeGemini((503, {}))
+    app.state.assistant._client = broken
+    r = c.post("/api/assistant/chat", json=ask)
+    assert r.status_code == 200 and r.json()["mode"] == "offline"
