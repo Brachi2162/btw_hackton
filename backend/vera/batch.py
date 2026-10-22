@@ -269,6 +269,28 @@ class BatchService:
             s.commit()
             return {"document_id": doc_id, "filename": doc.filename, "pages": count}
 
+    def requeue_failed(self, batch_id: str, user: str) -> int:
+        """Failed pages back in the queue (e.g. after a network block), so
+        `process_batch` reads only them; pages already read stay as they are."""
+        with self.sv.repo.session() as s:
+            batch = s.get(BatchRow, batch_id)
+            if batch is None:
+                raise KeyError(batch_id)
+            if batch.locked:
+                raise PermissionError("batch is exported and locked")
+            pages = s.exec(
+                select(PageRow).where(
+                    PageRow.batch_id == batch_id, PageRow.status == "failed"
+                )
+            ).all()
+            for p in pages:
+                p.status, p.error, p.stage = "queued", None, None
+                s.add(p)
+            if pages:
+                self.audit(s, user, "pages_retried", batch_id, pages=len(pages))
+            s.commit()
+            return len(pages)
+
     # --- processing ---
 
     async def process_batch(self, batch_id: str) -> dict:
