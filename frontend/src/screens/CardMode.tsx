@@ -89,7 +89,11 @@ function FieldCard({ item, onSaved, onSkip }: { item: Item; onSaved: (p: Propaga
   const ltr = LTR_FIELDS.has(item.field);
 
   useEffect(() => {
-    api.evidence(item.submission_id, item.field).then(setEv);
+    // A slow answer for the previous card must not land on this one.
+    let alive = true;
+    setEv(null);
+    api.evidence(item.submission_id, item.field).then((e) => alive && setEv(e));
+    return () => void (alive = false);
   }, [item.submission_id, item.field]);
 
   useEffect(() => {
@@ -113,7 +117,10 @@ function FieldCard({ item, onSaved, onSkip }: { item: Item; onSaved: (p: Propaga
       </div>
       <div className="fc-crop">
         {ev?.crop ? (
-          <img src={imageUrl(ev.crop.page_id, { crop: ev.crop.bbox, scale: 2.5, maxSide: 1400 })} alt={`${FIELD_HE[item.field]} מתוך הטופס`} />
+          <>
+            <img src={imageUrl(ev.crop.page_id, { crop: ev.crop.bbox, scale: ev.crop.approx ? 1 : 2.5, maxSide: 1400 })} alt={`${FIELD_HE[item.field]} מתוך הטופס`} />
+            {ev.crop.approx && <p className="muted small">האזור שבו המודל ראה את הערך; המיקום המדויק לא ידוע.</p>}
+          </>
         ) : ev && item.page_ids[0] ? (
           // nothing to crop (e.g. a missing field): show the whole form
           <img className="fc-page" src={imageUrl(item.page_ids[0], { maxSide: 900 })} alt="הטופס כולו" />

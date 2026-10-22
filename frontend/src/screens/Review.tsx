@@ -189,6 +189,10 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
 
   useEffect(() => {
     let alive = true;
+    // Never show one row's evidence over another row's page while loading.
+    setSub(null);
+    setEv(null);
+    setPage(null);
     api.submission(sel.sid).then((s) => {
       if (!alive) return;
       setSub(s);
@@ -245,7 +249,11 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
           pageH={page.height}
           boxes={boxes}
           glow={glow}
-          focus={ev?.crop ? { bbox: ev.crop.bbox, label: FIELD_HE[sel.field] } : null}
+          focus={
+            ev?.crop && ev.crop.page_id === page.id && ev.submission_id === sel.sid && ev.field === sel.field
+              ? { bbox: ev.crop.bbox, label: FIELD_HE[sel.field], approx: ev.crop.approx }
+              : null
+          }
         />
       ) : (
         <div className="viewer placeholder muted">{sub ? "אין תמונה לעמוד" : "טוען…"}</div>

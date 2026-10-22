@@ -32,6 +32,15 @@
     background-position 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
 }
 
+/* The reader's rough area: outlined, not magnified (its middle may be blank). */
+.region {
+  position: absolute;
+  border: 3px dashed var(--teal);
+  border-radius: 8px;
+  background: rgba(95, 208, 203, 0.08);
+  transition: all 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
 .lens-label {
   position: absolute;
   transform: translateX(-50%);

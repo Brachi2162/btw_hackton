@@ -28,7 +28,8 @@ export function FormViewer({
   pageId: string;
   pageW: number;
   pageH: number;
-  focus?: { bbox: [number, number, number, number]; label: string } | null;
+  /** approx: the reader's rough area, outlined instead of zoomed into. */
+  focus?: { bbox: [number, number, number, number]; label: string; approx?: boolean } | null;
   boxes?: Box[];
   glow?: boolean;
   scanning?: boolean;
@@ -41,7 +42,20 @@ export function FormViewer({
   const r = size / 2;
 
   let lens: React.ReactNode = null;
-  if (focus && scale) {
+  if (focus?.approx && scale) {
+    const [x1, y1, x2, y2] = focus.bbox;
+    lens = (
+      <>
+        <div
+          className="region"
+          style={{ left: x1 * scale, top: y1 * scale, width: (x2 - x1) * scale, height: (y2 - y1) * scale }}
+        />
+        <div className="lens-label" style={{ left: ((x1 + x2) / 2) * scale, top: Math.max(0, y1 * scale - 30) }} dir="rtl">
+          {focus.label} · המיקום משוער
+        </div>
+      </>
+    );
+  } else if (focus && scale) {
     const [x1, y1, x2, y2] = focus.bbox;
     const cx = ((x1 + x2) / 2) * scale;
     const cy = ((y1 + y2) / 2) * scale;
@@ -75,7 +89,7 @@ export function FormViewer({
     <div className="viewer" ref={ref} dir="ltr" style={{ height: h || undefined }}>
       {scale > 0 && (
         <>
-          <img className={`viewer-img${focus ? " dimmed" : ""}`} src={src} alt="תמונת הטופס" width={w} height={h} />
+          <img className={`viewer-img${focus && !focus.approx ? " dimmed" : ""}`} src={src} alt="תמונת הטופס" width={w} height={h} />
           {glow &&
             boxes
               .filter((b) => b.status !== "missing")

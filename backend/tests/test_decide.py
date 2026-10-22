@@ -477,3 +477,20 @@ def test_vision_proves_the_digits_not_the_field(cfg):
         ocr=[ocr_line("512341")],  # a different number: no support
     )
     assert other.status == "likely" and "source_single" in other.reasons
+
+
+def test_a_crop_reads_box_stays_approximate(cfg):
+    crop = vlm("first_name", "דנה", handwritten=True).model_copy(
+        update={"reader": "vlm_crop", "bbox": (0, 0, 1200, 900), "bbox_approx": True}
+    )
+    fr = decide_field("first_name", [crop], [], PAGE, cfg, REF)
+    assert "bbox_approx" in fr.reasons and fr.sources[0].bbox_approx
+
+    from vera.evidence import _crop
+
+    assert _crop(fr)["approx"] is True
+    exact = vlm("first_name", "דנה", handwritten=True).model_copy(
+        update={"bbox": (10, 10, 60, 30)}
+    )
+    both = decide_field("first_name", [crop, exact], [], PAGE, cfg, REF)
+    assert _crop(both) == {"page_id": PAGE, "bbox": [0, 0, 84, 54], "approx": False}

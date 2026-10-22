@@ -295,7 +295,8 @@ def _status(
             reasons.append("sources_dependent")
         if all(c.handwritten for c in g.cands if c.reader != "barcode"):
             reasons.append("handwritten_only")
-    if not any(c.bbox for c in g.cands):
+    # A crop read's box is the whole crop, not the value: still approximate.
+    if not any(c.bbox and not c.bbox_approx for c in g.cands):
         reasons.append("bbox_approx")
     if fname in cfg.label_required and needs_anchor:
         reasons.append("label_missing")
@@ -353,7 +354,7 @@ def _source(c: Candidate) -> Source:
         values=[c.value_norm or c.value_raw],
         page_id=c.page_id,
         bbox=c.bbox,
-        bbox_approx=c.bbox is None,
+        bbox_approx=c.bbox is None or c.bbox_approx,
         evidence_text=c.evidence_text,
         legible=c.legible,
         handwritten=c.handwritten,

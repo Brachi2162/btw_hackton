@@ -55,7 +55,13 @@ PAD = 24
 
 
 def _crop(fr: FieldResult) -> dict | None:
+    """Where to look on the page. Exact boxes (barcode, OCR) when there are
+    any; otherwise the reader's rough area (a crop read's whole crop), marked
+    approx so the screen outlines it instead of zooming into its middle."""
     boxes = [s for s in fr.sources if s.bbox is not None]
+    # Rows saved before the fix carry crop boxes marked exact: by reader too.
+    exact = [s for s in boxes if not s.bbox_approx and s.reader != "vlm_crop"]
+    boxes = exact or boxes
     if not boxes:
         return None
     page = boxes[0].page_id
@@ -67,7 +73,7 @@ def _crop(fr: FieldResult) -> dict | None:
     return {
         "page_id": page,
         "bbox": [max(0, x1), max(0, y1), x2, y2],
-        "approx": any(s.bbox_approx for s in boxes),
+        "approx": not exact,
     }
 
 
