@@ -2,7 +2,7 @@
 -include .env
 export
 
-.PHONY: up down logs dev dev-local dtest test test-docker test-web lint pages barcodes vlm escalate crops decide eval gt-template seed-demo clear-demo
+.PHONY: up down logs dev dev-local dtest test test-docker test-web lint pages barcodes vlm escalate ocr crops crop-check decide eval gt-template seed-demo clear-demo redecide
 
 up:        ## build and start everything: UI http://localhost:8080, API :8000/health
 	docker compose up --build -d
@@ -32,6 +32,9 @@ test-web:  ## frontend type check + tests, in the web build image
 		--build-arg NETFREE_REFRESH_CERTS=$${NETFREE_REFRESH_CERTS:-0} \
 		--build-arg NPM_STRICT_SSL=$${NPM_STRICT_SSL:-true} .
 
+redecide: ## after a rule change: decide stored reads again (no model calls, keeps human fixes)
+	docker compose exec api python -m vera.cli redecide
+
 seed-demo: ## 4 weeks of made-up history (marked demo=true, "נתוני דוגמה" in the UI)
 	docker compose exec -T api python -m vera.cli seed-demo
 
@@ -50,8 +53,14 @@ vlm:       ## vision-model read of the dev set -> data/work/pages/vlm.json (cach
 escalate:  ## re-read pages with orange/grey fields with the stronger model (after `make decide`)
 	docker compose exec api python -m vera.cli vlm --pages /data/work/pages --doc part2 --escalate
 
+ocr:       ## Google Vision OCR of the dev set -> data/work/pages/ocr.json (D-009; needs GOOGLE_VISION_API_KEY)
+	docker compose exec api python -m vera.cli ocr --pages /data/work/pages --doc part2
+
 crops:     ## crop reads of the patient area for unconfirmed names/IDs (D-005; after `make decide`)
 	docker compose exec api python -m vera.cli vlm --pages /data/work/pages --doc part2 --crops
+
+crop-check: ## the same crops through crop_check_model, another provider (D-012; after `make crops`)
+	docker compose exec api python -m vera.cli vlm --pages /data/work/pages --doc part2 --crop-check
 
 # Samples are from Jun-Aug 2026: judge dates against 1/9/2026, not today (D-004).
 REF_DATE ?= 2026-09-01

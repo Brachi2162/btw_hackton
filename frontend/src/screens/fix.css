@@ -16,7 +16,7 @@
   inset-inline-start: calc(220px + 32px);
   inset-inline-end: 210px; /* clear of the assistant button */
   z-index: 60;
-  background: var(--dark-grad);
+  background: var(--navy);
   color: #fff;
   border-radius: 12px;
   padding: 14px 18px;
@@ -25,7 +25,7 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  box-shadow: 0 16px 40px rgba(31, 16, 53, 0.35);
+  box-shadow: 0 16px 40px rgba(13, 27, 42, 0.35);
   animation: bar-in 0.25s ease-out;
 }
 

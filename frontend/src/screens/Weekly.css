@@ -24,7 +24,7 @@
   width: 168px;
   height: 168px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--orange), var(--pink), var(--purple) var(--p), #efe8f6 0);
+  background: conic-gradient(from 0deg, var(--orange), var(--pink), var(--purple) var(--p), #e9eef2 0);
   display: grid;
   place-items: center;
   position: relative;
@@ -69,8 +69,8 @@
 }
 
 .dot-eye {
-  background: #efe8f6;
-  border: 1px solid #ddd0ea;
+  background: #e9eef2;
+  border: 1px solid #d3dde6;
 }
 
 .stat.dark {
@@ -86,7 +86,7 @@
 }
 
 .stat.dark .stat-n {
-  background: linear-gradient(90deg, #ffb27a, #ff8fc8 50%, #c9a6ff);
+  background: linear-gradient(90deg, #7fdcd6, #2bb5ae 50%, #0e7f87);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -98,7 +98,7 @@
 
 .stat-sub {
   font-size: 12px;
-  color: #b3a3c9;
+  color: #9fb3c4;
 }
 
 .charts {

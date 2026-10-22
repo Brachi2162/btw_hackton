@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SubmissionSummary } from "./api";
 import { FormSignature } from "./components/FormSignature";
 import { ToastProvider } from "./components/Toast";
-import { nextOpenField, showValue, signatureOf } from "./fields";
+import { nextAfterSave, nextOpenField, showValue, signatureOf } from "./fields";
 import { PropagationBar } from "./screens/fix";
 
 afterEach(() => {
@@ -58,6 +58,15 @@ describe("fields", () => {
     expect(nextOpenField([sub("c", {})], null)).toBeNull();
   });
 
+  it("after a save, finishes the same form first, even a field before it", () => {
+    const subs = [sub("a", { sender: "review", id_number: "review" }), sub("b", { sender: "likely" })];
+    expect(nextAfterSave(subs, { sid: "a", field: "id_number" })).toEqual({ sid: "a", field: "sender" });
+    expect(nextAfterSave(subs, { sid: "a", field: "sender" })).toEqual({ sid: "a", field: "id_number" });
+    const done = [sub("a", { id_number: "review" }), sub("b", { sender: "likely" })];
+    expect(nextAfterSave(done, { sid: "a", field: "id_number" })).toEqual({ sid: "b", field: "sender" });
+    expect(nextAfterSave([sub("a", { id_number: "review" })], { sid: "a", field: "id_number" })).toBeNull();
+  });
+
   it("shows ISO dates as dd/mm/yyyy", () => {
     expect(showValue("receipt_date", "2026-08-20")).toBe("20/08/2026");
     expect(showValue("id_number", "2026-08-20")).toBe("2026-08-20");
@@ -87,8 +96,35 @@ describe("PropagationBar", () => {
     await waitFor(() => expect(done).toHaveBeenCalledWith(2));
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/batches/B1/propagate");
-    expect(JSON.parse(init.body)).toEqual({ field: "receipt_date", value: "2026-08-20", submission_ids: ["b", "c"] });
+    expect(JSON.parse(init.body)).toEqual({
+      field: "receipt_date",
+      value: "2026-08-20",
+      submission_ids: ["b", "c"],
+      from_values: null,
+    });
     expect(await screen.findByText("הוחל על 2 טפסים")).toBeTruthy();
+  });
+
+  it("offers a fix of the same misread and sends the misread along", async () => {
+    const fetchMock = vi.fn().mockImplementation(async () =>
+      new Response(JSON.stringify({ applied: ["b"], skipped: [], counts: {} }), {
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <ToastProvider>
+        <PropagationBar
+          batchId="B1"
+          prop={{ field: "sender", value: "מרכז רפואי רבין", count: 1, submission_ids: ["b"], kind: "fix", from_values: ["כללית"] }}
+          onDone={() => {}}
+        />
+      </ToastProvider>,
+    );
+    expect(screen.getByRole("region").textContent).toContain("אותה טעות (כללית)");
+    fireEvent.click(screen.getByRole("button", { name: /לתקן/ }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).from_values).toEqual(["כללית"]);
   });
 
   it("'רק כאן' closes without calling the server", () => {
@@ -103,5 +139,56 @@ describe("PropagationBar", () => {
     fireEvent.click(screen.getByRole("button", { name: "רק כאן" }));
     expect(done).toHaveBeenCalledWith(0);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("Assistant", () => {
+  it("shows the reply to a question without breaking the page", async () => {
+    const answer = {"reply": "יש **268 שדות** לבדיקה.\n- 5 בירורים", "actions": [], "tools_used": ["work_overview"], "suggestions": ["מה מחכה לי עכשיו?", "אילו מבחנות הגיעו בלי טופס?", "אילו בירורים פתוחים יותר מיממה?", "איך היה השבוע?"], "mode": "model"};
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
+      new Response(JSON.stringify(answer), { headers: { "content-type": "application/json" } }),
+    );
+    // As in newer Chrome, scrollIntoView returns a Promise (jsdom has none).
+    Element.prototype.scrollIntoView = vi.fn(() => Promise.resolve()) as never;
+    const { Assistant } = await import("./screens/Assistant");
+    render(
+      <ToastProvider>
+        <Assistant />
+      </ToastProvider>,
+    );
+    fireEvent.click(screen.getByText(/שאלי את VERA/));
+    fireEvent.change(screen.getByLabelText("שאלה ל-VERA"), { target: { value: "מה מחכה לי?" } });
+    fireEvent.click(screen.getByText("שליחה"));
+    await waitFor(() => expect(screen.getByText(/268 שדות/)).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("שאלה ל-VERA"), { target: { value: "ועוד?" } });
+    fireEvent.click(screen.getByText("שליחה")); // re-runs the scroll effect
+    await waitFor(() => expect(screen.getAllByText(/268 שדות/)).toHaveLength(2));
+    // minimize keeps the conversation, and the button says so
+    fireEvent.click(screen.getByLabelText("הקטנה (השיחה נשמרת)"));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByText("חזרה לשיחה"));
+    expect(screen.getAllByText(/268 שדות/)).toHaveLength(2);
+  });
+});
+
+describe("ErrorBoundary", () => {
+  it("keeps the rest of the page when one part throws, and offers a retry", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { ErrorBoundary } = await import("./components/ErrorBoundary");
+    function Boom(): never {
+      throw new Error("boom");
+    }
+    render(
+      <div>
+        <p>שאר המסך</p>
+        <ErrorBoundary label="הצ'אט">
+          <Boom />
+        </ErrorBoundary>
+      </div>,
+    );
+    expect(screen.getByText("שאר המסך")).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain("boom");
+    expect(screen.getByText("נסי שוב")).toBeTruthy();
   });
 });

@@ -14,6 +14,19 @@ LINES = [
 ] * 6
 
 
+@pytest.fixture(autouse=True)
+def no_real_api_keys(monkeypatch):
+    """Tests never reach a real model API, even when .env has keys (the
+    container's environment does). A test that needs a key sets a fake one."""
+    from vera.config import get_settings
+
+    for key in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GOOGLE_VISION_API_KEY"):
+        monkeypatch.setenv(key, "")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 def make_pdf(path, pages=2, text=True):
     doc = pymupdf.open()
     for _ in range(pages):

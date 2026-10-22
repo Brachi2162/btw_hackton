@@ -11,6 +11,7 @@ READER_HE = {
     "ocr": "OCR",
     "vlm_full": "מודל ראייה",
     "vlm_crop": "מודל ראייה (חיתוך)",
+    "vlm_crop_check": "מודל ראייה שני (חיתוך)",
     "vlm_escalated": "מודל ראייה חזק",
     "human": "ידני",
 }
@@ -54,10 +55,43 @@ CHECKS = [
 PAD = 24
 
 
-def _crop(fr: FieldResult) -> dict | None:
-    boxes = [s for s in fr.sources if s.bbox is not None]
-    if not boxes:
+def _approx_area(fr: FieldResult, pages: dict) -> dict | None:
+    """No exact box: where the readers said the value is. Each rough area (a
+    crop read's crop, a full-page read's 3x3 region) contains the value, so
+    their intersection is the tightest honest guess; if they don't overlap,
+    the smallest one. Marked approx, never zoomed into as if exact (D-015)."""
+    from vera.pipeline.vlm import region_box
+
+    areas: dict[str, list] = {}
+    for s in fr.sources:
+        if s.bbox is not None:
+            areas.setdefault(s.page_id, []).append(list(s.bbox))
+        elif s.region and s.page_id in pages:
+            w, h = pages[s.page_id]
+            areas.setdefault(s.page_id, []).append(list(region_box(s.region, w, h)))
+    if not areas:
         return None
+    page, boxes = max(areas.items(), key=lambda kv: len(kv[1]))
+    x1, y1 = max(b[0] for b in boxes), max(b[1] for b in boxes)
+    x2, y2 = min(b[2] for b in boxes), min(b[3] for b in boxes)
+    if x2 - x1 < 40 or y2 - y1 < 40:  # they disagree: the smallest area
+        x1, y1, x2, y2 = min(boxes, key=lambda b: (b[2] - b[0]) * (b[3] - b[1]))
+    return {"page_id": page, "bbox": [x1, y1, x2, y2], "approx": True}
+
+
+def _crop(fr: FieldResult, pages: dict | None = None) -> dict | None:
+    """Where to look on the page. Exact boxes (barcode, OCR, a place a person
+    marked) when there are any; otherwise the readers' rough area, marked
+    approx so the screen outlines it instead of zooming into its middle.
+    `pages`: page_id -> (width, height), to place a 3x3 region."""
+    boxes = [s for s in fr.sources if s.bbox is not None]
+    # Rows saved before the fix carry crop boxes marked exact: by reader too.
+    exact = [s for s in boxes if not s.bbox_approx and s.reader != "vlm_crop"]
+    # A place a person marked beats every reader (D-011).
+    marked = [s for s in exact if s.reader == "human"]
+    if not (marked or exact):
+        return _approx_area(fr, pages or {})
+    boxes = marked or exact
     page = boxes[0].page_id
     same = [s.bbox for s in boxes if s.page_id == page]
     x1 = min(b[0] for b in same) - PAD
@@ -67,21 +101,27 @@ def _crop(fr: FieldResult) -> dict | None:
     return {
         "page_id": page,
         "bbox": [max(0, x1), max(0, y1), x2, y2],
-        "approx": any(s.bbox_approx for s in boxes),
+        "approx": False,
     }
 
 
-def options(fr: FieldResult) -> list[dict]:
-    """Distinct candidate values with who read them: the 1/2/3 buttons."""
+def options(fr: FieldResult, learned: list[dict] | None = None) -> list[dict]:
+    """Distinct candidate values with who read them: the 1/2/3 buttons. A fix
+    people made to this same misread before comes first (D-011)."""
     out: dict[str, set[str]] = {}
+    for x in learned or []:
+        out.setdefault(x["value"], set()).add(f"תוקן כך {x['count']} פעמים בעבר")
     for s in fr.sources:
         for v in s.values:
             if v:
                 out.setdefault(v, set()).add(READER_HE.get(s.reader, s.reader))
     for v in fr.values:
         out.setdefault(v, set())
+    unread = "illegible" in fr.reasons and not fr.values
     for v in fr.alternatives:
-        out.setdefault(v, set()).add("מועמד שנדחה")
+        # With an empty unreadable field, the alternatives start with the
+        # readers' guess (D-013): say so, not "rejected".
+        out.setdefault(v, set()).add("ניחוש, לא קריא" if unread else "מועמד שנדחה")
     return [{"value": v, "readers": sorted(r)} for v, r in out.items()][:5]
 
 
@@ -108,8 +148,15 @@ def decision_he(fr: FieldResult) -> str:
     return f"{label}: {body or 'לא נמצא בעמוד'}. השדה נשאר ריק ומסומן."
 
 
-def evidence(sub: Submission, field: str, templates: dict[str, str]) -> dict:
+def evidence(
+    sub: Submission,
+    field: str,
+    templates: dict[str, str],
+    learned: list[dict] | None = None,
+    pages: dict | None = None,
+) -> dict:
     fr = sub.fields[field]
+    crop = _crop(fr, pages)
     reasons = set(fr.reasons)
     checks = []
     if fr.status == "missing" and not fr.sources:
@@ -132,7 +179,7 @@ def evidence(sub: Submission, field: str, templates: dict[str, str]) -> dict:
         "field_he": FIELD_HE.get(field, field),
         "status": fr.status,
         "values": fr.values,
-        "crop": _crop(fr),
+        "crop": crop,
         "sources": [
             {
                 "reader": s.reader,
@@ -147,7 +194,7 @@ def evidence(sub: Submission, field: str, templates: dict[str, str]) -> dict:
             }
             for s in fr.sources
         ],
-        "options": options(fr),
+        "options": options(fr, learned),
         "checks": checks,
         "reasons": [
             {"code": c, "text_he": _reason_text(templates, c, fr)} for c in fr.reasons

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { imageUrl, type Status } from "../api";
 import { useWidth } from "../hooks";
 import "./FormViewer.css";
@@ -24,15 +25,20 @@ export function FormViewer({
   boxes = [],
   glow = false,
   scanning = false,
+  onPick,
 }: {
   pageId: string;
   pageW: number;
   pageH: number;
-  focus?: { bbox: [number, number, number, number]; label: string } | null;
+  /** approx: the reader's rough area, outlined instead of zoomed into. */
+  focus?: { bbox: [number, number, number, number]; label: string; approx?: boolean } | null;
   boxes?: Box[];
   glow?: boolean;
   scanning?: boolean;
+  /** Mark mode: the person drags a box; called with it in page pixels. */
+  onPick?: (bbox: [number, number, number, number]) => void;
 }) {
+  const [drag, setDrag] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const [ref, w] = useWidth<HTMLDivElement>();
   const scale = pageW ? w / pageW : 0;
   const h = pageH * scale;
@@ -41,7 +47,20 @@ export function FormViewer({
   const r = size / 2;
 
   let lens: React.ReactNode = null;
-  if (focus && scale) {
+  if (focus?.approx && scale) {
+    const [x1, y1, x2, y2] = focus.bbox;
+    lens = (
+      <>
+        <div
+          className="region"
+          style={{ left: x1 * scale, top: y1 * scale, width: (x2 - x1) * scale, height: (y2 - y1) * scale }}
+        />
+        <div className="lens-label" style={{ left: ((x1 + x2) / 2) * scale, top: Math.max(0, y1 * scale - 30) }} dir="rtl">
+          {focus.label} · המיקום משוער
+        </div>
+      </>
+    );
+  } else if (focus && scale) {
     const [x1, y1, x2, y2] = focus.bbox;
     const cx = ((x1 + x2) / 2) * scale;
     const cy = ((y1 + y2) / 2) * scale;
@@ -75,7 +94,7 @@ export function FormViewer({
     <div className="viewer" ref={ref} dir="ltr" style={{ height: h || undefined }}>
       {scale > 0 && (
         <>
-          <img className={`viewer-img${focus ? " dimmed" : ""}`} src={src} alt="תמונת הטופס" width={w} height={h} />
+          <img className={`viewer-img${focus && !focus.approx ? " dimmed" : ""}`} src={src} alt="תמונת הטופס" width={w} height={h} />
           {glow &&
             boxes
               .filter((b) => b.status !== "missing")
@@ -92,7 +111,49 @@ export function FormViewer({
                 />
               ))}
           {scanning && <div className="scanline" />}
-          {lens}
+          {onPick ? (
+            <div
+              className="pick-layer"
+              onPointerDown={(e) => {
+                const r = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - r.left;
+                const y = e.clientY - r.top;
+                e.currentTarget.setPointerCapture(e.pointerId);
+                setDrag({ x0: x, y0: y, x1: x, y1: y });
+              }}
+              onPointerMove={(e) => {
+                if (!drag) return;
+                const r = e.currentTarget.getBoundingClientRect();
+                setDrag({ ...drag, x1: e.clientX - r.left, y1: e.clientY - r.top });
+              }}
+              onPointerUp={() => {
+                if (drag && Math.abs(drag.x1 - drag.x0) > 6 && Math.abs(drag.y1 - drag.y0) > 6) {
+                  const s = 1 / scale;
+                  onPick([
+                    Math.min(drag.x0, drag.x1) * s,
+                    Math.min(drag.y0, drag.y1) * s,
+                    Math.max(drag.x0, drag.x1) * s,
+                    Math.max(drag.y0, drag.y1) * s,
+                  ]);
+                }
+                setDrag(null);
+              }}
+            >
+              {drag && (
+                <div
+                  className="pick-box"
+                  style={{
+                    left: Math.min(drag.x0, drag.x1),
+                    top: Math.min(drag.y0, drag.y1),
+                    width: Math.abs(drag.x1 - drag.x0),
+                    height: Math.abs(drag.y1 - drag.y0),
+                  }}
+                />
+              )}
+            </div>
+          ) : (
+            lens
+          )}
         </>
       )}
     </div>

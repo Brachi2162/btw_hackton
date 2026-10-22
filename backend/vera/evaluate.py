@@ -6,6 +6,8 @@ fields are compared as sets. The key numbers (spec 17.3):
 - green accuracy: correct among `verified` (target 100%, Wilson upper bound);
 - human touch rate: `likely` + `review` among all fields;
 - correct empties: a field absent in the form stays empty.
+- one action: the value is right, or the field is empty and its first
+  suggestion (the readers' guess, D-013) is right: one click away.
 """
 
 import json
@@ -94,6 +96,8 @@ def evaluate(
             c = per_field[f]
             c["n"] += 1
             c["correct"] += ok
+            first = _pred_values(f, fr.alternatives[:1], senders)
+            c["one_action"] += ok or (not pred and bool(truth) and first == truth)
             c[fr.status] += 1
             c["empty_truth"] += not truth
             c["empty_correct"] += (not truth) and (not pred)
@@ -117,6 +121,7 @@ def evaluate(
 
     total = sum(c["n"] for c in per_field.values())
     correct = sum(c["correct"] for c in per_field.values())
+    one_action = sum(c["one_action"] for c in per_field.values())
     green = by_status["verified"]
     touched = by_status["likely"]["n"] + by_status["review"]["n"]
     return {
@@ -125,6 +130,7 @@ def evaluate(
         "draft_rows": draft,
         "fields_total": total,
         "final_accuracy": correct / total if total else 0.0,
+        "one_action_accuracy": one_action / total if total else 0.0,
         "green_n": green["n"],
         "green_correct": green["correct"],
         "green_error_upper95": wilson_upper(green["correct"], green["n"]),
@@ -153,6 +159,8 @@ def to_markdown(rep: dict) -> str:
         "|---|---|",
         f"| דיוק סופי (לפני תיקון) | {pct(rep['final_accuracy'])} "
         f"({rep['fields_total']} שדות) |",
+        f"| נכון בפעולה אחת (ערך, או הניחוש המוצע בשדה ריק) "
+        f"| {pct(rep.get('one_action_accuracy', 0))} |",
         f"| ירוקים | {rep['green_n']}, מתוכם שגויים "
         f"{rep['green_n'] - rep['green_correct']} "
         f"(גבול עליון לשגיאה 95%: {pct(rep['green_error_upper95'])}) |",

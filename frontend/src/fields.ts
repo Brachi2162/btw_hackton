@@ -87,3 +87,24 @@ export function nextOpenField(
   const here = order.indexOf(`${from.sid}|${from.field}`);
   return cells.find((c) => order.indexOf(`${c.sid}|${c.field}`) > here) ?? cells[0];
 }
+
+/** After a field was saved: the next field of the SAME form that still needs
+ * an eye (after it, then before it), so one form is finished before the next;
+ * then the next form's. `done` is left out: the list may predate the save. */
+export function nextAfterSave(
+  subs: SubmissionSummary[],
+  done: { sid: string; field: string },
+): { sid: string; field: string } | null {
+  const order = ["sender", ...TABLE_FIELDS];
+  const form = subs.find((s) => s.id === done.sid);
+  if (form) {
+    const open = order.filter((f) => f !== done.field && form.fields[f] && !isGreen(form.fields[f].status));
+    const here = order.indexOf(done.field);
+    const next = open.find((f) => order.indexOf(f) > here) ?? open[0];
+    if (next) return { sid: form.id, field: next };
+  }
+  const rest = subs.map((s) =>
+    s.id === done.sid ? { ...s, fields: { ...s.fields, [done.field]: { values: [], status: "human" as const } } } : s,
+  );
+  return nextOpenField(rest, done);
+}

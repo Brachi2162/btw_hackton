@@ -94,6 +94,99 @@ def test_no_propagation_for_other_fields(demo):
     assert r.json()["propagation"] is None
 
 
+def test_fixing_a_misread_sender_offers_the_same_fix(demo):
+    c, _, bid, _ = demo
+    subs = subs_of(c, bid)
+    by_sender = {}
+    for x in subs:
+        f = x["fields"]["sender"]
+        if f["status"] != "human" and len(f["values"]) == 1:
+            by_sender.setdefault(f["values"][0], []).append(x["id"])
+    wrong, ids = max(by_sender.items(), key=lambda kv: len(kv[1]))
+    assert len(ids) >= 2
+    right = "מרכז רפואי רבין" if wrong != "מרכז רפואי רבין" else "מרכז רפואי מאיר"
+    r = c.patch(f"/api/submissions/{ids[0]}/fields/sender", json={"values": [right]})
+    prop = r.json()["propagation"]
+    assert prop["kind"] == "fix" and prop["from_values"] == [wrong]
+    assert prop["value"] == right and sorted(prop["submission_ids"]) == sorted(ids[1:])
+
+    applied = c.post(
+        f"/api/batches/{bid}/propagate",
+        json={
+            "field": "sender",
+            "value": right,
+            "from_values": [wrong],
+            "submission_ids": prop["submission_ids"],
+        },
+    ).json()
+    assert sorted(applied["applied"]) == sorted(ids[1:])
+    fr = c.get(f"/api/submissions/{ids[1]}").json()["fields"]["sender"]
+    assert fr["values"] == [right] and fr["status"] == "human"
+    assert "אותה טעות" in fr["explanation_he"]
+
+
+def test_a_name_fix_is_never_offered_to_other_patients(demo):
+    c, _, bid, _ = demo
+    sid = subs_of(c, bid)[0]["id"]
+    r = c.patch(f"/api/submissions/{sid}/fields/first_name", json={"values": ["דנה"]})
+    assert r.json()["propagation"] is None
+
+
+def _same_sender(c, bid, n=3):
+    groups = {}
+    for x in subs_of(c, bid):
+        f = x["fields"]["sender"]
+        if f["status"] != "human" and len(f["values"]) == 1:
+            groups.setdefault(f["values"][0], []).append(x["id"])
+    sender, ids = max(groups.items(), key=lambda kv: len(kv[1]))
+    assert len(ids) >= n
+    return sender, ids
+
+
+def test_a_fix_made_twice_is_offered_first_next_time(demo):
+    c, _, bid, _ = demo
+    wrong, ids = _same_sender(c, bid)
+    right = "מרכז רפואי רבין" if wrong != "מרכז רפואי רבין" else "מרכז רפואי מאיר"
+    ev = c.get(f"/api/submissions/{ids[2]}/fields/sender/evidence").json()
+    assert not any("בעבר" in r for o in ev["options"] for r in o["readers"])
+    for sid in ids[:2]:
+        c.patch(f"/api/submissions/{sid}/fields/sender", json={"values": [right]})
+    ev = c.get(f"/api/submissions/{ids[2]}/fields/sender/evidence").json()
+    first = ev["options"][0]
+    assert first["value"] == right and "תוקן כך 2 פעמים בעבר" in first["readers"]
+    # a suggestion only: the field itself is untouched
+    assert c.get(f"/api/submissions/{ids[2]}").json()["fields"]["sender"]["values"] == [
+        wrong
+    ]
+
+
+def test_a_marked_location_is_exact_for_this_form_only(demo):
+    c, _, bid, _ = demo
+    _, ids = _same_sender(c, bid, n=2)
+    sub = c.get(f"/api/submissions/{ids[0]}").json()
+    page = sub["page_ids"][0]
+    r = c.put(
+        f"/api/submissions/{ids[0]}/fields/commitment_numbers/location",
+        json={"page_id": page, "bbox": [100, 200, 400, 260]},
+        headers={"X-User": "dina"},
+    )
+    assert r.status_code == 200
+    assert r.json()["crop"]["approx"] is False
+    assert r.json()["crop"]["bbox"] == [76, 176, 424, 284]  # with padding
+    human = [s for s in r.json()["sources"] if s["reader"] == "human"]
+    assert human and "dina" in human[0]["quote"]
+    # another form of the same sender is untouched: layouts differ
+    other = c.get(
+        f"/api/submissions/{ids[1]}/fields/commitment_numbers/evidence"
+    ).json()
+    assert not any(x["reader"] == "human" for x in other["sources"])
+    bad = c.put(
+        f"/api/submissions/{ids[0]}/fields/commitment_numbers/location",
+        json={"page_id": "not-this-form", "bbox": [1, 1, 50, 50]},
+    )
+    assert bad.status_code == 422
+
+
 # --- evidence ---
 
 
@@ -376,3 +469,69 @@ def test_old_database_gets_new_columns(tmp_path):
         cols = {r[1] for r in conn.execute(text("PRAGMA table_info(batches)"))}
     repo.close()
     assert "demo" in cols
+
+
+class FakeGemini:
+    """Gemini REST: queued (status, body) answers, in order."""
+
+    def __init__(self, *answers):
+        self.answers, self.calls = list(answers), []
+
+    def post(self, url, headers, json):
+        self.calls.append({"url": url, "json": json})
+        status, body = self.answers.pop(0)
+        return SimpleNamespace(
+            status_code=status, json=lambda: body, text=str(body)[:300]
+        )
+
+
+def gemini_parts(*parts):
+    return (200, {"candidates": [{"content": {"parts": list(parts)}}]})
+
+
+def test_assistant_asks_gemini_first_with_tools(demo):
+    c, app, _, _ = demo
+    fake = FakeGemini(
+        gemini_parts(
+            {
+                "functionCall": {"name": "work_overview", "args": {}},
+                "thoughtSignature": "s",
+            }
+        ),
+        gemini_parts(
+            {"text": "חושבת...", "thought": True}, {"text": "יש 3 שדות לבדיקה."}
+        ),
+    )
+    app.state.assistant._http = fake
+    r = c.post(
+        "/api/assistant/chat",
+        json={"messages": [{"role": "user", "content": "מה מחכה?"}]},
+    ).json()
+    assert r["mode"] == "model" and r["reply"] == "יש 3 שדות לבדיקה."
+    assert r["tools_used"] == ["work_overview"]
+    assert "gemini-3.5-flash:generateContent" in fake.calls[0]["url"]
+    tools = fake.calls[0]["json"]["tools"][0]["functionDeclarations"]
+    assert {"work_overview", "correct_field"} <= {t["name"] for t in tools}
+    second = fake.calls[1]["json"]["contents"]
+    assert second[1]["parts"][0]["thoughtSignature"] == "s"  # sent back as it came
+    answer = second[2]["parts"][0]["functionResponse"]
+    assert answer["name"] == "work_overview" and "review_waiting" in answer["response"]
+
+
+def test_assistant_falls_back_to_claude_then_to_the_data(demo):
+    c, app, _, _ = demo
+    ask = {"messages": [{"role": "user", "content": "איך היה השבוע?"}]}
+    app.state.assistant._http = FakeGemini((429, {"error": {"message": "quota"}}))
+    app.state.assistant._client = FakeClient()
+    r = c.post("/api/assistant/chat", json=ask).json()
+    assert r["mode"] == "model" and r["reply"].startswith("השבוע")
+
+    broken = SimpleNamespace(
+        beta=SimpleNamespace(
+            messages=SimpleNamespace(create=lambda **kw: 1 / 0)  # any failure
+        )
+    )
+    app.state.assistant._http = FakeGemini((503, {}))
+    app.state.assistant._client = broken
+    r = c.post("/api/assistant/chat", json=ask)
+    assert r.status_code == 200 and r.json()["mode"] == "offline"

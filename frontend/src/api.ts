@@ -6,6 +6,8 @@ export type Status = "verified" | "likely" | "review" | "missing" | "human";
 export interface FieldSummary {
   values: string[];
   status: Status;
+  /** The readers' guess in an empty unreadable field (D-013): shown, not written. */
+  guess?: string | null;
 }
 
 export interface SubmissionSummary {
@@ -48,6 +50,9 @@ export interface Propagation {
   value: string;
   count: number;
   submission_ids: string[];
+  /** "fix": the same misread on other forms; "accept": the same likely value */
+  kind?: "fix" | "accept";
+  from_values?: string[] | null;
 }
 
 export interface Counts {
@@ -288,6 +293,12 @@ export const api = {
       field: p.field,
       value: p.value,
       submission_ids: p.submission_ids,
+      from_values: p.from_values ?? null,
+    }),
+  setLocation: (sid: string, field: string, pageId: string, bbox: number[]) =>
+    call<Evidence>("PUT", `/submissions/${sid}/fields/${field}/location`, {
+      page_id: pageId,
+      bbox: bbox.map(Math.round),
     }),
   evidence: (sid: string, field: string) => call<Evidence>("GET", `/submissions/${sid}/fields/${field}/evidence`),
   reviewQueue: (bid: string) =>

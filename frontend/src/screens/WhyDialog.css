@@ -4,12 +4,12 @@
   padding: 0;
   width: min(680px, 94vw);
   max-height: 88vh;
-  box-shadow: 0 24px 60px rgba(31, 16, 53, 0.3);
+  box-shadow: 0 24px 60px rgba(13, 27, 42, 0.3);
   color: var(--text);
 }
 
 .why::backdrop {
-  background: rgba(31, 16, 53, 0.5);
+  background: rgba(13, 27, 42, 0.5);
 }
 
 .why header {
@@ -47,7 +47,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--grad);
+  background: var(--navy);
   color: #fff;
   display: grid;
   place-items: center;

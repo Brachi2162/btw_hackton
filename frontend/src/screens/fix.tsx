@@ -79,16 +79,28 @@ export function PropagationBar({
   }
   return (
     <div className="prop-bar" role="region" aria-label="החלה על טפסים נוספים">
-      <span>
-        אישרת {what}{" "}
-        <span className="num" dir="ltr">
-          {showValue(prop.field, prop.value)}
+      {prop.kind === "fix" ? (
+        <span>
+          תיקנת {what} ל-
+          <span className="num" dir="auto">
+            {showValue(prop.field, prop.value)}
+          </span>
+          . ב-<span className="num">{prop.count}</span> טפסים נוספים באצווה יש אותה טעות (
+          <span dir="auto">{(prop.from_values ?? []).map((v) => showValue(prop.field, v)).join(", ")}</span>). לתקן גם
+          אותם?
         </span>
-        . ל-<span className="num">{prop.count}</span> טפסים נוספים יש אותה חותמת. להחיל עליהם?
-      </span>
+      ) : (
+        <span>
+          אישרת {what}{" "}
+          <span className="num" dir="ltr">
+            {showValue(prop.field, prop.value)}
+          </span>
+          . ל-<span className="num">{prop.count}</span> טפסים נוספים יש אותה חותמת. להחיל עליהם?
+        </span>
+      )}
       <div className="prop-actions">
         <button className="btn primary" onClick={apply} disabled={busy} autoFocus>
-          להחיל על <span className="num">{prop.count}</span> טפסים
+          {prop.kind === "fix" ? "לתקן" : "להחיל על"} <span className="num">{prop.count}</span> טפסים
         </button>
         <button className="btn dark" onClick={() => onDone(0)} disabled={busy}>
           רק כאן

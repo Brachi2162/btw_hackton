@@ -119,8 +119,12 @@ def test_agreement_without_the_label_is_not_green(cfg):
     assert fr.status == "likely"
 
 
-def test_vlm_alone_is_yellow(cfg):
+def test_vlm_alone_is_yellow_without_its_label_green_with_it(cfg):
     fr = decide_field(
+        "central_numbers", [vlm("central_numbers", "512340")], [], PAGE, cfg, REF
+    )
+    assert fr.status == "likely" and "source_single" in fr.reasons
+    labeled = decide_field(
         "central_numbers",
         [vlm("central_numbers", "512340", label="מרכזי")],
         [],
@@ -128,7 +132,8 @@ def test_vlm_alone_is_yellow(cfg):
         cfg,
         REF,
     )
-    assert fr.status == "likely" and "source_single" in fr.reasons
+    # every rule of the field passes, its label included (D-016)
+    assert labeled.status == "verified" and "source_single" in labeled.reasons
 
 
 def test_decoy_label_goes_to_review_even_with_barcode(cfg):
@@ -226,8 +231,9 @@ def test_page_commitment_never_equals_central_and_row_is_worst(cfg):
         ],
     }
     sub = decide_page(PAGE, "b1", page, [barcode("512340")], cfg, REF)
-    assert sub.fields["central_numbers"].status == "review"
-    assert "disagree_sources" in sub.fields["central_numbers"].reasons
+    # "מרכזי" next to it settles which field it is, whatever the models said
+    assert sub.fields["central_numbers"].status == "verified"
+    assert sub.fields["central_numbers"].values == ["512340"]
     assert sub.fields["commitment_numbers"].values == ["88120"]
     assert sub.fields["sender"].values == ["כללית"]
     assert sub.fields["first_name"].status == "missing"
@@ -275,7 +281,8 @@ def test_two_reads_of_the_same_model_are_one_source(cfg):
         cfg,
         REF,
     )
-    assert fr.status == "likely" and "source_single" in fr.reasons
+    # one source, though green now: its rules pass and its label is there
+    assert "source_single" in fr.reasons and fr.status == "verified"
 
 
 def test_crop_read_by_a_third_model_is_its_own_source(cfg):
@@ -332,7 +339,7 @@ def test_screenshot_date_next_to_central_becomes_receipt_date(cfg):
     assert sub.fields["receipt_date"].values == ["2026-08-25"]
 
 
-def test_parent_organization_sender_is_never_green(cfg):
+def test_parent_organization_sender_is_a_check(cfg):
     page = {
         "page_kind": "form",
         "sender_guess": "כללית",
@@ -341,7 +348,8 @@ def test_parent_organization_sender_is_never_green(cfg):
     }
     sub = decide_page(PAGE, "b1", page, [], cfg, REF)
     assert sub.fields["sender"].values == ["כללית"]
-    assert sub.fields["sender"].status == "likely"
+    assert sub.fields["sender"].status == "review"
+    assert "בית חולים" in sub.fields["sender"].explanation_he
 
 
 def test_models_disagreeing_on_the_field_send_it_to_review(cfg):
@@ -366,3 +374,231 @@ def test_models_disagreeing_on_the_field_send_it_to_review(cfg):
     commitment = sub.fields["commitment_numbers"]
     assert commitment.values == ["700100"]
     assert commitment.status == "review" and "disagree_sources" in commitment.reasons
+
+
+def test_id_with_a_valid_check_digit_is_green_from_one_clear_read(cfg):
+    fr = decide_field("id_number", [vlm("id_number", "12345674")], [], PAGE, cfg, REF)
+    assert fr.status == "verified" and "source_single" in fr.reasons
+    assert "ספרת הביקורת תקינה" in fr.explanation_he
+
+
+@pytest.mark.parametrize(
+    "cands",
+    [
+        [vlm("id_number", "12345674", legible=False)],  # reader not sure
+        [vlm("id_number", "012345675")],  # check digit fails
+        [vlm("id_number", "12345674", label="מ.ז. אם")],  # mother's ID
+    ],
+)
+def test_id_one_source_stays_orange_when_anything_blocks(cfg, cands):
+    fr = decide_field("id_number", cands, [], PAGE, cfg, REF)
+    assert fr.status == "review"
+
+
+def test_one_source_green_never_applies_to_names(cfg):
+    fr = decide_field("first_name", [vlm("first_name", "דנה")], [], PAGE, cfg, REF)
+    assert fr.status == "likely"  # no rule can tell a misread name
+
+
+def test_commitment_without_its_label_goes_to_review(cfg):
+    fr = decide_field(
+        "commitment_numbers", [vlm("commitment_numbers", "88120")], [], PAGE, cfg, REF
+    )
+    assert fr.status == "review" and "label_missing" in fr.reasons
+    assert "תווית" in fr.explanation_he
+    labeled = decide_field(
+        "commitment_numbers",
+        [vlm("commitment_numbers", "88120", label="התחייבות")],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert labeled.status == "verified" and "label_missing" not in labeled.reasons
+
+
+def ocr_line(*words, conf=0.95):
+    """Vision lines as gvision.to_lines makes them (D-009)."""
+    return {
+        "text": " ".join(words),
+        "words": [
+            {"text": w, "bbox": [100 * i, 50, 100 * i + 80, 80], "conf": conf}
+            for i, w in enumerate(words)
+        ],
+    }
+
+
+def test_vision_confirms_a_handwritten_name_with_a_real_box(cfg):
+    read = vlm("first_name", "דנה", legible=False, handwritten=True)
+    alone = decide_field("first_name", [read], [], PAGE, cfg, REF)
+    assert alone.status == "review" and "illegible" in alone.reasons
+    fr = decide_field(
+        "first_name",
+        [read.model_copy()],
+        [],
+        PAGE,
+        cfg,
+        REF,
+        ocr=[ocr_line("שם", "דנה")],
+    )
+    assert fr.status == "verified"
+    vision = next(s for s in fr.sources if s.reader == "ocr")
+    assert vision.bbox == (100, 50, 180, 80) and "Vision" in vision.evidence_text
+
+
+def test_vision_low_confidence_adds_a_source_but_not_a_clear_read(cfg):
+    read = vlm("first_name", "דנה", legible=False, handwritten=True)
+    fr = decide_field(
+        "first_name", [read], [], PAGE, cfg, REF, ocr=[ocr_line("דנה", conf=0.5)]
+    )
+    assert fr.status == "review" and "illegible" in fr.reasons
+    assert "source_single" not in fr.reasons
+
+
+def test_vision_proves_the_digits_not_the_field(cfg):
+    fr = decide_field(
+        "commitment_numbers",
+        [vlm("commitment_numbers", "88120")],
+        [],
+        PAGE,
+        cfg,
+        REF,
+        ocr=[ocr_line("88", "120")],
+    )
+    assert fr.status == "review" and "label_missing" in fr.reasons
+    assert "bbox_approx" not in fr.reasons  # the box is real now
+    other = decide_field(
+        "central_numbers",
+        [vlm("central_numbers", "512340", label="מרכזי")],
+        [],
+        PAGE,
+        cfg,
+        REF,
+        ocr=[ocr_line("512341")],  # a different number: no support
+    )
+    assert "source_single" in other.reasons  # Vision added nothing
+
+
+def test_a_crop_reads_box_stays_approximate(cfg):
+    crop = vlm("first_name", "דנה", handwritten=True).model_copy(
+        update={"reader": "vlm_crop", "bbox": (0, 0, 1200, 900), "bbox_approx": True}
+    )
+    fr = decide_field("first_name", [crop], [], PAGE, cfg, REF)
+    assert "bbox_approx" in fr.reasons and fr.sources[0].bbox_approx
+
+    from vera.evidence import _crop
+
+    assert _crop(fr)["approx"] is True
+    exact = vlm("first_name", "דנה", handwritten=True).model_copy(
+        update={"bbox": (10, 10, 60, 30)}
+    )
+    both = decide_field("first_name", [crop, exact], [], PAGE, cfg, REF)
+    assert _crop(both) == {"page_id": PAGE, "bbox": [0, 0, 84, 54], "approx": False}
+
+
+# --- handwritten names (D-012) ---
+
+
+def test_handwritten_name_in_latin_letters_is_a_misread(cfg):
+    fr = decide_field(
+        "first_name", [vlm("first_name", "Dana", handwritten=True)], [], PAGE, cfg, REF
+    )
+    assert fr.status == "review" and "validation_failed" in fr.reasons
+    # Printed Latin is a real name (spec 3.4 allows Latin letters).
+    fr = decide_field("first_name", [vlm("first_name", "Dana")], [], PAGE, cfg, REF)
+    assert fr.status == "likely"
+
+
+def test_hebrew_crop_reading_beats_a_latin_one(cfg):
+    crop = vlm("last_name", "כהן", handwritten=True).model_copy(
+        update={"reader": "vlm_crop"}
+    )
+    fr = decide_field(
+        "last_name",
+        [vlm("last_name", "Cohn", handwritten=True), crop],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert fr.values == ["כהן"] and "Cohn" in fr.alternatives
+
+
+def test_a_name_mixing_two_scripts_fails_the_check(cfg):
+    from vera.normalize import norm_name
+
+    assert norm_name("Gec. כהן").problems == ["validation_failed"]
+    assert norm_name("בן דוד").problems == []
+
+
+def test_two_providers_reading_the_same_crop_make_it_green(cfg):
+    def crop(reader):
+        return vlm("first_name", "דנה", handwritten=True).model_copy(
+            update={"reader": reader}
+        )
+
+    fr = decide_field(
+        "first_name", [crop("vlm_crop"), crop("vlm_crop_check")], [], PAGE, cfg, REF
+    )
+    assert fr.status == "verified"
+
+
+def test_an_unreadable_guess_is_offered_not_written(cfg):
+    guess = vlm("first_name", "דנה", legible=False, handwritten=True)
+    fr = decide_field("first_name", [guess], [], PAGE, cfg, REF)
+    assert fr.values == [] and fr.status == "review" and "illegible" in fr.reasons
+    assert fr.alternatives[0] == "דנה" and "לבחירה" in fr.explanation_he
+
+    from vera.evidence import options
+
+    first = options(fr)[0]
+    assert first["value"] == "דנה" and "ניחוש, לא קריא" in first["readers"]
+
+
+def test_a_clear_reading_is_still_written_next_to_an_unreadable_one(cfg):
+    clear = vlm("central_numbers", "512340", label="מרכזי")
+    unread = vlm("central_numbers", "654321", label="מרכזי", legible=False)
+    fr = decide_field("central_numbers", [clear, unread], [], PAGE, cfg, REF)
+    assert fr.values == ["512340"] and "654321" in fr.alternatives
+    assert fr.status == "review"
+
+
+def test_the_table_shows_the_guess_but_the_field_stays_empty(cfg):
+    from vera.batch import guess_of
+
+    guess = vlm("first_name", "דנה", legible=False, handwritten=True)
+    fr = decide_field("first_name", [guess], [], PAGE, cfg, REF)
+    assert fr.values == [] and guess_of(fr) == "דנה"
+    clear = decide_field("first_name", [vlm("first_name", "דנה")], [], PAGE, cfg, REF)
+    assert guess_of(clear) is None
+
+
+def test_an_uncertain_value_without_a_box_still_shows_where_it_came_from(cfg):
+    from vera.evidence import _crop
+
+    full = vlm("receipt_date", "20/08/2026", legible=False)
+    full.signals["region"] = "top-right"
+    esc = full.model_copy(
+        update={"reader": "vlm_escalated", "signals": {"region": "top-center"}}
+    )
+    fr = decide_field("receipt_date", [full, esc], [], PAGE, cfg, REF)
+    assert fr.sources[0].region == "top-right"
+    where = _crop(fr, {PAGE: (1000, 2000)})
+    # top row, and the overlap of the right and center columns
+    assert where == {"page_id": PAGE, "bbox": [400, 0, 800, 900], "approx": True}
+    assert _crop(fr) is None  # without the page size there's no place to draw
+
+
+def test_a_barcode_with_the_label_beside_it_is_the_central_number(cfg):
+    # The model read another number; "מרכזי" is printed by this barcode.
+    labelled = {**barcode("512340"), "label": "מרכזי"}
+    page = {
+        "page_kind": "form",
+        "candidates": [vlm("central_numbers", "107646").model_dump()],
+    }
+    sub = decide_page(PAGE, "b1", page, [labelled], cfg, REF)
+    central = sub.fields["central_numbers"]
+    assert central.values == ["512340"] and central.status == "verified"
+    assert "מרכזי" in central.sources[0].evidence_text
+    plain = decide_page(PAGE, "b1", page, [barcode("512340")], cfg, REF)
+    assert plain.fields["central_numbers"].values == ["107646"]  # no label: no say

@@ -6,10 +6,11 @@ from the host path SCAN_FOLDER (docker-compose.yml). A path typed in the UI
 may be the full Windows path inside that folder, a subfolder name, or empty
 for the whole folder.
 
-Relevant = a document by its content (PDF / JPEG / PNG / HEIC, never by
+Relevant = a document by its content (PDF / TIFF / images, never by
 extension), not empty and not over the upload limit, not a temp or system
 file, not still being written, and not already imported (same SHA-256).
-Optionally only files changed today.
+Optionally only files changed today. The folder may also be a web address
+that lists the scanner's files (inbox_url.py), with the same rules.
 """
 
 import hashlib
@@ -24,6 +25,7 @@ from sqlmodel import select
 
 from vera.batch import MAX_UPLOAD_BYTES
 from vera.db import BatchRow, DocumentRow
+from vera.inbox_url import UrlFolder, is_url, scan_url
 from vera.pipeline.ingest import UnsupportedFileError, sniff_kind
 
 SKIP_NAMES = re.compile(
@@ -42,6 +44,8 @@ REASON_HE = {
     "system": "קובץ זמני או קובץ מערכת",
     "writing": "עדיין נכתב, ייקלט בפעם הבאה",
     "old": "לא מהיום",
+    "no_date": "השרת לא מציין מתי הקובץ נוצר",
+    "fetch_failed": "השרת לא נתן להוריד אותו",
 }
 
 
@@ -64,8 +68,9 @@ def resolve(root: Path, host_root: str, text: str) -> Path:
     host = _norm(host_root)
     if re.match(r"^(https?|ftp)://|^//", t, re.I):
         raise InboxError(
-            "אפשר להזין רק תיקייה במחשב הזה (למשל C:\\Scans). "
-            "קישור אינטרנט או תיקיית רשת צריך קודם לסנכרן או להעתיק לתיקייה מקומית"
+            "אפשר להזין תיקייה במחשב הזה (למשל C:\\Scans) או כתובת http של "
+            "שרת שמציג את רשימת הקבצים. תיקיית רשת (\\\\server) צריך קודם "
+            "להעתיק לתיקייה מקומית"
         )
     if not t:
         rel = ""
@@ -103,7 +108,11 @@ def _imported_hashes(bs) -> set[str]:
 
 
 def scan(bs, text: str, today_only: bool = False, recursive: bool = False) -> dict:
-    """Preview: every file with whether it will be imported and why not."""
+    """Preview: every file with whether it will be imported and why not.
+    `text` is a folder path, or a folder's web address (inbox_url; a listing
+    is always walked into its subfolders)."""
+    if is_url(text):
+        return scan_url(bs, text, today_only, _imported_hashes(bs), REASON_HE)
     root = Path(bs.s.inbox_dir)
     if not root.is_dir():
         raise InboxError(
@@ -179,17 +188,24 @@ def import_folder(
     chosen = [f for f in preview["files"] if f["relevant"]]
     if not chosen:
         return {**preview, "batch_id": None, "added": []}
-    folder = resolve(Path(bs.s.inbox_dir), bs.s.scan_folder_host, text)
+    if is_url(text):
+        remote = UrlFolder(text)
+
+        def read(f):
+            return remote.fetch(f["url"])
+
+    else:
+        folder = resolve(Path(bs.s.inbox_dir), bs.s.scan_folder_host, text)
+
+        def read(f):
+            return (folder / f["path"]).read_bytes()
+
     d = datetime.now(timezone.utc).astimezone()
     batch = bs.create_batch(f"בוקר {d:%d/%m}", None, user)
     added = []
     for f in chosen:
         try:
-            added.append(
-                bs.add_file(
-                    batch.id, f["path"], (folder / f["path"]).read_bytes(), user
-                )
-            )
-        except UnsupportedFileError as e:  # changed since the preview
+            added.append(bs.add_file(batch.id, f["path"], read(f), user))
+        except (UnsupportedFileError, InboxError) as e:  # changed since the preview
             f["relevant"], f["reason_he"] = False, str(e)
     return {**preview, "batch_id": batch.id, "added": added}

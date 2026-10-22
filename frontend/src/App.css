@@ -8,3 +8,21 @@
   min-width: 0;
   position: relative;
 }
+
+/* ErrorBoundary: one broken part, the rest of the app keeps working */
+.error-box {
+  margin: 24px;
+  padding: 16px 20px;
+  border-inline-start: 4px solid var(--review, #e07a3f);
+}
+
+/* The server can't be reached: say so, and that nothing saved is lost. */
+.offline-bar {
+  margin: 12px 24px 0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--review-bg);
+  color: var(--text);
+  border-inline-start: 4px solid var(--review);
+  font-weight: 600;
+}

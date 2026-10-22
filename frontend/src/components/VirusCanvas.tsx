@@ -9,9 +9,9 @@ import { useEffect, useRef } from "react";
 type V3 = [number, number, number];
 
 const STOPS: [number, number, number][] = [
-  [251, 138, 60], // orange
-  [236, 72, 153], // pink
-  [139, 61, 255], // purple
+  [95, 208, 203], // glow
+  [14, 159, 154], // teal
+  [21, 63, 92], // deep navy-teal
 ];
 
 function palette(t: number, light = 1): string {
@@ -158,9 +158,9 @@ function draw(
 
   // soft halo
   const halo = ctx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 2.3);
-  halo.addColorStop(0, "rgba(236,72,153,0.28)");
-  halo.addColorStop(0.5, "rgba(139,61,255,0.12)");
-  halo.addColorStop(1, "rgba(139,61,255,0)");
+  halo.addColorStop(0, "rgba(14,159,154,0.28)");
+  halo.addColorStop(0.5, "rgba(95,208,203,0.12)");
+  halo.addColorStop(1, "rgba(95,208,203,0)");
   ctx.fillStyle = halo;
   ctx.fillRect(0, 0, w, h);
 
@@ -253,11 +253,11 @@ function draw(
 
   // capsid
   const body = ctx.createRadialGradient(cx - R * 0.38, cy - R * 0.42, R * 0.08, cx, cy, R);
-  body.addColorStop(0, "#ffd9bf");
-  body.addColorStop(0.28, "#fb8a3c");
-  body.addColorStop(0.58, "#ec4899");
-  body.addColorStop(0.86, "#8b3dff");
-  body.addColorStop(1, "#3a1470");
+  body.addColorStop(0, "#e8fffd");
+  body.addColorStop(0.28, "#3cc4bd");
+  body.addColorStop(0.58, "#0e9f9a");
+  body.addColorStop(0.86, "#0b6f78");
+  body.addColorStop(1, "#0d1b2a");
   ctx.fillStyle = body;
   ctx.beginPath();
   ctx.arc(cx, cy, R, 0, Math.PI * 2);
@@ -276,7 +276,7 @@ function draw(
     ctx.ellipse(p.x, p.y, Math.max(0.5, r * n[2]), r, -ang, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 0.14 * n[2];
-    ctx.strokeStyle = "#2a0f3d";
+    ctx.strokeStyle = "#15273b";
     ctx.lineWidth = 0.8;
     ctx.stroke();
   }
@@ -285,8 +285,8 @@ function draw(
   // rim light
   const rim = ctx.createRadialGradient(cx, cy, R * 0.82, cx, cy, R * 1.04);
   rim.addColorStop(0, "rgba(255,255,255,0)");
-  rim.addColorStop(0.8, "rgba(255,180,220,0.35)");
-  rim.addColorStop(1, "rgba(255,180,220,0)");
+  rim.addColorStop(0.8, "rgba(170,238,233,0.35)");
+  rim.addColorStop(1, "rgba(170,238,233,0)");
   ctx.fillStyle = rim;
   ctx.beginPath();
   ctx.arc(cx, cy, R * 1.04, 0, Math.PI * 2);

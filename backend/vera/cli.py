@@ -47,10 +47,13 @@ def cmd_pages(args: argparse.Namespace) -> None:
 def _page_barcodes(path: Path) -> list[dict]:
     from PIL import Image
 
-    from vera.pipeline.barcodes import read_barcodes
+    from vera.pipeline.barcodes import label_barcodes, read_barcodes
 
     with Image.open(path) as img:
-        return [b.to_dict() for b in read_barcodes(img.convert("RGB"))]
+        page = img.convert("RGB")
+        found = read_barcodes(page)
+        label_barcodes(page, found)
+        return [b.to_dict() for b in found]
 
 
 def cmd_barcodes(args: argparse.Namespace) -> None:
@@ -100,7 +103,13 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     # pages that still have an orange/grey field; it counts as its own source.
     # Crops (spec 8.2.2): a third model reads a full-resolution crop of the
     # patient area, for names/IDs that two sources haven't confirmed.
-    if args.crops:
+    # Crop check (D-012): another provider reads the same tight crop.
+    if args.crop_check:
+        if not cfg.crop_check_model:
+            raise SystemExit("crop_check_model is empty in config/vlm.yaml")
+        model, reader_name = cfg.crop_check_model, "vlm_crop_check"
+        default = "vlm_crop_check.json"
+    elif args.crops:
         model, reader_name, default = cfg.crop_model, "vlm_crop", "vlm_crops.json"
     elif args.escalate:
         model, reader_name = cfg.escalation_model, "vlm_escalated"
@@ -113,6 +122,7 @@ def cmd_vlm(args: argparse.Namespace) -> None:
         VlmCache(s.data_dir / "cache" / "vlm"),
         s.anthropic_api_key,
         model=model,
+        gemini_api_key=s.gemini_api_key,
     )
     prompt = render_prompt(
         s.prompts_dir, cfg.prompt, cfg.commitment_aliases, sender_names(s.config_dir)
@@ -121,11 +131,12 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     pages_dir = Path(args.pages)
     manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
     pages = [p for p in manifest["pages"] if not args.doc or p["doc"] in args.doc]
-    if args.escalate or args.crops:
+    crops = args.crops or args.crop_check
+    if args.escalate or crops:
         from vera.models import Submission
         from vera.pipeline.process import needs_crop, needs_escalation
 
-        need = needs_crop if args.crops else needs_escalation
+        need = needs_crop if crops else needs_escalation
         subs = json.loads((pages_dir / "submissions.json").read_text(encoding="utf-8"))
         todo = {
             pid
@@ -134,7 +145,7 @@ def cmd_vlm(args: argparse.Namespace) -> None:
             for pid in sub["page_ids"]
         }
         pages = [p for p in pages if page_id_of(p["doc"], p["page"]) in todo]
-    if args.crops:
+    if crops:
         crop_prompt = (s.prompts_dir / f"{cfg.crop_prompt}.md").read_text(
             encoding="utf-8"
         )
@@ -146,14 +157,22 @@ def cmd_vlm(args: argparse.Namespace) -> None:
             )
 
         full, esc = _load("vlm.json"), _load("vlm_escalated.json")
+        done = _load("vlm_crops.json")
     if args.limit:
         pages = pages[: args.limit]
 
     def run(p: dict) -> tuple[str, dict]:
         page_id = page_id_of(p["doc"], p["page"])
         try:
-            if args.crops:
+            if crops:
                 region = crop_region(merge_reads(full.get(page_id), esc.get(page_id)))
+                box = None
+                if args.crop_check:
+                    # The same box the crop reader settled on, or skip.
+                    first = done.get(page_id) or {}
+                    if "box" not in first:
+                        return page_id, {"error": "NoCrop", "detail": "run --crops"}
+                    box = tuple(first["box"])
                 return page_id, read_crop(
                     reader,
                     pages_dir / p["image"],
@@ -163,6 +182,9 @@ def cmd_vlm(args: argparse.Namespace) -> None:
                     cfg.crop_max_side,
                     page_id,
                     region,
+                    zoom=cfg.crop_zoom,
+                    box=box,
+                    reader_name=reader_name,
                 )
             return page_id, read_vlm(
                 reader,
@@ -202,6 +224,52 @@ def _ref_date(text: str | None):
     return date.fromisoformat(text) if text else date.today()
 
 
+def cmd_ocr(args: argparse.Namespace) -> None:
+    """Google Vision OCR of the pages (D-009) -> <pages>/ocr.json (cached)."""
+    import json
+    from concurrent.futures import ThreadPoolExecutor
+
+    from PIL import Image
+
+    from vera.config import get_settings
+    from vera.pipeline.gvision import VisionOcr
+    from vera.pipeline.vlm import CacheMiss, VlmInvalid
+
+    s = get_settings()
+    mode = args.mode or s.vlm_mode
+    if mode == "live" and not s.google_vision_api_key:
+        raise SystemExit("GOOGLE_VISION_API_KEY is empty in .env")
+    ocr = VisionOcr(
+        s.data_dir / "cache" / "gvision", s.google_vision_api_key, mode=mode
+    )
+    pages_dir = Path(args.pages)
+    manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
+    pages = [p for p in manifest["pages"] if not args.doc or p["doc"] in args.doc]
+
+    def run(p):
+        page_id = f"{p['doc']}/p{p['page']:02d}"
+        try:
+            with Image.open(pages_dir / p["image"]) as img:
+                return page_id, {"lines": ocr.read(img, p["sha256"])}
+        except (VlmInvalid, CacheMiss) as e:
+            return page_id, {"error": type(e).__name__, "detail": str(e)[:200]}
+
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        out = dict(ex.map(run, pages))
+    out_path = Path(args.out) if args.out else pages_dir / "ocr.json"
+    out_path.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    ok = [v for v in out.values() if "error" not in v]
+    words = sum(len(ln["words"]) for v in ok for ln in v["lines"])
+    print(
+        f"{len(ok)}/{len(out)} pages OCR'd ({mode}), {words} words, "
+        f"{time.time() - t0:.0f}s -> {out_path}"
+    )
+    for page_id, v in out.items():
+        if "error" in v:
+            print(f"  {page_id}: {v['error']} {v['detail']}")
+
+
 def cmd_decide(args: argparse.Namespace) -> None:
     import json
     from collections import Counter
@@ -226,8 +294,20 @@ def cmd_decide(args: argparse.Namespace) -> None:
         if crop_path.is_file() and not args.no_escalated
         else {}
     )
+    check_path = pages_dir / "vlm_crop_check.json"
+    checks = (
+        json.loads(check_path.read_text(encoding="utf-8"))
+        if check_path.is_file() and not args.no_escalated
+        else {}
+    )
+    ocr_path = pages_dir / "ocr.json"
+    ocr = (
+        json.loads(ocr_path.read_text(encoding="utf-8"))
+        if ocr_path.is_file() and not args.no_ocr
+        else {}
+    )
     vlm = {
-        pid: merge_reads(v, escalated.get(pid), crops.get(pid))
+        pid: merge_reads(v, escalated.get(pid), crops.get(pid), checks.get(pid))
         for pid, v in vlm.items()
     }
     ref = _ref_date(args.ref_date)
@@ -240,6 +320,7 @@ def cmd_decide(args: argparse.Namespace) -> None:
             barcodes.get(page_id, {}).get("barcodes", []),
             cfg,
             ref,
+            ocr=ocr.get(page_id, {}).get("lines"),
         )
         for page_id, v in vlm.items()
     ]
@@ -322,6 +403,11 @@ def _batch_service():
     return BatchService(build_services(get_settings()))
 
 
+def cmd_redecide(args: argparse.Namespace) -> None:
+    n = _batch_service().redecide(args.batch)
+    print(f"{n} forms decided again under the current rules (no model calls)")
+
+
 def cmd_seed_demo(args: argparse.Namespace) -> None:
     from vera.demo import seed
 
@@ -371,11 +457,23 @@ def main(argv: list[str] | None = None) -> None:
         help="crop reads of the patient area for unconfirmed names/IDs",
     )
     v.add_argument(
+        "--crop-check",
+        action="store_true",
+        help="the same crops through crop_check_model, another provider (D-012)",
+    )
+    v.add_argument(
         "--escalate",
         action="store_true",
         help="re-read pages with orange/grey fields with the escalation model",
     )
     v.set_defaults(func=cmd_vlm)
+
+    o = sub.add_parser("ocr", help="Google Vision OCR of extracted pages (cached)")
+    o.add_argument("--pages", default="data/work/pages", help="output of `pages`")
+    o.add_argument("--doc", nargs="*", help="only these docs, e.g. part2")
+    o.add_argument("--mode", choices=["live", "replay"], default=None)
+    o.add_argument("--out", default=None, help="default: <pages>/ocr.json")
+    o.set_defaults(func=cmd_ocr)
 
     d = sub.add_parser("decide", help="barcodes + VLM -> statuses per field")
     d.add_argument("--pages", default="data/work/pages", help="output of `pages`")
@@ -385,6 +483,7 @@ def main(argv: list[str] | None = None) -> None:
     d.add_argument(
         "--no-escalated", action="store_true", help="ignore vlm_escalated.json"
     )
+    d.add_argument("--no-ocr", action="store_true", help="ignore ocr.json")
     d.set_defaults(func=cmd_decide)
 
     e = sub.add_parser("eval", help="accuracy report against the ground truth")
@@ -406,6 +505,12 @@ def main(argv: list[str] | None = None) -> None:
     )
     g.add_argument("--force", action="store_true", help="overwrite (loses edits!)")
     g.set_defaults(func=cmd_gt_template)
+
+    rd = sub.add_parser(
+        "redecide", help="decide stored reads again under the current rules"
+    )
+    rd.add_argument("--batch", default=None, help="one batch id (default: all)")
+    rd.set_defaults(func=cmd_redecide)
 
     sd = sub.add_parser("seed-demo", help="made-up history for the demo (demo=true)")
     sd.add_argument("--weeks", type=int, default=4)

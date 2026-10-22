@@ -13,9 +13,8 @@ from pathlib import Path
 from vera.pipeline.ingest import (
     DEFAULT_DPI,
     fingerprint,
-    load_photo,
-    pdf_page_count,
-    render_pdf_page,
+    load_page,
+    page_count,
     sniff_kind,
 )
 from vera.pipeline.orient import detect_orientation, rotate_cw
@@ -52,7 +51,7 @@ def _process_page(
     path: Path, index: int, file_hash: str, out_dir: Path, dpi: int, orient: bool
 ) -> PageRecord:
     is_pdf = sniff_kind(path.read_bytes()[:16]) == "pdf"
-    raw = render_pdf_page(path, index, dpi) if is_pdf else load_photo(path.read_bytes())
+    raw = load_page(path, index, dpi)
     o = detect_orientation(raw) if orient else None
     angle = o.angle if o else 0
     img = rotate_cw(raw, angle)
@@ -92,9 +91,7 @@ def extract_pages(
     jobs = []
     for path in paths:
         path = Path(path)
-        with path.open("rb") as f:
-            kind = sniff_kind(f.read(16))
-        count = pdf_page_count(path) if kind == "pdf" else 1
+        count = page_count(path)
         file_hash = file_sha256(path)
         jobs += [(path, i, file_hash, out_dir, dpi, orient) for i in range(count)]
 

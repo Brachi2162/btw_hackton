@@ -50,6 +50,7 @@ def client(tmp_path, inbox, monkeypatch):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{(tmp_path / 't.db').as_posix()}")
     monkeypatch.setenv("CPU_WORKERS", "1")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    monkeypatch.setenv("GEMINI_API_KEY", "")
     monkeypatch.setenv("VLM_MODE", "live")
     monkeypatch.setenv("INBOX_DIR", str(inbox))
     monkeypatch.setenv("SCAN_FOLDER_HOST", HOST)
@@ -74,8 +75,10 @@ def test_resolve_accepts_host_paths_and_subfolders(inbox):
     )
     with pytest.raises(InboxError, match="אין גישה"):
         resolve(inbox, HOST, r"D:\Elsewhere")
-    with pytest.raises(InboxError, match="רק תיקייה במחשב"):
-        resolve(inbox, HOST, "https://example.com/forms/")
+    # web addresses are scanned by inbox_url before resolve; a network share
+    # can't be reached from the container
+    with pytest.raises(InboxError, match="תיקיית רשת"):
+        resolve(inbox, HOST, r"\\server\scans")
     with pytest.raises(InboxError):
         resolve(inbox, HOST, "../../etc")
     with pytest.raises(InboxError, match="לא קיימת"):
@@ -134,3 +137,21 @@ def test_without_a_key_pages_fail_fast_with_the_reason(client):
     b = wait_done(c, r["batch_id"])
     assert b["counts"]["pages"] == {"failed": 3}
     assert "ANTHROPIC_API_KEY" in b["documents"][0]["errors"][0]
+
+
+def test_retry_reads_only_the_failed_pages_once(client):
+    c, svc = client
+    r = c.post("/api/inbox/import", json={"path": "2026-10-22"}).json()
+    batch_id = r["batch_id"]
+    assert wait_done(c, batch_id)["counts"]["pages"] == {"failed": 3}
+
+    svc._readers = Readers(FakeReader("m1"), FakeReader("m2"), "prompt")
+    again = c.post(f"/api/batches/{batch_id}/retry-failed").json()
+    assert again["requeued"] == 3 and again["job_id"]
+    b = wait_done(c, batch_id)
+    assert b["counts"]["pages"] == {"done": 3}
+    assert len(b["submissions"]) == 3  # no duplicate rows
+
+    none_left = c.post(f"/api/batches/{batch_id}/retry-failed").json()
+    assert none_left == {"requeued": 0, "job_id": None}
+    assert c.post("/api/batches/nope/retry-failed").status_code == 404

@@ -1,7 +1,8 @@
 """Stage 1, ingest (spec 7): source file -> one RGB image per page.
 
 - PDF pages are rendered at a fixed DPI (default 300).
-- JPG/PNG/HEIC photos: EXIF orientation applied, metadata dropped.
+- TIFF (scanners, fax) may hold several pages: one page per frame.
+- JPG/PNG/HEIC/WEBP/BMP photos: EXIF orientation applied, metadata dropped.
 - File type is decided by magic bytes, never by extension (spec 16).
 - Every page gets a SHA-256 fingerprint of its pixels, independent of
   any image encoder, so it can key caches.
@@ -27,7 +28,7 @@ except ImportError:  # pragma: no cover
 DEFAULT_DPI = 300
 MAX_PAGES_PER_FILE = 200  # spec 16: bound work per upload
 
-SourceKind = Literal["pdf", "jpeg", "png", "heic"]
+SourceKind = Literal["pdf", "jpeg", "png", "heic", "tiff", "webp", "bmp"]
 
 
 class UnsupportedFileError(ValueError):
@@ -52,7 +53,15 @@ def sniff_kind(head: bytes) -> SourceKind:
         return "png"
     if head[4:8] == b"ftyp" and head[8:12] in (b"heic", b"heix", b"mif1", b"msf1"):
         return "heic"
-    raise UnsupportedFileError("unsupported file type (expected PDF/JPEG/PNG/HEIC)")
+    if head[:4] in (b"II*\x00", b"MM\x00*"):
+        return "tiff"
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return "webp"
+    if head[:2] == b"BM":
+        return "bmp"
+    raise UnsupportedFileError(
+        "סוג קובץ שלא נתמך: אפשר PDF, TIFF, JPEG, PNG, HEIC, WEBP או BMP"
+    )
 
 
 def fingerprint(img: Image.Image) -> str:
@@ -65,6 +74,48 @@ def fingerprint(img: Image.Image) -> str:
 def pdf_page_count(path: Path) -> int:
     with pymupdf.open(path) as doc:
         return doc.page_count
+
+
+def page_count(path: Path) -> int:
+    """Pages in a file, checked before any work is queued: a damaged or
+    password-protected file, an empty one or one over the limit is turned
+    away with a reason a person can act on."""
+    kind = sniff_kind(Path(path).read_bytes()[:16])
+    try:
+        if kind == "pdf":
+            with pymupdf.open(path) as doc:
+                if doc.needs_pass:
+                    raise UnsupportedFileError(
+                        "ה-PDF מוגן בסיסמה: צריך לשמור אותו בלי סיסמה"
+                    )
+                count = doc.page_count
+        else:
+            with Image.open(path) as img:
+                count = getattr(img, "n_frames", 1) if kind == "tiff" else 1
+                img.load()  # a truncated photo fails here, not in the queue
+    except UnsupportedFileError:
+        raise
+    except Exception as e:
+        raise UnsupportedFileError("הקובץ פגום ולא נפתח") from e
+    if count < 1:
+        raise UnsupportedFileError("אין בקובץ עמודים")
+    if count > MAX_PAGES_PER_FILE:
+        raise UnsupportedFileError(
+            f"{count} עמודים, יותר מ-{MAX_PAGES_PER_FILE} בקובץ אחד"
+        )
+    return count
+
+
+def load_page(path: Path, index: int, dpi: int = DEFAULT_DPI) -> Image.Image:
+    """Page `index` (0-based) of any supported file, as RGB."""
+    kind = sniff_kind(Path(path).read_bytes()[:16])
+    if kind == "pdf":
+        return render_pdf_page(path, index, dpi)
+    if kind == "tiff":
+        with Image.open(path) as img:
+            img.seek(index)
+            return ImageOps.exif_transpose(img.convert("RGB")).copy()
+    return load_photo(Path(path).read_bytes())
 
 
 def render_pdf_page(path: Path, index: int, dpi: int = DEFAULT_DPI) -> Image.Image:
@@ -87,12 +138,8 @@ def iter_pages(path: Path, dpi: int = DEFAULT_DPI) -> Iterator[RawPage]:
     with path.open("rb") as f:
         kind = sniff_kind(f.read(16))
 
-    if kind != "pdf":
-        yield RawPage(path.stem, 1, load_photo(path.read_bytes()), None)
-        return
-
-    count = pdf_page_count(path)
-    if count > MAX_PAGES_PER_FILE:
-        raise UnsupportedFileError(f"{count} pages > limit {MAX_PAGES_PER_FILE}")
+    count = page_count(path)
     for i in range(count):
-        yield RawPage(path.stem, i + 1, render_pdf_page(path, i, dpi), dpi)
+        yield RawPage(
+            path.stem, i + 1, load_page(path, i, dpi), dpi if kind == "pdf" else None
+        )

@@ -3,6 +3,8 @@
 
 verified_barcode: "הברקוד והמודל קראו אותו ערך ({value}), ליד התווית הנכונה"
 verified_sources: "שני מקורות בלתי תלויים קראו אותו ערך ({value})"
+label_missing: "ליד {value} אין תווית שמזהה את השדה; ייתכן שזה מספר אחר בטופס (הזמנה, מקרה)"
+verified_checksum: "ת.ז. {value} נקראה בבירור וספרת הביקורת תקינה"
 source_single: "נקרא ממקור אחד בלבד ({reader}), כדאי מבט מהיר"
 sources_dependent: "כל הקריאות מאותו מודל, הן לא נחשבות לשני מקורות"
 disagree_sources: "המקורות לא מסכימים: {values}"
