@@ -291,3 +291,12 @@ h3 {
     padding: 18px 16px 40px;
   }
 }
+
+/* The welcome page scrolls without showing a scrollbar. */
+html.no-scrollbar {
+  scrollbar-width: none;
+}
+
+html.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
