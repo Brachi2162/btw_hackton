@@ -311,6 +311,11 @@ def cmd_decide(args: argparse.Namespace) -> None:
         for pid, v in vlm.items()
     }
     ref = _ref_date(args.ref_date)
+    manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
+    sizes = {
+        f"{p['doc']}/p{p['page']:02d}": (p["width"], p["height"])
+        for p in manifest["pages"]
+    }
 
     subs = [
         decide_page(
@@ -321,6 +326,7 @@ def cmd_decide(args: argparse.Namespace) -> None:
             cfg,
             ref,
             ocr=ocr.get(page_id, {}).get("lines"),
+            page_size=sizes.get(page_id),
         )
         for page_id, v in vlm.items()
     ]

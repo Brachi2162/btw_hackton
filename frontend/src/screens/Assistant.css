@@ -155,9 +155,127 @@
   background: var(--bg);
 }
 
+/* Before the first question: the virus says hello. */
 .chat-hello {
-  margin: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.hello-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--navy-2), var(--navy));
+  box-shadow: 0 6px 16px rgba(13, 27, 42, 0.25);
+}
+
+.hello-virus {
+  color: var(--glow);
+  animation: hello-turn 8s linear infinite;
+}
+
+@keyframes hello-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hello-bubble {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  border-end-start-radius: 4px;
+  padding: 10px 14px;
+  line-height: 1.5;
+  box-shadow: 0 4px 12px rgba(13, 27, 42, 0.06);
+  animation: bubble-in 0.35s ease-out;
+}
+
+.hello-bubble strong {
+  color: var(--navy);
+  font-size: 15px;
+}
+
+.hello-bubble span {
   color: var(--muted);
+  font-size: 14px;
+}
+
+/* The bubble's tail: a small triangle pointing at the virus (on the
+   inline-start side, right in Hebrew). */
+.hello-bubble::before {
+  content: "";
+  position: absolute;
+  bottom: 8px;
+  inset-inline-start: -9px;
+  width: 10px;
+  height: 12px;
+  background: #fff;
+  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+}
+
+.hello-bubble:dir(rtl)::before {
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* Ready questions before the first one: cards in two columns. */
+.starters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.starter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: start;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.starter:hover:not(:disabled) {
+  border-color: var(--teal);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(14, 159, 154, 0.12);
+}
+
+.starter-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(95, 208, 203, 0.16);
+  font-size: 15px;
 }
 
 .msg {
@@ -181,10 +299,26 @@
   align-self: flex-end;
   background: #fff;
   border: 1px solid var(--border);
+  white-space: normal;
 }
 
+/* Thinking: the system's virus turning, as everywhere else in VERA. */
 .typing {
-  animation: pulse 1.2s infinite;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.typing-virus {
+  color: var(--teal);
+  animation: typing-spin 1.6s linear infinite;
+}
+
+@keyframes typing-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .confirm-card {
@@ -203,32 +337,61 @@
   gap: 6px;
 }
 
+/* During a conversation: one tidy, scrollable row of small pills. */
 .chips {
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
-  padding: 8px 12px 0;
+  overflow-x: auto;
+  padding: 8px 12px 2px;
+  scrollbar-width: thin;
+  border-top: 1px solid var(--border);
 }
 
 .chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 1px solid var(--border);
   background: #fff;
   border-radius: 999px;
-  padding: 3px 11px;
-  font-size: 13px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
-.chip:hover {
+.chip:hover:not(:disabled) {
   border-color: var(--teal);
   color: var(--teal);
 }
 
 .chat-input {
   display: flex;
+  align-items: flex-end;
   gap: 8px;
   padding: 10px 12px 12px;
 }
 
 .chat-input .input {
   flex: 1;
+}
+
+/* A roomier question box: two lines to start, growing to about five. */
+.chat-text {
+  min-height: 56px;
+  max-height: 130px;
+  resize: none;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  padding: 9px 12px;
+  overflow-y: auto;
+}
+
+.chat-input .btn {
+  height: 56px;
 }

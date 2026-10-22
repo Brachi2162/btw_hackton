@@ -16,9 +16,18 @@ export function useFix(onSaved: (prop: Propagation | null) => void) {
     setBusy(true);
     setError(null);
     try {
+      // value "": the form doesn't say; the field goes grey, for a follow-up
       const res =
-        value === null ? await api.accept(sid, field) : await api.correct(sid, field, [value], force);
-      toast(value === null ? `${FIELD_HE[field]} אושר` : `${FIELD_HE[field]} תוקן`);
+        value === null
+          ? await api.accept(sid, field)
+          : await api.correct(sid, field, value === "" ? [] : [value], force);
+      toast(
+        value === null
+          ? `${FIELD_HE[field]} אושר`
+          : value === ""
+            ? `${FIELD_HE[field]} סומן לבירור עם השולח`
+            : `${FIELD_HE[field]} תוקן`,
+      );
       refreshOverview();
       onSaved(res.propagation);
     } catch (e) {

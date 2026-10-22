@@ -11,7 +11,10 @@ import unicodedata
 from dataclasses import dataclass, field
 from datetime import date
 
-DEFAULT_COMMITMENT_RE = r"^[A-Z]?\d{4,12}$"
+# Commitment numbers are text, not numbers: digits, sometimes English letters
+# around them (Tamar: "can contain English letters"). Digits are required, so
+# a word such as "BIOHAZARD" is never a commitment number.
+DEFAULT_COMMITMENT_RE = r"^[A-Z]{0,3}\d{4,12}[A-Z]{0,2}$"
 CENTRAL_RE = r"^\d{6}$"
 # Hebrew/Latin letters, spaces, hyphen, apostrophe/geresh (ג', צ').
 NAME_RE = re.compile(r"^[A-Za-zא-ת][A-Za-zא-ת '\-׳״\"]{0,29}$")
@@ -196,13 +199,39 @@ class SenderIndex:
             return None
         if k in self.by_id:
             return k
-        hits = {sid for alias, sid in self._aliases if alias in k or k in alias}
+        # Institutions whose name or alias appears whole in the text...
+        found: dict[str, list[str]] = {}
+        for alias, sid in self._aliases:
+            if alias in k:
+                found.setdefault(sid, []).append(alias)
+        # ...where a name inside a longer matched name of another institution
+        # is that one's ("אסותא אשדוד" in "אסותא אשדוד-כלניות").
+        longer = {a for als in found.values() for a in als}
+        hits = {
+            sid
+            for sid, als in found.items()
+            if not all(
+                any(a != b and a in b and b not in als for b in longer) for a in als
+            )
+        }
+        if not hits:  # the text is only part of a name ("שניידר" of a long one)
+            hits = {sid for alias, sid in self._aliases if k in alias}
         if not hits:
             return None
-        # The most specific institution wins over its parent (שניידר > כללית).
-        children = {h for h in hits if self.by_id[h].get("parent") in hits}
-        hits = (hits - {self.by_id[c]["parent"] for c in children}) or hits
+        # The most specific institution wins over its parents, at any depth
+        # (שניידר > כללית; בילינסון > רבין > כללית).
+        ancestors = set()
+        for h in hits:
+            ancestors |= self.ancestors(h)
+        hits = (hits - ancestors) or hits
         return sorted(hits)[0] if len(hits) == 1 else None
+
+    def ancestors(self, sid: str) -> set[str]:
+        out, cur = set(), self.by_id[sid].get("parent")
+        while cur and cur not in out:
+            out.add(cur)
+            cur = self.by_id.get(cur, {}).get("parent")
+        return out
 
     def norm(self, raw: str) -> Norm:
         sid = self.match(raw)

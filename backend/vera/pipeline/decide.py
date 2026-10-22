@@ -36,6 +36,7 @@ from vera.models import (
     worst_status,
 )
 from vera.pipeline.gvision import find_value
+from vera.profiles import GENERIC, Profile, load_profiles, pick
 from vera.normalize import (
     LATIN_RE,
     Norm,
@@ -93,6 +94,7 @@ class DecisionConfig:
     check_overrides_doubt: set[str] = field(default_factory=set)
     ocr_min_conf: float = 0.8
     hebrew_handwriting: set[str] = field(default_factory=set)
+    profiles: list[Profile] = field(default_factory=list)
 
     @classmethod
     def load(cls, config_dir: Path) -> "DecisionConfig":
@@ -122,6 +124,7 @@ class DecisionConfig:
             check_overrides_doubt=set(c.get("check_overrides_doubt", [])),
             ocr_min_conf=c.get("ocr_min_conf", 0.8),
             hebrew_handwriting=set(c.get("hebrew_handwriting", [])),
+            profiles=load_profiles(config_dir),
         )
 
 
@@ -149,6 +152,9 @@ class Group:
     reasons: list[str] = field(default_factory=list)
     decoy_label: str | None = None
     anchored: bool = False  # the field's own label was next to the value
+    # The form type's pattern and place (a profile), instead of a label. It
+    # says which field it is, not that every digit was read right.
+    placed: bool = False
 
     @property
     def display(self) -> str:
@@ -158,7 +164,9 @@ class Group:
         return {cfg.groups.get(c.reader, c.reader) for c in self.cands}
 
 
-def _normalize(fname: str, raw: str, cfg: DecisionConfig, ref: date) -> Norm:
+def _normalize(
+    fname: str, raw: str, cfg: DecisionConfig, ref: date, profile=None
+) -> Norm:
     if fname in ("first_name", "last_name"):
         return norm_name(raw)
     if fname == "id_number":
@@ -166,6 +174,8 @@ def _normalize(fname: str, raw: str, cfg: DecisionConfig, ref: date) -> Norm:
     if fname == "central_numbers":
         return norm_central(raw)
     if fname == "commitment_numbers":
+        if profile is not None and profile.commitment_regex:
+            return norm_commitment(raw, profile.commitment_regex)
         return norm_commitment(raw)
     if fname == "receipt_date":
         return norm_date(raw, ref, cfg.max_age_days)
@@ -174,13 +184,16 @@ def _normalize(fname: str, raw: str, cfg: DecisionConfig, ref: date) -> Norm:
     return Norm(raw.strip() or None)
 
 
-def _barcode_value(fname: str, text: str) -> str | None:
-    n = {
+def _normalize_barcode(fname: str, text: str) -> Norm:
+    return {
         "central_numbers": norm_central,
         "commitment_numbers": norm_commitment,
         "id_number": norm_id,
     }[fname](text)
-    return n.value
+
+
+def _barcode_value(fname: str, text: str) -> str | None:
+    return _normalize_barcode(fname, text).value
 
 
 def _support_with_barcodes(
@@ -200,7 +213,10 @@ def _support_with_barcodes(
         bv = _barcode_value(fname, b["text"])
         if bv is None:
             continue
-        if b.get("label") and _has_label(b["label"], anchors):
+        # The label decides the field only together with a valid value: a
+        # neighbouring barcode inside the same label's reach fails the rule.
+        valid = not _normalize_barcode(fname, b["text"]).problems
+        if b.get("label") and _has_label(b["label"], anchors) and valid:
             out.append(
                 Candidate(
                     field=fname,
@@ -239,6 +255,7 @@ def _support_with_ocr(
     page_id: str,
     cfg: DecisionConfig,
     ref: date,
+    profile: Profile | None = None,
 ) -> list[Candidate]:
     """Vision found, in one line of the page, the same normalized value a
     reader chose (D-009): an independent source, with a real box. Like a
@@ -250,7 +267,9 @@ def _support_with_ocr(
         if v is None or v in seen or c.reader in ("barcode", "ocr"):
             continue
         seen.add(v)
-        hit = find_value(ocr, v, lambda s: _normalize(fname, s, cfg, ref).value)
+        hit = find_value(
+            ocr, v, lambda s: _normalize(fname, s, cfg, ref, profile).value
+        )
         if hit is None:
             continue
         out.append(
@@ -271,7 +290,21 @@ def _support_with_ocr(
     return out
 
 
-def _score(g: Group, fname: str, cfg: DecisionConfig) -> None:
+def _in_profile_place(g: Group, fname: str, profile: Profile | None) -> bool:
+    """The value has the form's own commitment pattern and sits where this
+    form type prints it: the layout names the field, as a label would."""
+    return (
+        fname == "commitment_numbers"
+        and profile is not None
+        and bool(profile.commitment_regex and profile.commitment_regions)
+        and not g.problems
+        and any(c.signals.get("region") in profile.commitment_regions for c in g.cands)
+    )
+
+
+def _score(
+    g: Group, fname: str, cfg: DecisionConfig, profile: Profile | None = None
+) -> None:
     per_group: dict[str, list[float]] = defaultdict(list)
     for c in g.cands:
         per_group[cfg.groups.get(c.reader, c.reader)].append(
@@ -283,7 +316,16 @@ def _score(g: Group, fname: str, cfg: DecisionConfig) -> None:
     g.anchored = any(
         _has_label(c.label_nearby, cfg.anchors.get(fname, [])) for c in g.cands
     )
-    if g.anchored:
+    g.placed = not g.anchored and (
+        _in_profile_place(g, fname, profile)
+        # handwritten under the central number (D-020): the place says it is
+        # the receipt date, not that every digit was read right
+        or (
+            fname == "receipt_date"
+            and any(c.signals.get("by_central") for c in g.cands)
+        )
+    )
+    if g.anchored or g.placed:
         g.score += cfg.anchor_bonus
     decoy = next(
         (
@@ -326,7 +368,7 @@ def _status(
     # A crop read's box is the whole crop, not the value: still approximate.
     if not any(c.bbox and not c.bbox_approx for c in g.cands):
         reasons.append("bbox_approx")
-    if fname in cfg.label_required and needs_anchor:
+    if fname in cfg.label_required and needs_anchor and not g.placed:
         reasons.append("label_missing")
 
     blocking = {
@@ -353,7 +395,9 @@ def _status(
         return "review", reasons
     if fname in cfg.rules_suffice and not needs_anchor:
         return "verified", reasons  # all of the field's rules pass (D-016)
-    if len(srcs) >= 2 and not needs_anchor:
+    # A profile's place stands in for the label only with two sources: the
+    # pattern (a digit count) can't catch a misread digit (D-019).
+    if len(srcs) >= 2 and not (needs_anchor and not g.placed):
         return "verified", reasons
     if fname in cfg.self_verifying:
         # The check digit already caught any single misread digit (D-007).
@@ -462,6 +506,7 @@ def decide_field(
     aux_dates: dict[str, list[date]] | None = None,
     exclude: set[str] | None = None,
     ocr: list[dict] | None = None,
+    profile: Profile | None = None,
 ) -> FieldResult:
     # "לא קריא", "unknown"... is a reader saying it couldn't read: not a value.
     unread = [c for c in cands if is_placeholder(c.value_raw)]
@@ -479,7 +524,7 @@ def decide_field(
             sources=[_source(c) for c in unread],
         )
     for c in cands:
-        n = _normalize(fname, c.value_raw, cfg, ref)
+        n = _normalize(fname, c.value_raw, cfg, ref, profile)
         if (
             fname in cfg.hebrew_handwriting
             and c.handwritten
@@ -497,7 +542,7 @@ def decide_field(
             fname, cands, barcodes, page_id, cfg.anchors.get(fname, [])
         )
     if ocr and fname in OCR_FIELDS:
-        cands = cands + _support_with_ocr(fname, cands, ocr, page_id, cfg, ref)
+        cands = cands + _support_with_ocr(fname, cands, ocr, page_id, cfg, ref, profile)
 
     overridden = []
     if fname in ("first_name", "last_name") and any(c.handwritten for c in cands):
@@ -521,7 +566,7 @@ def decide_field(
         if exclude and groups[k].value in exclude:
             excluded.append(groups.pop(k))  # e.g. a commitment equal to a central
     for g in groups.values():
-        _score(g, fname, cfg)
+        _score(g, fname, cfg, profile)
     if fname in HANDWRITING_FIELDS:
         # A reading that passes the field's checks (the ID check digit) first;
         # then agreement between sources; then the crop read, made for
@@ -700,6 +745,37 @@ def _dates_next_to_centrals(cands: list[Candidate]) -> list[Candidate]:
     return out
 
 
+_ROWS3 = ("top", "middle", "bottom")
+_COLS3 = ("left", "center", "right")
+
+
+def _mark_by_central(
+    cands: list[Candidate], barcodes: list[dict], cfg: DecisionConfig, page_size
+) -> None:
+    """Receipt date handwritten under the central number (organizers' spec):
+    a handwritten date the reader placed in the same 3x3 cell as a barcode
+    labelled as the central number, or the cell right below it."""
+    if not page_size or not page_size[0]:
+        return
+    w, h = page_size
+    anchors = cfg.anchors.get("central_numbers", [])
+    near = set()
+    for b in barcodes:
+        if not (b.get("label") and _has_label(b["label"], anchors)):
+            continue
+        if _normalize_barcode("central_numbers", b["text"]).problems:
+            continue
+        x1, y1, x2, y2 = b["bbox"]
+        row = min(2, int((y1 + y2) / 2 / h * 3))
+        col = _COLS3[min(2, int((x1 + x2) / 2 / w * 3))]
+        near.add(f"{_ROWS3[row]}-{col}")
+        if row < 2:
+            near.add(f"{_ROWS3[row + 1]}-{col}")
+    for c in cands:
+        if c.handwritten and c.signals.get("region") in near:
+            c.signals["by_central"] = True
+
+
 def decide_page(
     page_id: str,
     batch_id: str,
@@ -708,8 +784,10 @@ def decide_page(
     cfg: DecisionConfig,
     ref: date,
     ocr: list[dict] | None = None,
+    page_size: tuple[int, int] | None = None,
 ) -> Submission:
-    """One page = one submission (continuation pages are attached later)."""
+    """One page = one submission (continuation pages are attached later).
+    `page_size` (width, height) places values relative to the barcodes."""
     if "error" in vlm_page:
         fields = {
             f: FieldResult(
@@ -726,7 +804,7 @@ def decide_page(
             id=f"{batch_id}:{page_id}",
             batch_id=batch_id,
             page_ids=[page_id],
-            profile_id="_generic",
+            profile_id=GENERIC,
             page_kind="unknown",
             fields=fields,
             row_status="review",
@@ -762,10 +840,18 @@ def decide_page(
     }
 
     fields: dict[str, FieldResult] = {}
-    for f in ("central_numbers", "id_number", "first_name", "last_name", "sender"):
+    fields["sender"] = decide_field(
+        "sender", by_field.get("sender", []), barcodes, page_id, cfg, ref, ocr=ocr
+    )
+    # The form type: the decided sender + page kind -> a profile (spec 4).
+    page_kind: PageKind = vlm_page.get("page_kind", "unknown")
+    sid = (fields["sender"].values or [None])[0]
+    profile = pick(cfg.profiles, sid, page_kind)
+    for f in ("central_numbers", "id_number", "first_name", "last_name"):
         fields[f] = decide_field(
             f, by_field.get(f, []), barcodes, page_id, cfg, ref, ocr=ocr
         )
+    _mark_by_central(by_field.get("receipt_date", []), barcodes, cfg, page_size)
     fields["receipt_date"] = decide_field(
         "receipt_date",
         by_field.get("receipt_date", []),
@@ -787,6 +873,7 @@ def decide_page(
         ref,
         exclude=taken,
         ocr=ocr,
+        profile=profile,
     )
     _cross_field_conflicts(fields, by_field, cfg)
     _name_split(fields["first_name"], fields["last_name"])
@@ -802,12 +889,11 @@ def decide_page(
             sender.explanation_he = cfg.reasons_he.get("sender_parent_only", "")
 
     fields = {f: fields[f] for f in FIELDS}
-    page_kind: PageKind = vlm_page.get("page_kind", "unknown")
     return Submission(
         id=f"{batch_id}:{page_id}",
         batch_id=batch_id,
         page_ids=[page_id],
-        profile_id="_generic",
+        profile_id=profile.id if profile else GENERIC,
         page_kind=page_kind,
         fields=fields,
         row_status=worst_status([fr.status for fr in fields.values()]),

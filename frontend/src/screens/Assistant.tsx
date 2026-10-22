@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, type ChatReply } from "../api";
 import { useApp } from "../app-context";
+import { RichText } from "../components/RichText";
 import { Virus } from "../components/Virus";
 import { useToast } from "../components/Toast";
 import "./Assistant.css";
@@ -79,10 +80,32 @@ export function Assistant() {
             </button>
           </header>
           <div className="chat-body">
-            {!msgs.length && <p className="chat-hello">היי, אני VERA. אפשר לשאול אותי על הטפסים, המבחנות והבירורים של היום.</p>}
+            {!msgs.length && (
+              <>
+                <div className="chat-hello">
+                  <span className="hello-avatar" aria-hidden="true">
+                    <Virus size={40} spikes={9} className="hello-virus" />
+                  </span>
+                  <div className="hello-bubble">
+                    <strong>היי, אני VERA</strong>
+                    <span>אפשר לשאול אותי על הטפסים, המבחנות והבירורים של היום.</span>
+                  </div>
+                </div>
+                <div className="starters">
+                  {chips.map((c) => (
+                    <button key={c} className="starter" onClick={() => send(c)} disabled={busy}>
+                      <span className="starter-icon" aria-hidden="true">
+                        {iconFor(c)}
+                      </span>
+                      <span>{c}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             {msgs.map((m, i) => (
               <div key={i} className={`msg ${m.role}`}>
-                <p>{m.content}</p>
+                {m.role === "assistant" ? <RichText text={m.content} /> : <p>{m.content}</p>}
                 {m.actions?.map((a, j) => {
                   const key = `${i}-${j}`;
                   return (
@@ -105,16 +128,23 @@ export function Assistant() {
                 })}
               </div>
             ))}
-            {busy && <div className="msg assistant typing">…</div>}
+            {busy && (
+              <div className="msg assistant typing" role="status">
+                <Virus size={26} spikes={9} className="typing-virus" />
+                <span>VERA חושבת…</span>
+              </div>
+            )}
             <div ref={end} />
           </div>
-          <div className="chips">
-            {chips.map((c) => (
-              <button key={c} className="chip" onClick={() => send(c)} disabled={busy}>
-                {c}
-              </button>
-            ))}
-          </div>
+          {msgs.length > 0 && (
+            <div className="chips" aria-label="שאלות מוכנות">
+              {chips.map((c) => (
+                <button key={c} className="chip" onClick={() => send(c)} disabled={busy}>
+                  <span aria-hidden="true">{iconFor(c)}</span> {c}
+                </button>
+              ))}
+            </div>
+          )}
           <form
             className="chat-input"
             onSubmit={(e) => {
@@ -122,7 +152,26 @@ export function Assistant() {
               send(text);
             }}
           >
-            <input className="input" value={text} onChange={(e) => setText(e.target.value)} placeholder="כתבי שאלה…" aria-label="שאלה ל-VERA" />
+            <textarea
+              className="input chat-text"
+              rows={2}
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+                // grow with the question, up to about five lines
+                e.target.style.height = "auto";
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 130)}px`;
+              }}
+              onKeyDown={(e) => {
+                // Enter sends, Shift+Enter starts a new line
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  send(text);
+                }
+              }}
+              placeholder="כתבי שאלה… (Enter לשליחה, Shift+Enter לשורה חדשה)"
+              aria-label="שאלה ל-VERA"
+            />
             <button className="btn primary" disabled={!text.trim() || busy}>
               שליחה
             </button>
@@ -131,4 +180,14 @@ export function Assistant() {
       )}
     </>
   );
+}
+
+/** A small icon per ready question, by its topic. */
+function iconFor(q: string): string {
+  if (/מחכה|עכשיו/.test(q)) return "📋";
+  if (/בירור|פני/.test(q)) return "🔔";
+  if (/שבוע|דוח/.test(q)) return "📈";
+  if (/מבחנ/.test(q)) return "🧪";
+  if (/שולח|בית חולים/.test(q)) return "🏥";
+  return "💬";
 }

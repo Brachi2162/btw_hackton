@@ -63,6 +63,9 @@ def test_central_and_commitment_rules():
     assert norm_commitment("x 120 044").value == "X120044"
     assert norm_commitment("00120").value == "00120"  # leading zeros kept
     assert norm_commitment("12").problems == ["validation_failed"]
+    assert norm_commitment("AB-120044").value == "AB120044"  # letters allowed
+    assert norm_commitment("120044 c").value == "120044C"
+    assert norm_commitment("BIOHAZARD").problems == ["validation_failed"]
 
 
 @pytest.mark.parametrize(
@@ -602,3 +605,65 @@ def test_a_barcode_with_the_label_beside_it_is_the_central_number(cfg):
     assert "מרכזי" in central.sources[0].evidence_text
     plain = decide_page(PAGE, "b1", page, [barcode("512340")], cfg, REF)
     assert plain.fields["central_numbers"].values == ["107646"]  # no label: no say
+
+
+def test_a_label_by_a_barcode_counts_only_with_a_valid_number(cfg):
+    # The label's reach can cover a neighbouring barcode: 8 digits is no
+    # central number, so that one is not taken as the central.
+    page = {"page_kind": "form", "candidates": []}
+    near = [
+        {**barcode("512340"), "label": "מרכזי"},
+        {**barcode("12345678", bbox=(10, 80, 200, 120)), "label": "מרכזי"},
+    ]
+    sub = decide_page(PAGE, "b1", page, near, cfg, REF)
+    central = sub.fields["central_numbers"]
+    assert central.values == ["512340"] and central.status == "verified"
+
+
+def test_a_handwritten_date_under_the_central_number_is_the_receipt_date(cfg):
+    central = {**barcode("512340", bbox=(1500, 300, 1900, 380)), "label": "מרכזי"}
+
+    def date_read(reader, region):
+        c = vlm("receipt_date", "20/08/2026", handwritten=True)
+        return c.model_copy(update={"reader": reader, "signals": {"region": region}})
+
+    def receipt(*cands):
+        page = {"page_kind": "form", "candidates": [c.model_dump() for c in cands]}
+        return decide_page(
+            PAGE, "b1", page, [central], cfg, REF, page_size=(2400, 3400)
+        ).fields["receipt_date"]
+
+    # the barcode is top-right: a date there or just below is the receipt date;
+    # two models agreeing on it make it green, one alone does not (D-020)
+    both = receipt(
+        date_read("vlm_full", "top-right"), date_read("vlm_escalated", "middle-right")
+    )
+    assert both.status == "verified"
+    alone = receipt(date_read("vlm_full", "top-right"))
+    assert alone.status != "verified"
+    far = receipt(
+        date_read("vlm_full", "bottom-left"), date_read("vlm_escalated", "bottom-left")
+    )
+    assert far.status != "verified"  # elsewhere on the page: no say
+
+
+@pytest.mark.parametrize(
+    "text,name",
+    [
+        ("השרון (רבין)", "מרכז רפואי רבין - קמפוס גולדה השרון"),
+        ("כללית - בילינסון", "מרכז רפואי רבין - קמפוס בילינסון"),
+        ("מרכז שניידר לרפואת ילדים", "מרכז שניידר לרפואת ילדים בישראל"),
+        ("אסותא אשדוד", "בית החולים האוניברסיטאי אסותא אשדוד"),
+        ("המרכז הרפואי אסותא אשדוד-כלניות", "המרכז הרפואי אסותא אשדוד-כלניות"),
+        ("שמיר (אסף הרופא)", "המרכז הרפואי שמיר – אסף הרופא"),
+        ("Hadassah Ein Kerem", "מרכז רפואי הדסה - בית החולים עין כרם"),
+    ],
+)
+def test_senders_match_the_closed_list(cfg, text, name):
+    sid = cfg.senders.match(text)
+    assert sid and cfg.senders.name(sid) == name
+
+
+def test_a_sender_that_is_only_a_parent_or_ambiguous(cfg):
+    assert cfg.senders.match("רבין") == "rabin" and cfg.senders.has_children("rabin")
+    assert cfg.senders.match("אסותא") is None  # which Assuta? nobody guesses

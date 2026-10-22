@@ -30,6 +30,7 @@ from vera.normalize import (
     norm_id,
     norm_name,
 )
+from vera.pipeline.assemble import attach_continuations
 from vera.pipeline.decide import FIELDS, MULTI, DecisionConfig, decide_page
 from vera.pipeline.decide import merge_reads
 from vera.pipeline.gvision import VisionOcr
@@ -432,6 +433,7 @@ class BatchService:
                 self._claimed.discard(job[0])
 
         await asyncio.gather(*(one(j) for j in jobs))
+        self._attach_continuations(batch_id)
         with self.sv.repo.session() as s:
             batch = s.get(BatchRow, batch_id)
             batch.status = "done"
@@ -456,6 +458,8 @@ class BatchService:
                 self.work_dir(batch_id),
                 self.dpi,
                 self.orient,
+                self.s.deskew_min_angle,
+                self.s.dark_mean_threshold,
             )
             rec = prep["record"]
             self._set_page(
@@ -472,12 +476,19 @@ class BatchService:
             quality = await asyncio.to_thread(
                 page_quality, image, self.s.blur_threshold
             )
+            # Edge cases fixed (dark) or only measured (skew) in prepare_page.
+            tilted = abs(rec.get("skew", 0.0)) >= self.s.skew_warn_angle
+            if tilted and not rec.get("deskewed"):
+                quality["warnings"].append("skewed")
+            if rec.get("brightened"):
+                quality["warnings"].append("dark")
+            quality["skew"] = rec.get("skew", 0.0)
             self._set_page(page_id, quality=quality)
             if quality["warnings"]:
                 self.events.publish(
                     batch_id,
                     "warning",
-                    {"page_id": page_id, "error": "blur", **quality},
+                    {"page_id": page_id, "error": quality["warnings"][0], **quality},
                 )
             self._stage(batch_id, page_id, doc_id, "read")
             vlm = await asyncio.to_thread(
@@ -490,8 +501,16 @@ class BatchService:
                 self._set_page(page_id, ocr=ocr)
             lines = ocr.get("lines") if ocr else None
             self._stage(batch_id, page_id, doc_id, "verify")
+            size = (rec["width"], rec["height"])
             sub = decide_page(
-                page_id, batch_id, vlm, prep["barcodes"], self.decision, ref, ocr=lines
+                page_id,
+                batch_id,
+                vlm,
+                prep["barcodes"],
+                self.decision,
+                ref,
+                ocr=lines,
+                page_size=size,
             )
             if needs_escalation(sub):
                 esc = await asyncio.to_thread(
@@ -512,6 +531,7 @@ class BatchService:
                     self.decision,
                     ref,
                     ocr=lines,
+                    page_size=size,
                 )
             else:
                 esc = None
@@ -554,6 +574,7 @@ class BatchService:
                     self.decision,
                     ref,
                     ocr=lines,
+                    page_size=size,
                 )
             self._save_submission(sub, position=self._position(doc_id, page_no))
             self._set_page(page_id, status="done")
@@ -637,6 +658,7 @@ class BatchService:
                 self.decision,
                 batch.ref_date,
                 ocr=(p.ocr or {}).get("lines"),
+                page_size=(p.width, p.height),
             )
             for f, fr in old.fields.items():
                 if fr.status == "human" or fr.history:
@@ -689,6 +711,21 @@ class BatchService:
             "row_status": sub.row_status,
             "fields": {f: _field_summary(fr) for f, fr in sub.fields.items()},
         }
+
+    def _attach_continuations(self, batch_id: str) -> None:
+        """Pages -> forms: continuation pages join the form before them."""
+        forms, joined = attach_continuations(self.submissions(batch_id))
+        if not joined:
+            return
+        with self.sv.repo.session() as s:
+            for sub_id in joined:
+                row = s.get(SubmissionRow, sub_id)
+                if row is not None:
+                    s.delete(row)
+            s.commit()
+        for sub in forms:
+            if len(sub.page_ids) > 1:
+                self._save_submission(sub)
 
     def submissions(self, batch_id: str) -> list[Submission]:
         with self.sv.repo.session() as s:
@@ -791,9 +828,14 @@ class BatchService:
             fr.history.append(
                 Correction(user=user, at=now(), old_values=old, new_values=new, via=via)
             )
-            fr.values, fr.status = new, "human"
+            # Left empty on purpose: the form doesn't say, so it goes grey and,
+            # once the review is done, to a follow-up with the sender (D-018).
+            empty = action == "edit" and not new
+            fr.values, fr.status = new, "missing" if empty else "human"
             fr.explanation_he = explanation or (
-                "אושר ידנית" if action == "accept" else "תוקן ידנית"
+                "המזכירה סימנה: אין בטופס, לבירור עם השולח"
+                if empty
+                else "אושר ידנית" if action == "accept" else "תוקן ידנית"
             )
             sub.row_status = worst_status([f.status for f in sub.fields.values()])
             row.data = json.loads(sub.model_dump_json())
@@ -823,6 +865,9 @@ class BatchService:
             )
             s.commit()
         self.events.publish(sub.batch_id, "submission_updated", self.summary(sub))
+        from vera.followups import create_for_batch
+
+        create_for_batch(self, sub.batch_id)  # opens them once the review is done
         return sub
 
     # --- learning from people (D-011) ---

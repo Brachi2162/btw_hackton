@@ -1,8 +1,12 @@
 # Closed, hierarchical sender list (spec 3.5, 10.2). `sender` gets the most
 # specific institution; `sender_parent` is derived from `parent`.
-# Starter list: the four kupot + institution types seen so far. To be completed
-# from the public hospital list the challenge points to.
+# The kupot and the hospitals of Israel, as the challenge's public list names
+# them (Wikipedia, "רשימת בתי החולים בישראל"; the Ministry of Health list).
+# `name` is what the export writes; earlier short names stay as aliases, so
+# stored data and the ground truth keep matching. A sender seen on the sample
+# forms that isn't a kupa or a hospital (IDF, labs) is kept at the end.
 
+# --- kupot ---
 - id: clalit
   name: כללית
   type: kupa
@@ -20,11 +24,37 @@
   type: kupa
   aliases: ["לאומית", "לאומית שירותי בריאות", "Leumit"]
 
-- id: schneider
-  name: מרכז שניידר לרפואת ילדים
+# --- Clalit hospitals ---
+- id: rabin
+  name: מרכז רפואי רבין
   type: hospital
   parent: clalit
-  aliases: ["שניידר", "Schneider Children's"]
+  aliases: ["רבין", "Rabin Medical Center"]
+- id: rabin_beilinson
+  name: מרכז רפואי רבין - קמפוס בילינסון
+  type: hospital
+  parent: rabin
+  aliases: ["בילינסון", "Beilinson"]
+- id: rabin_hasharon
+  name: מרכז רפואי רבין - קמפוס גולדה השרון
+  type: hospital
+  parent: rabin
+  aliases: ["השרון", "גולדה השרון", "HaSharon"]
+- id: schneider
+  name: מרכז שניידר לרפואת ילדים בישראל
+  type: hospital
+  parent: clalit
+  aliases: ["שניידר", "מרכז שניידר לרפואת ילדים", "Schneider Children's"]
+- id: carmel
+  name: המרכז הרפואי כרמל
+  type: hospital
+  parent: clalit
+  aliases: ["כרמל", "מרכז רפואי כרמל", "Carmel Medical Center"]
+- id: emek
+  name: מרכז רפואי העמק
+  type: hospital
+  parent: clalit
+  aliases: ["העמק", "HaEmek"]
 - id: meir
   name: מרכז רפואי מאיר
   type: hospital
@@ -35,76 +65,176 @@
   type: hospital
   parent: clalit
   aliases: ["קפלן", "Kaplan"]
-- id: carmel
-  name: מרכז רפואי כרמל
+- id: yoseftal
+  name: המרכז הרפואי יוספטל
   type: hospital
   parent: clalit
-  aliases: ["כרמל", "Carmel Medical Center"]
-- id: rabin
-  name: מרכז רפואי רבין
-  type: hospital
-  parent: clalit
-  aliases: ["רבין", "בילינסון", "השרון", "Rabin Medical Center"]
+  aliases: ["יוספטל", "Yoseftal"]
 - id: soroka
-  name: מרכז רפואי סורוקה
+  name: המרכז הרפואי האוניברסיטאי סורוקה
   type: hospital
   parent: clalit
-  aliases: ["סורוקה", "Soroka"]
-- id: emek
-  name: מרכז רפואי העמק
-  type: hospital
-  parent: clalit
-  aliases: ["העמק", "HaEmek"]
+  aliases: ["סורוקה", "מרכז רפואי סורוקה", "Soroka"]
 
+# --- government and public hospitals ---
 - id: sheba
-  name: המרכז הרפואי שיבא
+  name: המרכז הרפואי ע"ש חיים שיבא - תל השומר
   type: hospital
-  aliases: ["שיבא", "תל השומר", "Sheba"]
+  aliases: ["שיבא", "תל השומר", "המרכז הרפואי שיבא", "Sheba"]
 - id: ichilov
-  name: המרכז הרפואי תל אביב (איכילוב)
+  name: המרכז הרפואי תל אביב ע"ש סוראסקי (איכילוב)
   type: hospital
-  aliases: ["איכילוב", "סוראסקי", "Tel Aviv Sourasky"]
-- id: hadassah
-  name: הדסה
-  type: hospital
-  aliases: ["הדסה", "Hadassah"]
-- id: shaare_zedek
-  name: שערי צדק
-  type: hospital
-  aliases: ["שערי צדק", "Shaare Zedek"]
-- id: rambam
-  name: רמב"ם
-  type: hospital
-  aliases: ["רמב\"ם", "רמבם", "Rambam"]
+  aliases: ["איכילוב", "סוראסקי", "המרכז הרפואי תל אביב (איכילוב)", "Tel Aviv Sourasky"]
 - id: wolfson
-  name: המרכז הרפואי וולפסון
+  name: המרכז הרפואי ע"ש אדית וולפסון
   type: hospital
-  aliases: ["וולפסון", "אדית וולפסון", "Wolfson"]
-- id: shamir
-  name: המרכז הרפואי שמיר (אסף הרופא)
-  type: hospital
-  aliases: ["שמיר", "אסף הרופא", "Shamir", "Assaf Harofeh"]
+  aliases: ["וולפסון", "אדית וולפסון", "המרכז הרפואי וולפסון", "Wolfson"]
 - id: hillel_yaffe
   name: המרכז הרפואי הלל יפה
   type: hospital
   aliases: ["הלל יפה", "Hillel Yaffe"]
-- id: barzilai
-  name: המרכז הרפואי ברזילי
+- id: rambam
+  name: רמב"ם - הקריה הרפואית לבריאות האדם
   type: hospital
-  aliases: ["ברזילי", "Barzilai"]
+  aliases: ["רמב\"ם", "רמבם", "Rambam"]
 - id: bnei_zion
-  name: המרכז הרפואי בני ציון
+  name: מרכז רפואי בני ציון
   type: hospital
-  aliases: ["בני ציון", "בני-ציון", "Bnai Zion"]
+  aliases: ["בני ציון", "בני-ציון", "המרכז הרפואי בני ציון", "Bnai Zion"]
+- id: galilee
+  name: המרכז הרפואי לגליל
+  type: hospital
+  aliases: ["לגליל", "נהריה", "Galilee Medical Center"]
+- id: ziv
+  name: המרכז הרפואי זיו
+  type: hospital
+  aliases: ["זיו", "Ziv Medical Center"]
+- id: poriya
+  name: המרכז הרפואי צפון - פוריה
+  type: hospital
+  aliases: ["פוריה", "Poriya", "Tzafon"]
+- id: barzilai
+  name: מרכז רפואי ברזילי
+  type: hospital
+  aliases: ["ברזילי", "המרכז הרפואי ברזילי", "Barzilai"]
+- id: shamir
+  name: המרכז הרפואי שמיר – אסף הרופא
+  type: hospital
+  aliases: ["שמיר", "אסף הרופא", "המרכז הרפואי שמיר (אסף הרופא)", "Shamir", "Assaf Harofeh"]
+
+# --- Jerusalem ---
+- id: hadassah
+  name: מרכז רפואי הדסה
+  type: hospital
+  aliases: ["הדסה", "Hadassah"]
+- id: hadassah_ein_kerem
+  name: מרכז רפואי הדסה - בית החולים עין כרם
+  type: hospital
+  parent: hadassah
+  aliases: ["עין כרם", "Ein Kerem"]
+- id: hadassah_scopus
+  name: מרכז רפואי הדסה - בית החולים הר הצופים
+  type: hospital
+  parent: hadassah
+  aliases: ["הר הצופים", "Mount Scopus"]
+- id: shaare_zedek
+  name: המרכז הרפואי שערי צדק
+  type: hospital
+  aliases: ["שערי צדק", "Shaare Zedek"]
+- id: augusta_victoria
+  name: בית החולים אוגוסטה ויקטוריה
+  type: hospital
+  aliases: ["אוגוסטה ויקטוריה", "Augusta Victoria"]
+- id: st_joseph
+  name: בית החולים סנט ג'וזף
+  type: hospital
+  aliases: ["סנט ג'וזף", "סנט גוזף", "St. Joseph"]
+- id: makassed
+  name: בית החולים אל-מקאסד
+  type: hospital
+  aliases: ["מקאסד", "אל-מקאסד", "Makassed"]
+
+# --- other public and religious-trust hospitals ---
 - id: laniado
-  name: המרכז הרפואי לניאדו
+  name: לניאדו - מרכז רפואי צאנז
   type: hospital
-  aliases: ["לניאדו", "Laniado"]
+  aliases: ["לניאדו", "צאנז", "המרכז הרפואי לניאדו", "Laniado"]
 - id: assuta_ashdod
-  name: אסותא אשדוד
+  name: בית החולים האוניברסיטאי אסותא אשדוד
   type: hospital
   aliases: ["אסותא אשדוד", "Assuta Ashdod"]
+- id: maayanei_hayeshua
+  name: מרכז רפואי מעיני הישועה
+  type: hospital
+  aliases: ["מעיני הישועה", "Mayanei Hayeshua"]
+- id: italian_haifa
+  name: בית החולים האיטלקי (חיפה)
+  type: hospital
+  aliases: ["האיטלקי חיפה", "Italian Hospital Haifa"]
+- id: nazareth_english
+  name: בית החולים נצרת (האנגלי)
+  type: hospital
+  aliases: ["נצרת האנגלי", "האנגלי", "Nazareth Hospital EMMS"]
+- id: holy_family
+  name: בית החולים המשפחה הקדושה (האיטלקי)
+  type: hospital
+  aliases: ["המשפחה הקדושה", "Holy Family"]
+- id: french_nazareth
+  name: בית החולים סן ונסן דה פול (הצרפתי)
+  type: hospital
+  aliases: ["סן ונסן", "דה פול", "הצרפתי", "St. Vincent de Paul"]
 
+# --- private hospitals ---
+- id: assuta_ramat_hahayal
+  name: בית החולים אסותא רמת החייל
+  type: hospital
+  aliases: ["אסותא רמת החייל", "רמת החייל"]
+- id: assuta_haifa
+  name: בית החולים אסותא חיפה
+  type: hospital
+  aliases: ["אסותא חיפה"]
+- id: assuta_rishon
+  name: בית החולים אסותא ראשון לציון
+  type: hospital
+  aliases: ["אסותא ראשון לציון", "אסותא ראשון"]
+- id: assuta_beer_sheva
+  name: בית החולים אסותא באר שבע
+  type: hospital
+  aliases: ["אסותא באר שבע"]
+- id: assuta_jerusalem
+  name: המרכז הרפואי אסותא ירושלים
+  type: hospital
+  aliases: ["אסותא ירושלים"]
+- id: assuta_hashalom
+  name: המרכז הרפואי אסותא השלום-תל אביב
+  type: hospital
+  aliases: ["אסותא השלום", "אסותא תל אביב"]
+- id: assuta_kalaniyot
+  name: המרכז הרפואי אסותא אשדוד-כלניות
+  type: hospital
+  aliases: ["כלניות", "אסותא כלניות", "אסותא אשדוד כלניות"]
+- id: assuta_raanana
+  name: המרכז הרפואי אסותא רעננה
+  type: hospital
+  aliases: ["אסותא רעננה"]
+- id: herzliya_medical
+  name: הרצליה מדיקל סנטר
+  type: hospital
+  aliases: ["הרצליה מדיקל", "Herzliya Medical Center"]
+- id: elisha
+  name: בית החולים אלישע
+  type: hospital
+  aliases: ["אלישע", "Elisha"]
+- id: raphael
+  name: בית החולים רפאל
+  type: hospital
+  aliases: ["בית החולים רפאל", "Raphael"]
+- id: misgav_ladach
+  name: משגב לדך
+  type: hospital
+  aliases: ["משגב לדך", "Misgav Ladach"]
+
+# --- other senders seen on the sample forms (not kupot or hospitals) ---
 - id: idf_medical
   name: צה"ל - חיל הרפואה
   type: military

@@ -257,15 +257,42 @@ def test_tube_scan_matches_slots_and_orphans(demo):
 # --- follow-ups ---
 
 
-def test_followups_created_when_a_batch_finishes(app_client, tmp_path):
+def test_followups_open_only_when_the_review_is_done(app_client, tmp_path):
     c, _ = app_client
     bid = c.post("/api/batches", json={"name": "t", "ref_date": "2026-09-01"}).json()
     upload(c, bid["id"], tmp_path)
-    wait_done(c, bid["id"])
+    subs = wait_done(c, bid["id"])["submissions"]
+    assert c.get("/api/followups").json() == []  # nothing while fields wait
+
+    first = subs[0]["id"]
+    # the form doesn't say: the secretary leaves a field empty, it goes grey
+    r = c.patch(f"/api/submissions/{first}/fields/first_name", json={"values": []})
+    assert r.json()["fields"]["first_name"]["status"] == "missing"
+    assert c.get("/api/followups").json() == []  # other fields still wait
+
+    todo = [
+        (x["id"], f)
+        for x in subs
+        for f, v in x["fields"].items()
+        if v["status"] in ("likely", "review")
+    ]
+    assert todo
+    for sid, f in todo:
+        assert c.get("/api/followups").json() == []  # still going over the table
+        url = f"/api/submissions/{sid}/fields/{f}"
+        if f == "id_number":
+            # kept as written, though its check digit is wrong
+            ids = c.get(f"/api/submissions/{sid}").json()["fields"][f]["values"]
+            c.patch(url, json={"values": ids, "force": True})
+        else:
+            c.post(f"{url}/accept")
+
     fus = c.get("/api/followups").json()
-    bad_ids = [f for f in fus if f["kind"] == "invalid_id"]
-    assert len(bad_ids) == 2  # FakeReader's ID has a bad check digit
-    assert bad_ids[0]["status"] == "open" and not bad_ids[0]["overdue"]
+    kinds = sorted((f["kind"], f["submission_id"] == first) for f in fus)
+    # every form: the invalid ID; the first form: its empty first name too
+    assert ("missing_field", True) in kinds
+    assert sum(k == "invalid_id" for k, _ in kinds) == len(subs)
+    assert all(f["status"] == "open" for f in fus)
 
 
 def test_followup_overdue_patch_and_draft(app_client):

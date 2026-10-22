@@ -12,6 +12,7 @@ from vera.assistant import Assistant
 from vera.batch import BatchService
 from vera.config import get_settings
 from vera.services import Services, build_services
+from vera.watch import FolderWatch
 
 
 @asynccontextmanager
@@ -20,9 +21,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.services = services
     app.state.batches = BatchService(services)
     app.state.assistant = Assistant(app.state.batches)
+    app.state.watch = FolderWatch(app.state.batches)
+    app.state.watch.start()  # a folder being watched resumes after a restart
     try:
         yield
     finally:
+        await app.state.watch.stop()
         await services.close()
 
 

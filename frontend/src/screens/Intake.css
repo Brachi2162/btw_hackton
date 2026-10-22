@@ -230,3 +230,39 @@
   border-radius: 8px;
   width: 100%;
 }
+
+/* Watching a folder (D-017) */
+.watch-btn.on {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+}
+
+.watch-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(95, 208, 203, 0.12);
+  border: 1px solid rgba(14, 159, 154, 0.35);
+}
+
+.watch-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: watch-pulse 1.8s ease-out infinite;
+}
+
+@keyframes watch-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 159, 154, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(14, 159, 154, 0);
+  }
+}

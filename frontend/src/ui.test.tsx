@@ -49,13 +49,23 @@ describe("fields", () => {
     expect(signatureOf(s.fields)).toEqual(["missing", "verified", "verified", "verified", "verified"]);
   });
 
-  it("Enter goes to the next non-green field, wrapping around", () => {
-    const subs = [sub("a", { id_number: "review" }), sub("b", { sender: "likely", receipt_date: "missing" })];
+  it("Enter goes to the next field that waits (yellow/orange), wrapping around", () => {
+    const subs = [
+      sub("a", { id_number: "review" }),
+      sub("b", { sender: "likely", first_name: "missing", receipt_date: "review" }),
+    ];
     expect(nextOpenField(subs, null)).toEqual({ sid: "a", field: "id_number" });
     expect(nextOpenField(subs, { sid: "a", field: "id_number" })).toEqual({ sid: "b", field: "sender" });
+    // the grey first name is done (D-018): straight to the orange date
     expect(nextOpenField(subs, { sid: "b", field: "sender" })).toEqual({ sid: "b", field: "receipt_date" });
     expect(nextOpenField(subs, { sid: "b", field: "receipt_date" })).toEqual({ sid: "a", field: "id_number" });
     expect(nextOpenField([sub("c", {})], null)).toBeNull();
+  });
+
+  it("grey fields count as done: only yellow and orange wait", () => {
+    const subs = [sub("a", { sender: "missing", id_number: "review" })];
+    expect(nextOpenField(subs, null)).toEqual({ sid: "a", field: "id_number" });
+    expect(nextAfterSave(subs, { sid: "a", field: "id_number" })).toBeNull();
   });
 
   it("after a save, finishes the same form first, even a field before it", () => {
@@ -190,5 +200,34 @@ describe("ErrorBoundary", () => {
     expect(screen.getByText("שאר המסך")).toBeTruthy();
     expect(screen.getByRole("alert").textContent).toContain("boom");
     expect(screen.getByText("נסי שוב")).toBeTruthy();
+  });
+});
+
+describe("RichText", () => {
+  it("lays out the model's markdown: cards, tiles, a table, highlights, no stars", async () => {
+    const { RichText } = await import("./components/RichText");
+    const md = [
+      "## מה מחכה",
+      "- **268 שדות** לבדיקה",
+      "- 5 בירורים *פתוחים*",
+      "",
+      "| שולח | טפסים |",
+      "|---|---|",
+      "| שיבא | 3 |",
+    ].join("\n");
+    const { container } = render(<RichText text={md} />);
+    expect(container.querySelector(".rich-card h4")?.textContent).toBe("מה מחכה");
+    expect(container.querySelectorAll(".rich-tile")).toHaveLength(2);
+    expect(container.querySelector(".rich-hl")?.textContent).toBe("268 שדות");
+    expect(container.querySelectorAll(".rich-table td")).toHaveLength(2);
+    expect(container.textContent).not.toContain("*");
+    expect(container.textContent).not.toContain("|");
+  });
+
+  it("never injects HTML from the answer", async () => {
+    const { RichText } = await import("./components/RichText");
+    const { container } = render(<RichText text={'<img src=x onerror="alert(1)"> **שלום**'} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.textContent).toContain("<img");
   });
 });

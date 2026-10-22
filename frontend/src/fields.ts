@@ -41,6 +41,9 @@ export const STATUS_ICON: Record<Status, string> = {
 };
 
 export const isGreen = (s: Status) => s === "verified" || s === "human";
+/** Nothing left to do on it: green, or grey (nothing on the form, or the
+ * secretary marked it for a follow-up). Only yellow and orange wait (D-018). */
+export const isDone = (s: Status) => isGreen(s) || s === "missing";
 
 // Ring of the form signature: name, ID, central, receipt date, commitment.
 const SIG: [string, string[]][] = [
@@ -78,7 +81,7 @@ export function nextOpenField(
   for (const s of subs) {
     for (const f of ["sender", ...TABLE_FIELDS]) {
       const st = s.fields[f]?.status;
-      if (st && !isGreen(st)) cells.push({ sid: s.id, field: f });
+      if (st && !isDone(st)) cells.push({ sid: s.id, field: f });
     }
   }
   if (!cells.length) return null;
@@ -98,7 +101,7 @@ export function nextAfterSave(
   const order = ["sender", ...TABLE_FIELDS];
   const form = subs.find((s) => s.id === done.sid);
   if (form) {
-    const open = order.filter((f) => f !== done.field && form.fields[f] && !isGreen(form.fields[f].status));
+    const open = order.filter((f) => f !== done.field && form.fields[f] && !isDone(form.fields[f].status));
     const here = order.indexOf(done.field);
     const next = open.find((f) => order.indexOf(f) > here) ?? open[0];
     if (next) return { sid: form.id, field: next };
