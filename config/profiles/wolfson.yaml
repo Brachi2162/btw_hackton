@@ -1,0 +1,10 @@
+# Form type: טופס וולפסון. Derived from 2 dev-set pages (part2) and the ground
+# truth; check with the lab before relying on it (D-019). Structure only:
+# patterns and places, never values from the samples (iron rule 5).
+id: wolfson
+name: טופס וולפסון
+senders: [wolfson]
+page_kinds: [form]
+commitment_regex: '^\d{7}$'
+commitment_regions: [bottom-left]
+notes: "7 ספרות, מודפס אנכית ליד הברקוד למטה משמאל; ה-\"מס'\" בראש הטופס הוא מספר טופס אחר"

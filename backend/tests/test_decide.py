@@ -605,3 +605,16 @@ def test_a_barcode_with_the_label_beside_it_is_the_central_number(cfg):
     assert "מרכזי" in central.sources[0].evidence_text
     plain = decide_page(PAGE, "b1", page, [barcode("512340")], cfg, REF)
     assert plain.fields["central_numbers"].values == ["107646"]  # no label: no say
+
+
+def test_a_label_by_a_barcode_counts_only_with_a_valid_number(cfg):
+    # The label's reach can cover a neighbouring barcode: 8 digits is no
+    # central number, so that one is not taken as the central.
+    page = {"page_kind": "form", "candidates": []}
+    near = [
+        {**barcode("512340"), "label": "מרכזי"},
+        {**barcode("12345678", bbox=(10, 80, 200, 120)), "label": "מרכזי"},
+    ]
+    sub = decide_page(PAGE, "b1", page, near, cfg, REF)
+    central = sub.fields["central_numbers"]
+    assert central.values == ["512340"] and central.status == "verified"

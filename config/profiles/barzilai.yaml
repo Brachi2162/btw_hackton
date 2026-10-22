@@ -1,0 +1,10 @@
+# Form type: טופס ברזילי. Derived from 2 dev-set pages (part2) and the ground
+# truth; check with the lab before relying on it (D-019). Structure only:
+# patterns and places, never values from the samples (iron rule 5).
+id: barzilai
+name: טופס ברזילי
+senders: [barzilai]
+page_kinds: [form]
+commitment_regex: '^\d{5}$'
+commitment_regions: [middle-right]
+notes: "5 ספרות, ליד \"מס' התחייבות\" באמצע מימין"

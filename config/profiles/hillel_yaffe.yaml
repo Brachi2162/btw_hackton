@@ -1,0 +1,10 @@
+# Form type: טופס הלל יפה. Derived from 2 dev-set pages (part2) and the ground
+# truth; check with the lab before relying on it (D-019). Structure only:
+# patterns and places, never values from the samples (iron rule 5).
+id: hillel_yaffe
+name: טופס הלל יפה
+senders: [hillel_yaffe]
+page_kinds: [form]
+commitment_regex: '^\d{9}$'
+commitment_regions: [middle-right]
+notes: "9 ספרות, בלי תווית, באמצע מימין"
