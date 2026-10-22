@@ -39,6 +39,7 @@ def field_evidence(sub_id: str, field: str, request: Request):
         field,
         service.decision.reasons_he,
         learned=[] if fr.status == "human" else service.learned_fixes(field, fr.values),
+        pages=service.page_sizes(sub.page_ids),
     )
 
 

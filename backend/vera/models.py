@@ -78,6 +78,9 @@ class Source(BaseModel):
     evidence_text: str | None = None
     legible: bool = True
     handwritten: bool = False
+    # The reader's coarse place on the page ("top-right"), when it gave no box:
+    # enough to show where an uncertain value came from (D-015).
+    region: str | None = None
 
 
 class Correction(BaseModel):

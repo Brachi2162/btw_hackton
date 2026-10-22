@@ -571,3 +571,19 @@ def test_the_table_shows_the_guess_but_the_field_stays_empty(cfg):
     assert fr.values == [] and guess_of(fr) == "דנה"
     clear = decide_field("first_name", [vlm("first_name", "דנה")], [], PAGE, cfg, REF)
     assert guess_of(clear) is None
+
+
+def test_an_uncertain_value_without_a_box_still_shows_where_it_came_from(cfg):
+    from vera.evidence import _crop
+
+    full = vlm("receipt_date", "20/08/2026", legible=False)
+    full.signals["region"] = "top-right"
+    esc = full.model_copy(
+        update={"reader": "vlm_escalated", "signals": {"region": "top-center"}}
+    )
+    fr = decide_field("receipt_date", [full, esc], [], PAGE, cfg, REF)
+    assert fr.sources[0].region == "top-right"
+    where = _crop(fr, {PAGE: (1000, 2000)})
+    # top row, and the overlap of the right and center columns
+    assert where == {"page_id": PAGE, "bbox": [400, 0, 800, 900], "approx": True}
+    assert _crop(fr) is None  # without the page size there's no place to draw

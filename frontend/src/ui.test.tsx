@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SubmissionSummary } from "./api";
 import { FormSignature } from "./components/FormSignature";
 import { ToastProvider } from "./components/Toast";
-import { nextOpenField, showValue, signatureOf } from "./fields";
+import { nextAfterSave, nextOpenField, showValue, signatureOf } from "./fields";
 import { PropagationBar } from "./screens/fix";
 
 afterEach(() => {
@@ -56,6 +56,15 @@ describe("fields", () => {
     expect(nextOpenField(subs, { sid: "b", field: "sender" })).toEqual({ sid: "b", field: "receipt_date" });
     expect(nextOpenField(subs, { sid: "b", field: "receipt_date" })).toEqual({ sid: "a", field: "id_number" });
     expect(nextOpenField([sub("c", {})], null)).toBeNull();
+  });
+
+  it("after a save, finishes the same form first, even a field before it", () => {
+    const subs = [sub("a", { sender: "review", id_number: "review" }), sub("b", { sender: "likely" })];
+    expect(nextAfterSave(subs, { sid: "a", field: "id_number" })).toEqual({ sid: "a", field: "sender" });
+    expect(nextAfterSave(subs, { sid: "a", field: "sender" })).toEqual({ sid: "a", field: "id_number" });
+    const done = [sub("a", { id_number: "review" }), sub("b", { sender: "likely" })];
+    expect(nextAfterSave(done, { sid: "a", field: "id_number" })).toEqual({ sid: "b", field: "sender" });
+    expect(nextAfterSave([sub("a", { id_number: "review" })], { sid: "a", field: "id_number" })).toBeNull();
   });
 
   it("shows ISO dates as dd/mm/yyyy", () => {

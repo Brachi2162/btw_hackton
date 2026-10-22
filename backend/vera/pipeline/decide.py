@@ -362,6 +362,11 @@ def _source(c: Candidate) -> Source:
         evidence_text=c.evidence_text,
         legible=c.legible,
         handwritten=c.handwritten,
+        region=(
+            c.signals.get("region")
+            if isinstance(c.signals.get("region"), str)
+            else None
+        ),
     )
 
 

@@ -55,18 +55,43 @@ CHECKS = [
 PAD = 24
 
 
-def _crop(fr: FieldResult) -> dict | None:
-    """Where to look on the page. Exact boxes (barcode, OCR) when there are
-    any; otherwise the reader's rough area (a crop read's whole crop), marked
-    approx so the screen outlines it instead of zooming into its middle."""
+def _approx_area(fr: FieldResult, pages: dict) -> dict | None:
+    """No exact box: where the readers said the value is. Each rough area (a
+    crop read's crop, a full-page read's 3x3 region) contains the value, so
+    their intersection is the tightest honest guess; if they don't overlap,
+    the smallest one. Marked approx, never zoomed into as if exact (D-015)."""
+    from vera.pipeline.vlm import region_box
+
+    areas: dict[str, list] = {}
+    for s in fr.sources:
+        if s.bbox is not None:
+            areas.setdefault(s.page_id, []).append(list(s.bbox))
+        elif s.region and s.page_id in pages:
+            w, h = pages[s.page_id]
+            areas.setdefault(s.page_id, []).append(list(region_box(s.region, w, h)))
+    if not areas:
+        return None
+    page, boxes = max(areas.items(), key=lambda kv: len(kv[1]))
+    x1, y1 = max(b[0] for b in boxes), max(b[1] for b in boxes)
+    x2, y2 = min(b[2] for b in boxes), min(b[3] for b in boxes)
+    if x2 - x1 < 40 or y2 - y1 < 40:  # they disagree: the smallest area
+        x1, y1, x2, y2 = min(boxes, key=lambda b: (b[2] - b[0]) * (b[3] - b[1]))
+    return {"page_id": page, "bbox": [x1, y1, x2, y2], "approx": True}
+
+
+def _crop(fr: FieldResult, pages: dict | None = None) -> dict | None:
+    """Where to look on the page. Exact boxes (barcode, OCR, a place a person
+    marked) when there are any; otherwise the readers' rough area, marked
+    approx so the screen outlines it instead of zooming into its middle.
+    `pages`: page_id -> (width, height), to place a 3x3 region."""
     boxes = [s for s in fr.sources if s.bbox is not None]
     # Rows saved before the fix carry crop boxes marked exact: by reader too.
     exact = [s for s in boxes if not s.bbox_approx and s.reader != "vlm_crop"]
     # A place a person marked beats every reader (D-011).
     marked = [s for s in exact if s.reader == "human"]
-    boxes = marked or exact or boxes
-    if not boxes:
-        return None
+    if not (marked or exact):
+        return _approx_area(fr, pages or {})
+    boxes = marked or exact
     page = boxes[0].page_id
     same = [s.bbox for s in boxes if s.page_id == page]
     x1 = min(b[0] for b in same) - PAD
@@ -76,7 +101,7 @@ def _crop(fr: FieldResult) -> dict | None:
     return {
         "page_id": page,
         "bbox": [max(0, x1), max(0, y1), x2, y2],
-        "approx": not exact,
+        "approx": False,
     }
 
 
@@ -128,9 +153,10 @@ def evidence(
     field: str,
     templates: dict[str, str],
     learned: list[dict] | None = None,
+    pages: dict | None = None,
 ) -> dict:
     fr = sub.fields[field]
-    crop = _crop(fr)
+    crop = _crop(fr, pages)
     reasons = set(fr.reasons)
     checks = []
     if fr.status == "missing" and not fr.sources:

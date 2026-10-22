@@ -11,6 +11,7 @@ import {
   STATUS_ICON,
   TABLE_FIELDS,
   isGreen,
+  nextAfterSave,
   nextOpenField,
   showValue,
   signatureOf,
@@ -77,7 +78,7 @@ function ReviewBatch({ batchId }: { batchId: string }) {
     batch.refresh();
     setRev((r) => r + 1);
     if (p) setProp(p);
-    else if (sel) setSel(nextOpenField(subs, sel));
+    else if (sel) setSel(nextAfterSave(subs, sel)); // finish this form first
   }
 
   function onKey(e: React.KeyboardEvent) {

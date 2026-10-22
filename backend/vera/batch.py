@@ -361,6 +361,12 @@ class BatchService:
             s.commit()
             return {"document_id": doc_id, "filename": doc.filename, "pages": count}
 
+    def page_sizes(self, page_ids: list[str]) -> dict[str, tuple[int, int]]:
+        """page_id -> (width, height) of the upright page images."""
+        with self.sv.repo.session() as s:
+            rows = s.exec(select(PageRow).where(PageRow.id.in_(page_ids))).all()
+        return {p.id: (p.width, p.height) for p in rows if p.width}
+
     def requeue_failed(self, batch_id: str, user: str) -> int:
         """Failed pages back in the queue (e.g. after a network block), so
         `process_batch` reads only them; pages already read stay as they are."""
