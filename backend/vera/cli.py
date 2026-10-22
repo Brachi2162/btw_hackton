@@ -400,6 +400,11 @@ def _batch_service():
     return BatchService(build_services(get_settings()))
 
 
+def cmd_redecide(args: argparse.Namespace) -> None:
+    n = _batch_service().redecide(args.batch)
+    print(f"{n} forms decided again under the current rules (no model calls)")
+
+
 def cmd_seed_demo(args: argparse.Namespace) -> None:
     from vera.demo import seed
 
@@ -497,6 +502,12 @@ def main(argv: list[str] | None = None) -> None:
     )
     g.add_argument("--force", action="store_true", help="overwrite (loses edits!)")
     g.set_defaults(func=cmd_gt_template)
+
+    rd = sub.add_parser(
+        "redecide", help="decide stored reads again under the current rules"
+    )
+    rd.add_argument("--batch", default=None, help="one batch id (default: all)")
+    rd.set_defaults(func=cmd_redecide)
 
     sd = sub.add_parser("seed-demo", help="made-up history for the demo (demo=true)")
     sd.add_argument("--weeks", type=int, default=4)

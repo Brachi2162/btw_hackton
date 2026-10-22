@@ -2,7 +2,7 @@
 -include .env
 export
 
-.PHONY: up down logs dev dev-local dtest test test-docker test-web lint pages barcodes vlm escalate ocr crops crop-check decide eval gt-template seed-demo clear-demo
+.PHONY: up down logs dev dev-local dtest test test-docker test-web lint pages barcodes vlm escalate ocr crops crop-check decide eval gt-template seed-demo clear-demo redecide
 
 up:        ## build and start everything: UI http://localhost:8080, API :8000/health
 	docker compose up --build -d
@@ -31,6 +31,9 @@ test-web:  ## frontend type check + tests, in the web build image
 	docker build --target test -f frontend/Dockerfile \
 		--build-arg NETFREE_REFRESH_CERTS=$${NETFREE_REFRESH_CERTS:-0} \
 		--build-arg NPM_STRICT_SSL=$${NPM_STRICT_SSL:-true} .
+
+redecide: ## after a rule change: decide stored reads again (no model calls, keeps human fixes)
+	docker compose exec api python -m vera.cli redecide
 
 seed-demo: ## 4 weeks of made-up history (marked demo=true, "נתוני דוגמה" in the UI)
 	docker compose exec -T api python -m vera.cli seed-demo

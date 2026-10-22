@@ -222,3 +222,23 @@ def test_an_exported_batch_is_read_only(api, tmp_path):
     assert r.status_code == 409
     assert send(c, bid, "x.png", image_bytes("PNG")) is not None
     assert c.post(f"/api/batches/{bid}/retry-failed").status_code == 409
+
+
+def test_redecide_applies_new_rules_and_keeps_what_people_did(api, tmp_path):
+    c, svc, bid = api
+    send(c, bid, "a.pdf", make_pdf(tmp_path / "a.pdf", pages=1).read_bytes())
+    sid = wait_done(c, bid)["submissions"][0]["id"]
+    c.patch(f"/api/submissions/{sid}/fields/first_name", json={"values": ["דנה"]})
+    # as if an older rule had decided the ID differently
+    sub = svc.submission(sid)
+    sub.fields["id_number"].values, sub.fields["id_number"].status = ["1"], "verified"
+    svc._save_submission(sub)
+
+    assert svc.redecide(bid) == 1
+    after = c.get(f"/api/submissions/{sid}").json()["fields"]
+    assert after["id_number"]["status"] == "review"  # back from the stored reads
+    assert after["first_name"]["values"] == ["דנה"]  # the person's fix stays
+    assert after["first_name"]["status"] == "human"
+
+    c.post(f"/api/batches/{bid}/export", params={"force": True})
+    assert svc.redecide(bid) == 0  # exported batches are left alone

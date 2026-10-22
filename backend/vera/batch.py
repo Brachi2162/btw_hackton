@@ -575,6 +575,54 @@ class BatchService:
             s.add(page)
             s.commit()
 
+    def redecide(self, batch_id: str | None = None) -> int:
+        """Decide the read pages again from their stored reads, under the
+        rules as they are now: no model call, so no cost. What a person did
+        stays: a confirmed or corrected field, and a place marked by hand.
+        Exported (locked) batches are left alone."""
+        with self.sv.repo.session() as s:
+            q = select(PageRow, BatchRow).join(
+                BatchRow, PageRow.batch_id == BatchRow.id
+            )
+            q = q.where(PageRow.status == "done", BatchRow.locked.is_(False))
+            if batch_id:
+                q = q.where(PageRow.batch_id == batch_id)
+            rows = s.exec(q).all()
+        done = 0
+        for p, batch in rows:
+            sub_id = f"{p.batch_id}:{p.id}"
+            try:
+                old = self.submission(sub_id)
+            except KeyError:
+                continue
+            if old.page_ids != [p.id]:
+                continue  # a form joined from several pages: leave it as is
+            crops = dict(p.vlm_crops or {})
+            check = crops.pop("check", None)
+            new = decide_page(
+                p.id,
+                p.batch_id,
+                merge_reads(p.vlm, p.vlm_escalated or None, crops or None, check),
+                p.barcodes,
+                self.decision,
+                batch.ref_date,
+                ocr=(p.ocr or {}).get("lines"),
+            )
+            for f, fr in old.fields.items():
+                if fr.status == "human" or fr.history:
+                    new.fields[f] = fr
+                    continue
+                marked = [x for x in fr.sources if x.reader == "human"]
+                new.fields[f].sources += marked
+            new.row_status = worst_status([f.status for f in new.fields.values()])
+            self._save_submission(new)
+            done += 1
+        from vera.followups import create_for_batch
+
+        for bid in {p.batch_id for p, _ in rows}:
+            create_for_batch(self, bid)
+        return done
+
     def _save_submission(self, sub: Submission, position: int | None = None) -> None:
         with self.sv.repo.session() as s:
             row = s.get(SubmissionRow, sub.id) or SubmissionRow(
