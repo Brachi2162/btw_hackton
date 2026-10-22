@@ -20,9 +20,10 @@ from pathlib import Path
 from sqlmodel import select
 
 from vera.config import Settings
-from vera.db import AuditRow, BatchRow, CorrectionRow, DocumentRow, PageRow
+from vera.db import AuditRow, BatchRow, CorrectionRow, DocumentRow, LocationRow
+from vera.db import PageRow
 from vera.db import SubmissionRow, now
-from vera.models import Correction, FieldResult, Submission, worst_status
+from vera.models import Correction, FieldResult, Source, Submission, worst_status
 from vera.normalize import (
     norm_central,
     norm_commitment,
@@ -61,6 +62,15 @@ EXT = {"pdf": "pdf", "jpeg": "jpg", "png": "png", "heic": "heic"}
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # spec 16: bound work per upload
 # Fields where one confirmation is offered to the rest of the batch.
 PROPAGATE_FIELDS = {"receipt_date"}
+# Fields shared by many forms of one batch, where one fix of a misread is
+# offered to the other forms with the same misread (e.g. "כללית" -> the
+# hospital). Never names or IDs: two patients misread alike aren't alike.
+FIX_PROPAGATE_FIELDS = {"sender", "receipt_date"}
+# Fields whose past fixes are offered again when the same misread comes back
+# (D-011): a misread sender recurs across batches. Not names or numbers: those
+# belong to one patient or one form.
+LEARN_FIELDS = {"sender"}
+LEARN_MIN = 2  # a fix seen this many times becomes a suggestion
 
 
 def page_error(exc: Exception) -> str:
@@ -653,15 +663,152 @@ class BatchService:
         self.events.publish(sub.batch_id, "submission_updated", self.summary(sub))
         return sub
 
+    # --- learning from people (D-011) ---
+
+    def learned_fixes(self, field: str, values: list[str]) -> list[dict]:
+        """Past fixes of this exact misread, most frequent first: offered as
+        options, never applied by themselves (iron rule 1)."""
+        if field not in LEARN_FIELDS or not values:
+            return []
+        with self.sv.repo.session() as s:
+            rows = s.exec(
+                select(CorrectionRow).where(
+                    CorrectionRow.field == field, CorrectionRow.action == "edit"
+                )
+            ).all()
+        seen: dict[tuple, int] = defaultdict(int)
+        for r in rows:
+            if r.old_values == values and r.new_values and r.new_values != values:
+                seen[tuple(r.new_values)] += 1
+        return [
+            {"value": ", ".join(v), "count": n}
+            for v, n in sorted(seen.items(), key=lambda kv: -kv[1])
+            if n >= LEARN_MIN
+        ]
+
+    def set_location(
+        self, sub_id: str, field: str, page_id: str, bbox: list[int], user: str
+    ) -> Submission:
+        """A person marks where the field is on the page: it becomes the
+        field's exact box (a human source) and teaches later forms."""
+        if field not in FIELDS:
+            raise ValidationError(f"שדה לא מוכר: {field}")
+        with self.sv.repo.session() as s:
+            row = s.get(SubmissionRow, sub_id)
+            if row is None:
+                raise KeyError(sub_id)
+            sub = Submission.model_validate(row.data)
+            page = s.get(PageRow, page_id)
+            if page is None or page_id not in sub.page_ids or not page.width:
+                raise ValidationError("העמוד לא שייך לטופס הזה")
+            x1, y1, x2, y2 = (int(v) for v in bbox)
+            x1, x2 = sorted((max(0, x1), min(page.width, x2)))
+            y1, y2 = sorted((max(0, y1), min(page.height, y2)))
+            if x2 - x1 < 8 or y2 - y1 < 8:
+                raise ValidationError("המלבן קטן מדי")
+            fr = sub.fields[field]
+            fr.sources = [
+                x for x in fr.sources if not (x.reader == "human" and x.bbox)
+            ] + [
+                Source(
+                    reader="human",
+                    values=fr.values,
+                    page_id=page_id,
+                    bbox=(x1, y1, x2, y2),
+                    evidence_text=f"המיקום סומן ידנית ({user})",
+                )
+            ]
+            row.data = json.loads(sub.model_dump_json())
+            row.updated_at = now()
+            s.add(row)
+            sender = sub.fields["sender"].values
+            s.add(
+                LocationRow(
+                    submission_id=sub_id,
+                    field=field,
+                    sender=sender[0] if sender else "",
+                    page_id=page_id,
+                    x1=x1 / page.width,
+                    y1=y1 / page.height,
+                    x2=x2 / page.width,
+                    y2=y2 / page.height,
+                    user=user,
+                )
+            )
+            self.audit(
+                s, user, "field_location", sub_id, field=field, bbox=[x1, y1, x2, y2]
+            )
+            s.commit()
+        return sub
+
+    def learned_location(self, sub: Submission, field: str) -> dict | None:
+        """Where people marked this field on forms from the same sender: the
+        median box, on this form's first page. None without such marks."""
+        sender = sub.fields["sender"].values
+        if not sender or not sub.page_ids:
+            return None
+        with self.sv.repo.session() as s:
+            marks = s.exec(
+                select(LocationRow).where(
+                    LocationRow.field == field, LocationRow.sender == sender[0]
+                )
+            ).all()
+            page = s.get(PageRow, sub.page_ids[0])
+        if not marks or page is None or not page.width:
+            return None
+
+        def med(xs):
+            xs = sorted(xs)
+            return xs[len(xs) // 2]
+
+        return {
+            "page_id": page.id,
+            "bbox": [
+                round(med([m.x1 for m in marks]) * page.width),
+                round(med([m.y1 for m in marks]) * page.height),
+                round(med([m.x2 for m in marks]) * page.width),
+                round(med([m.y2 for m in marks]) * page.height),
+            ],
+            "approx": False,
+            "learned": len(marks),
+        }
+
     # --- "one fix that fixes everything" ---
 
     def propagation(self, sub: Submission, field: str) -> dict | None:
         """After a human confirms a value: other forms in the batch whose
         same field is `likely` with the same value (e.g. one receipt-date
-        stamp on the whole morning's pile)."""
+        stamp on the whole morning's pile). After a human fixes a misread:
+        other forms with the same misread in that field (kind "fix")."""
+        fr = sub.fields[field]
+        last = fr.history[-1] if fr.history else None
+        if (
+            field in FIX_PROPAGATE_FIELDS
+            and last
+            and last.old_values
+            and last.old_values != last.new_values
+            and len(fr.values) == 1
+        ):
+            ids = [
+                other.id
+                for other in self.submissions(sub.batch_id)
+                if other.id != sub.id
+                and other.fields[field].status != "human"
+                and other.fields[field].values == last.old_values
+            ]
+            if ids:
+                return {
+                    "field": field,
+                    "value": fr.values[0],
+                    "from_values": last.old_values,
+                    "kind": "fix",
+                    "count": len(ids),
+                    "submission_ids": ids,
+                }
+            return None
         if field not in PROPAGATE_FIELDS:
             return None
-        values = sub.fields[field].values
+        values = fr.values
         if len(values) != 1:
             return None
         ids = [
@@ -676,14 +823,23 @@ class BatchService:
         return {
             "field": field,
             "value": values[0],
+            "from_values": None,
+            "kind": "accept",
             "count": len(ids),
             "submission_ids": ids,
         }
 
     def propagate(
-        self, batch_id: str, field: str, value: str, ids: list[str], user: str
+        self,
+        batch_id: str,
+        field: str,
+        value: str,
+        ids: list[str],
+        user: str,
+        from_values: list[str] | None = None,
     ) -> dict:
-        """Apply a confirmed value to forms that still hold it as `likely`.
+        """Apply a confirmed value to forms that still hold it as `likely`,
+        or (from_values given) the same fix to forms with the same misread.
         Each one is a normal correction (source human, in `corrections`)."""
         applied, skipped = [], []
         for sid in ids:
@@ -693,21 +849,34 @@ class BatchService:
                 skipped.append(sid)
                 continue
             fr = sub.fields.get(field)
-            if (
-                sub.batch_id != batch_id
-                or fr is None
-                or fr.status != "likely"
-                or fr.values != [value]
-            ):
+            if from_values:
+                fits = (
+                    field in FIX_PROPAGATE_FIELDS
+                    and fr is not None
+                    and fr.status != "human"
+                    and fr.values == from_values
+                )
+            else:
+                fits = fr is not None and fr.status == "likely" and fr.values == [value]
+            if sub.batch_id != batch_id or not fits:
                 skipped.append(sid)  # changed since the suggestion was made
                 continue
-            self.correct(
-                sid,
-                field,
-                None,
-                user,
-                explanation="אושר בהחלה על כל הטפסים עם אותה חותמת",
-            )
+            if from_values:
+                self.correct(
+                    sid,
+                    field,
+                    [value],
+                    user,
+                    explanation=f"תוקן בהחלה: אותה טעות ({', '.join(from_values)})",
+                )
+            else:
+                self.correct(
+                    sid,
+                    field,
+                    None,
+                    user,
+                    explanation="אושר בהחלה על כל הטפסים עם אותה חותמת",
+                )
             applied.append(sid)
         with self.sv.repo.session() as s:
             self.audit(
@@ -717,6 +886,7 @@ class BatchService:
                 batch_id,
                 field=field,
                 value=value,
+                from_values=from_values,
                 n=len(applied),
             )
             s.commit()

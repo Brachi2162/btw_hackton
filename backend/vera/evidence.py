@@ -61,7 +61,9 @@ def _crop(fr: FieldResult) -> dict | None:
     boxes = [s for s in fr.sources if s.bbox is not None]
     # Rows saved before the fix carry crop boxes marked exact: by reader too.
     exact = [s for s in boxes if not s.bbox_approx and s.reader != "vlm_crop"]
-    boxes = exact or boxes
+    # A place a person marked beats every reader (D-011).
+    marked = [s for s in exact if s.reader == "human"]
+    boxes = marked or exact or boxes
     if not boxes:
         return None
     page = boxes[0].page_id
@@ -77,9 +79,12 @@ def _crop(fr: FieldResult) -> dict | None:
     }
 
 
-def options(fr: FieldResult) -> list[dict]:
-    """Distinct candidate values with who read them: the 1/2/3 buttons."""
+def options(fr: FieldResult, learned: list[dict] | None = None) -> list[dict]:
+    """Distinct candidate values with who read them: the 1/2/3 buttons. A fix
+    people made to this same misread before comes first (D-011)."""
     out: dict[str, set[str]] = {}
+    for x in learned or []:
+        out.setdefault(x["value"], set()).add(f"תוקן כך {x['count']} פעמים בעבר")
     for s in fr.sources:
         for v in s.values:
             if v:
@@ -114,8 +119,17 @@ def decision_he(fr: FieldResult) -> str:
     return f"{label}: {body or 'לא נמצא בעמוד'}. השדה נשאר ריק ומסומן."
 
 
-def evidence(sub: Submission, field: str, templates: dict[str, str]) -> dict:
+def evidence(
+    sub: Submission,
+    field: str,
+    templates: dict[str, str],
+    learned: list[dict] | None = None,
+    learned_location: dict | None = None,
+) -> dict:
     fr = sub.fields[field]
+    crop = _crop(fr)
+    if (crop is None or crop["approx"]) and learned_location:
+        crop = learned_location  # where people marked it on this sender's forms
     reasons = set(fr.reasons)
     checks = []
     if fr.status == "missing" and not fr.sources:
@@ -138,7 +152,7 @@ def evidence(sub: Submission, field: str, templates: dict[str, str]) -> dict:
         "field_he": FIELD_HE.get(field, field),
         "status": fr.status,
         "values": fr.values,
-        "crop": _crop(fr),
+        "crop": crop,
         "sources": [
             {
                 "reader": s.reader,
@@ -153,7 +167,7 @@ def evidence(sub: Submission, field: str, templates: dict[str, str]) -> dict:
             }
             for s in fr.sources
         ],
-        "options": options(fr),
+        "options": options(fr, learned),
         "checks": checks,
         "reasons": [
             {"code": c, "text_he": _reason_text(templates, c, fr)} for c in fr.reasons

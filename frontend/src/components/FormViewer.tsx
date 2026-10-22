@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { imageUrl, type Status } from "../api";
 import { useWidth } from "../hooks";
 import "./FormViewer.css";
@@ -24,6 +25,7 @@ export function FormViewer({
   boxes = [],
   glow = false,
   scanning = false,
+  onPick,
 }: {
   pageId: string;
   pageW: number;
@@ -33,7 +35,10 @@ export function FormViewer({
   boxes?: Box[];
   glow?: boolean;
   scanning?: boolean;
+  /** Mark mode: the person drags a box; called with it in page pixels. */
+  onPick?: (bbox: [number, number, number, number]) => void;
 }) {
+  const [drag, setDrag] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const [ref, w] = useWidth<HTMLDivElement>();
   const scale = pageW ? w / pageW : 0;
   const h = pageH * scale;
@@ -106,7 +111,49 @@ export function FormViewer({
                 />
               ))}
           {scanning && <div className="scanline" />}
-          {lens}
+          {onPick ? (
+            <div
+              className="pick-layer"
+              onPointerDown={(e) => {
+                const r = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - r.left;
+                const y = e.clientY - r.top;
+                e.currentTarget.setPointerCapture(e.pointerId);
+                setDrag({ x0: x, y0: y, x1: x, y1: y });
+              }}
+              onPointerMove={(e) => {
+                if (!drag) return;
+                const r = e.currentTarget.getBoundingClientRect();
+                setDrag({ ...drag, x1: e.clientX - r.left, y1: e.clientY - r.top });
+              }}
+              onPointerUp={() => {
+                if (drag && Math.abs(drag.x1 - drag.x0) > 6 && Math.abs(drag.y1 - drag.y0) > 6) {
+                  const s = 1 / scale;
+                  onPick([
+                    Math.min(drag.x0, drag.x1) * s,
+                    Math.min(drag.y0, drag.y1) * s,
+                    Math.max(drag.x0, drag.x1) * s,
+                    Math.max(drag.y0, drag.y1) * s,
+                  ]);
+                }
+                setDrag(null);
+              }}
+            >
+              {drag && (
+                <div
+                  className="pick-box"
+                  style={{
+                    left: Math.min(drag.x0, drag.x1),
+                    top: Math.min(drag.y0, drag.y1),
+                    width: Math.abs(drag.x1 - drag.x0),
+                    height: Math.abs(drag.y1 - drag.y0),
+                  }}
+                />
+              )}
+            </div>
+          ) : (
+            lens
+          )}
         </>
       )}
     </div>

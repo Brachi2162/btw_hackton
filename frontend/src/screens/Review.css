@@ -122,6 +122,69 @@
   cursor: pointer;
 }
 
+/* Close-up / whole page / mark: the field is what the secretary looks at. */
+.view-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.view-tabs button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.view-tabs button.on {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+.view-tabs button.mark {
+  margin-inline-start: auto;
+  border-color: var(--teal);
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.view-tabs button.mark.on {
+  background: var(--teal);
+  color: #fff;
+}
+
+.view-tabs button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.zoom-view {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--teal);
+  background: #fff;
+}
+
+.zoom-view img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.view-note {
+  margin: 6px 0 0;
+}
+
+.view-note.strong {
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: var(--teal);
+}
+
 .viewer.placeholder {
   display: grid;
   place-items: center;

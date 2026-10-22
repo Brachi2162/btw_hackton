@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { api, type Evidence, type Page, type Propagation, type Submission, type SubmissionSummary } from "../api";
+import { api, imageUrl, type Evidence, type Page, type Propagation, type Submission, type SubmissionSummary } from "../api";
 import { useApp } from "../app-context";
 import { BatchPicker, Counters, DemoBadge } from "../components/BatchBar";
 import { FormSignature } from "../components/FormSignature";
@@ -15,12 +15,26 @@ import {
   showValue,
   signatureOf,
 } from "../fields";
+import { useToast } from "../components/Toast";
 import { useData } from "../hooks";
 import { FixError, PropagationBar, useFix } from "./fix";
 import { WhyDialog } from "./WhyDialog";
 import "./Review.css";
 
 type Sel = { sid: string; field: string };
+type View = "zoom" | "page" | "mark";
+
+/** A close-up around the field: at least ~900x360 page pixels, so the label
+ * next to the value shows too, clamped to the page. */
+function zoomBox(b: [number, number, number, number], w: number, h: number): number[] {
+  const cx = (b[0] + b[2]) / 2;
+  const cy = (b[1] + b[3]) / 2;
+  const bw = Math.min(w, Math.max(900, (b[2] - b[0]) * 1.6));
+  const bh = Math.min(h, Math.max(360, (b[3] - b[1]) * 1.6));
+  const x1 = Math.max(0, Math.min(w - bw, cx - bw / 2));
+  const y1 = Math.max(0, Math.min(h - bh, cy - bh / 2));
+  return [x1, y1, x1 + bw, y1 + bh];
+}
 
 export function Review() {
   const { batchId } = useApp();
@@ -178,11 +192,78 @@ function Cell({ s, field, sel, onSelect }: { s: SubmissionSummary; field: string
   );
 }
 
+function ViewerArea({
+  page,
+  ev,
+  field,
+  view,
+  setView,
+  boxes,
+  glow,
+  onPick,
+}: {
+  page: Page;
+  ev: Evidence | null;
+  field: string;
+  view: View;
+  setView: (v: View) => void;
+  boxes: Box[];
+  glow: boolean;
+  onPick: (bbox: [number, number, number, number]) => void;
+}) {
+  const crop = ev?.crop && ev.crop.page_id === page.id ? ev.crop : null;
+  const mode: View = view === "zoom" && !crop ? "page" : view;
+  const note = !crop
+    ? "אין מיקום לשדה הזה. אפשר לסמן אותו בעמוד."
+    : crop.learned
+      ? `לפי המקום שסומן ב-${crop.learned} טפסים קודמים של השולח`
+      : crop.approx
+        ? "האזור שבו המודל ראה את הערך. המיקום המדויק לא ידוע: אפשר לסמן אותו."
+        : null;
+  return (
+    <div className="viewer-area">
+      <div className="view-tabs" role="tablist" aria-label="תצוגת הטופס">
+        <button role="tab" aria-selected={mode === "zoom"} className={mode === "zoom" ? "on" : ""} onClick={() => setView("zoom")} disabled={!crop}>
+          תקריב
+        </button>
+        <button role="tab" aria-selected={mode === "page"} className={mode === "page" ? "on" : ""} onClick={() => setView("page")}>
+          כל העמוד
+        </button>
+        <button role="tab" aria-selected={mode === "mark"} className={mode === "mark" ? "on mark" : "mark"} onClick={() => setView(mode === "mark" ? "zoom" : "mark")}>
+          {mode === "mark" ? "ביטול סימון" : "⌖ סמני מיקום"}
+        </button>
+      </div>
+      {mode === "mark" && <p className="view-note strong">גררי מלבן סביב המקום שבו כתוב {FIELD_HE[field]} בטופס.</p>}
+      {mode === "zoom" && crop ? (
+        <div className="zoom-view">
+          <img
+            src={imageUrl(crop.page_id, { crop: zoomBox(crop.bbox, page.width, page.height), maxSide: 1600 })}
+            alt={`${FIELD_HE[field]} בתקריב מתוך הטופס`}
+          />
+        </div>
+      ) : (
+        <FormViewer
+          pageId={page.id}
+          pageW={page.width}
+          pageH={page.height}
+          boxes={boxes}
+          glow={glow && mode !== "mark"}
+          focus={mode === "page" && crop ? { bbox: crop.bbox, label: FIELD_HE[field], approx: crop.approx } : null}
+          onPick={mode === "mark" ? onPick : undefined}
+        />
+      )}
+      {note && mode !== "mark" && <p className="view-note muted small">{note}</p>}
+    </div>
+  );
+}
+
 function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) => void }) {
   const [sub, setSub] = useState<Submission | null>(null);
   const [ev, setEv] = useState<Evidence | null>(null);
   const [page, setPage] = useState<Page | null>(null);
   const [glow, setGlow] = useState(false);
+  const [view, setView] = useState<View>("zoom");
+  const toast = useToast();
   const [why, setWhy] = useState(false);
   const [text, setText] = useState("");
   const fix = useFix(onSaved);
@@ -243,17 +324,23 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
         </label>
       </div>
       {page?.image && sub ? (
-        <FormViewer
-          pageId={page.id}
-          pageW={page.width}
-          pageH={page.height}
+        <ViewerArea
+          page={page}
+          ev={ev && ev.submission_id === sel.sid && ev.field === sel.field ? ev : null}
+          field={sel.field}
+          view={view}
+          setView={setView}
           boxes={boxes}
           glow={glow}
-          focus={
-            ev?.crop && ev.crop.page_id === page.id && ev.submission_id === sel.sid && ev.field === sel.field
-              ? { bbox: ev.crop.bbox, label: FIELD_HE[sel.field], approx: ev.crop.approx }
-              : null
-          }
+          onPick={async (bbox) => {
+            try {
+              setEv(await api.setLocation(sel.sid, sel.field, page.id, bbox));
+              setView("zoom");
+              toast("המיקום נשמר. בטפסים הבאים של השולח הזום יגיע לשם");
+            } catch (e) {
+              toast(e instanceof Error ? e.message : "המיקום לא נשמר");
+            }
+          }}
         />
       ) : (
         <div className="viewer placeholder muted">{sub ? "אין תמונה לעמוד" : "טוען…"}</div>

@@ -94,6 +94,105 @@ def test_no_propagation_for_other_fields(demo):
     assert r.json()["propagation"] is None
 
 
+def test_fixing_a_misread_sender_offers_the_same_fix(demo):
+    c, _, bid, _ = demo
+    subs = subs_of(c, bid)
+    by_sender = {}
+    for x in subs:
+        f = x["fields"]["sender"]
+        if f["status"] != "human" and len(f["values"]) == 1:
+            by_sender.setdefault(f["values"][0], []).append(x["id"])
+    wrong, ids = max(by_sender.items(), key=lambda kv: len(kv[1]))
+    assert len(ids) >= 2
+    right = "מרכז רפואי רבין" if wrong != "מרכז רפואי רבין" else "מרכז רפואי מאיר"
+    r = c.patch(f"/api/submissions/{ids[0]}/fields/sender", json={"values": [right]})
+    prop = r.json()["propagation"]
+    assert prop["kind"] == "fix" and prop["from_values"] == [wrong]
+    assert prop["value"] == right and sorted(prop["submission_ids"]) == sorted(ids[1:])
+
+    applied = c.post(
+        f"/api/batches/{bid}/propagate",
+        json={
+            "field": "sender",
+            "value": right,
+            "from_values": [wrong],
+            "submission_ids": prop["submission_ids"],
+        },
+    ).json()
+    assert sorted(applied["applied"]) == sorted(ids[1:])
+    fr = c.get(f"/api/submissions/{ids[1]}").json()["fields"]["sender"]
+    assert fr["values"] == [right] and fr["status"] == "human"
+    assert "אותה טעות" in fr["explanation_he"]
+
+
+def test_a_name_fix_is_never_offered_to_other_patients(demo):
+    c, _, bid, _ = demo
+    sid = subs_of(c, bid)[0]["id"]
+    r = c.patch(f"/api/submissions/{sid}/fields/first_name", json={"values": ["דנה"]})
+    assert r.json()["propagation"] is None
+
+
+def _same_sender(c, bid, n=3):
+    groups = {}
+    for x in subs_of(c, bid):
+        f = x["fields"]["sender"]
+        if f["status"] != "human" and len(f["values"]) == 1:
+            groups.setdefault(f["values"][0], []).append(x["id"])
+    sender, ids = max(groups.items(), key=lambda kv: len(kv[1]))
+    assert len(ids) >= n
+    return sender, ids
+
+
+def test_a_fix_made_twice_is_offered_first_next_time(demo):
+    c, _, bid, _ = demo
+    wrong, ids = _same_sender(c, bid)
+    right = "מרכז רפואי רבין" if wrong != "מרכז רפואי רבין" else "מרכז רפואי מאיר"
+    ev = c.get(f"/api/submissions/{ids[2]}/fields/sender/evidence").json()
+    assert not any("בעבר" in r for o in ev["options"] for r in o["readers"])
+    for sid in ids[:2]:
+        c.patch(f"/api/submissions/{sid}/fields/sender", json={"values": [right]})
+    ev = c.get(f"/api/submissions/{ids[2]}/fields/sender/evidence").json()
+    first = ev["options"][0]
+    assert first["value"] == right and "תוקן כך 2 פעמים בעבר" in first["readers"]
+    # a suggestion only: the field itself is untouched
+    assert c.get(f"/api/submissions/{ids[2]}").json()["fields"]["sender"]["values"] == [
+        wrong
+    ]
+
+
+def test_a_marked_location_is_exact_here_and_learned_for_the_sender(demo):
+    from vera.evidence import evidence
+
+    c, app, bid, _ = demo
+    _, ids = _same_sender(c, bid, n=2)
+    sub = c.get(f"/api/submissions/{ids[0]}").json()
+    page = sub["page_ids"][0]
+    r = c.put(
+        f"/api/submissions/{ids[0]}/fields/commitment_numbers/location",
+        json={"page_id": page, "bbox": [100, 200, 400, 260]},
+        headers={"X-User": "dina"},
+    )
+    assert r.status_code == 200
+    assert r.json()["crop"]["approx"] is False
+    assert r.json()["crop"]["bbox"] == [76, 176, 424, 284]  # with padding
+    human = [s for s in r.json()["sources"] if s["reader"] == "human"]
+    assert human and "dina" in human[0]["quote"]
+    # another form of the same sender learns the place; it is used only
+    # where that form has no exact box of its own
+    other = app.state.batches.submission(ids[1])
+    learned = app.state.batches.learned_location(other, "commitment_numbers")
+    assert learned["learned"] == 1 and learned["page_id"] == other.page_ids[0]
+    fr = other.fields["commitment_numbers"]
+    fr.sources = [x.model_copy(update={"bbox": None}) for x in fr.sources]
+    ev = evidence(other, "commitment_numbers", {}, learned_location=learned)
+    assert ev["crop"] == learned
+    bad = c.put(
+        f"/api/submissions/{ids[0]}/fields/commitment_numbers/location",
+        json={"page_id": "not-this-form", "bbox": [1, 1, 50, 50]},
+    )
+    assert bad.status_code == 422
+
+
 # --- evidence ---
 
 

@@ -41,6 +41,21 @@
   transition: all 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
 }
 
+/* Mark mode: drag a box where the value really is. */
+.pick-layer {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.pick-box {
+  position: absolute;
+  border: 3px solid var(--teal);
+  background: rgba(95, 208, 203, 0.18);
+  border-radius: 4px;
+}
+
 .lens-label {
   position: absolute;
   transform: translateX(-50%);

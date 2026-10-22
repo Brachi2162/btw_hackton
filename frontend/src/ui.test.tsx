@@ -87,8 +87,35 @@ describe("PropagationBar", () => {
     await waitFor(() => expect(done).toHaveBeenCalledWith(2));
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/batches/B1/propagate");
-    expect(JSON.parse(init.body)).toEqual({ field: "receipt_date", value: "2026-08-20", submission_ids: ["b", "c"] });
+    expect(JSON.parse(init.body)).toEqual({
+      field: "receipt_date",
+      value: "2026-08-20",
+      submission_ids: ["b", "c"],
+      from_values: null,
+    });
     expect(await screen.findByText("הוחל על 2 טפסים")).toBeTruthy();
+  });
+
+  it("offers a fix of the same misread and sends the misread along", async () => {
+    const fetchMock = vi.fn().mockImplementation(async () =>
+      new Response(JSON.stringify({ applied: ["b"], skipped: [], counts: {} }), {
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <ToastProvider>
+        <PropagationBar
+          batchId="B1"
+          prop={{ field: "sender", value: "מרכז רפואי רבין", count: 1, submission_ids: ["b"], kind: "fix", from_values: ["כללית"] }}
+          onDone={() => {}}
+        />
+      </ToastProvider>,
+    );
+    expect(screen.getByRole("region").textContent).toContain("אותה טעות (כללית)");
+    fireEvent.click(screen.getByRole("button", { name: /לתקן/ }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).from_values).toEqual(["כללית"]);
   });
 
   it("'רק כאן' closes without calling the server", () => {

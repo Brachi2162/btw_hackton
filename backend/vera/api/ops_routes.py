@@ -33,13 +33,48 @@ def field_evidence(sub_id: str, field: str, request: Request):
         raise HTTPException(404, "submission not found")
     if field not in sub.fields:
         raise HTTPException(404, "field not found")
-    return evidence(sub, field, service.decision.reasons_he)
+    fr = sub.fields[field]
+    return evidence(
+        sub,
+        field,
+        service.decision.reasons_he,
+        learned=[] if fr.status == "human" else service.learned_fixes(field, fr.values),
+        learned_location=service.learned_location(sub, field),
+    )
+
+
+class LocationIn(BaseModel):
+    page_id: str
+    bbox: list[int]  # x1, y1, x2, y2 in page pixels
+
+
+@router.put("/submissions/{sub_id}/fields/{field}/location")
+def set_location(
+    sub_id: str,
+    field: str,
+    body: LocationIn,
+    request: Request,
+    x_user: str | None = Header(None),
+):
+    """A person marks where the field is on the page (D-011)."""
+    if len(body.bbox) != 4:
+        raise HTTPException(422, "bbox must be x1,y1,x2,y2")
+    service = svc(request)
+    try:
+        service.set_location(sub_id, field, body.page_id, body.bbox, user_of(x_user))
+    except KeyError:
+        raise HTTPException(404, "submission not found")
+    except ValidationError as e:
+        raise HTTPException(422, str(e))
+    return field_evidence(sub_id, field, request)
 
 
 class PropagateIn(BaseModel):
     field: str
     value: str
     submission_ids: list[str]
+    # Set for a fix (kind "fix"): only forms still holding this misread.
+    from_values: list[str] | None = None
 
 
 @router.post("/batches/{batch_id}/propagate")
@@ -51,7 +86,12 @@ def propagate(
 ):
     try:
         return svc(request).propagate(
-            batch_id, body.field, body.value, body.submission_ids, user_of(x_user)
+            batch_id,
+            body.field,
+            body.value,
+            body.submission_ids,
+            user_of(x_user),
+            from_values=body.from_values,
         )
     except PermissionError as e:
         raise HTTPException(409, str(e))

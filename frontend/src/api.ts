@@ -48,6 +48,9 @@ export interface Propagation {
   value: string;
   count: number;
   submission_ids: string[];
+  /** "fix": the same misread on other forms; "accept": the same likely value */
+  kind?: "fix" | "accept";
+  from_values?: string[] | null;
 }
 
 export interface Counts {
@@ -101,7 +104,8 @@ export interface Evidence {
   field_he: string;
   status: Status;
   values: string[];
-  crop: { page_id: string; bbox: [number, number, number, number]; approx: boolean } | null;
+  /** learned: how many marks on this sender's forms the box comes from */
+  crop: { page_id: string; bbox: [number, number, number, number]; approx: boolean; learned?: number } | null;
   sources: {
     reader: string;
     reader_he: string;
@@ -305,6 +309,12 @@ export const api = {
       field: p.field,
       value: p.value,
       submission_ids: p.submission_ids,
+      from_values: p.from_values ?? null,
+    }),
+  setLocation: (sid: string, field: string, pageId: string, bbox: number[]) =>
+    call<Evidence>("PUT", `/submissions/${sid}/fields/${field}/location`, {
+      page_id: pageId,
+      bbox: bbox.map(Math.round),
     }),
   evidence: (sid: string, field: string) => call<Evidence>("GET", `/submissions/${sid}/fields/${field}/evidence`),
   reviewQueue: (bid: string) =>
