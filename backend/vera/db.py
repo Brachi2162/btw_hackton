@@ -89,24 +89,6 @@ class CorrectionRow(SQLModel, table=True):
     action: str = "edit"  # edit | accept
 
 
-class LocationRow(SQLModel, table=True):
-    """Where a person marked a field on the page (D-011), as fractions of the
-    page, so the next form from the same sender can zoom there."""
-
-    __tablename__ = "field_locations"
-    id: int | None = Field(default=None, primary_key=True)
-    submission_id: str = Field(foreign_key="submissions.id", index=True)
-    field: str = Field(index=True)
-    sender: str = Field(default="", index=True)  # the sender value at the time
-    page_id: str
-    x1: float
-    y1: float
-    x2: float
-    y2: float
-    user: str
-    at: datetime = Field(default_factory=now)
-
-
 class TubeScanRow(SQLModel, table=True):
     """One tube scanned at the bench (USB scanner types number + Enter)."""
 

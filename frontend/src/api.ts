@@ -104,8 +104,7 @@ export interface Evidence {
   field_he: string;
   status: Status;
   values: string[];
-  /** learned: how many marks on this sender's forms the box comes from */
-  crop: { page_id: string; bbox: [number, number, number, number]; approx: boolean; learned?: number } | null;
+  crop: { page_id: string; bbox: [number, number, number, number]; approx: boolean } | null;
   sources: {
     reader: string;
     reader_he: string;

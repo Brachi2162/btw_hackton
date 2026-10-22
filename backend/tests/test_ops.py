@@ -160,10 +160,8 @@ def test_a_fix_made_twice_is_offered_first_next_time(demo):
     ]
 
 
-def test_a_marked_location_is_exact_here_and_learned_for_the_sender(demo):
-    from vera.evidence import evidence
-
-    c, app, bid, _ = demo
+def test_a_marked_location_is_exact_for_this_form_only(demo):
+    c, _, bid, _ = demo
     _, ids = _same_sender(c, bid, n=2)
     sub = c.get(f"/api/submissions/{ids[0]}").json()
     page = sub["page_ids"][0]
@@ -177,15 +175,11 @@ def test_a_marked_location_is_exact_here_and_learned_for_the_sender(demo):
     assert r.json()["crop"]["bbox"] == [76, 176, 424, 284]  # with padding
     human = [s for s in r.json()["sources"] if s["reader"] == "human"]
     assert human and "dina" in human[0]["quote"]
-    # another form of the same sender learns the place; it is used only
-    # where that form has no exact box of its own
-    other = app.state.batches.submission(ids[1])
-    learned = app.state.batches.learned_location(other, "commitment_numbers")
-    assert learned["learned"] == 1 and learned["page_id"] == other.page_ids[0]
-    fr = other.fields["commitment_numbers"]
-    fr.sources = [x.model_copy(update={"bbox": None}) for x in fr.sources]
-    ev = evidence(other, "commitment_numbers", {}, learned_location=learned)
-    assert ev["crop"] == learned
+    # another form of the same sender is untouched: layouts differ
+    other = c.get(
+        f"/api/submissions/{ids[1]}/fields/commitment_numbers/evidence"
+    ).json()
+    assert not any(x["reader"] == "human" for x in other["sources"])
     bad = c.put(
         f"/api/submissions/{ids[0]}/fields/commitment_numbers/location",
         json={"page_id": "not-this-form", "bbox": [1, 1, 50, 50]},

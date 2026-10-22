@@ -20,8 +20,7 @@ from pathlib import Path
 from sqlmodel import select
 
 from vera.config import Settings
-from vera.db import AuditRow, BatchRow, CorrectionRow, DocumentRow, LocationRow
-from vera.db import PageRow
+from vera.db import AuditRow, BatchRow, CorrectionRow, DocumentRow, PageRow
 from vera.db import SubmissionRow, now
 from vera.models import Correction, FieldResult, Source, Submission, worst_status
 from vera.normalize import (
@@ -689,8 +688,9 @@ class BatchService:
     def set_location(
         self, sub_id: str, field: str, page_id: str, bbox: list[int], user: str
     ) -> Submission:
-        """A person marks where the field is on the page: it becomes the
-        field's exact box (a human source) and teaches later forms."""
+        """A person marks where the field is on this form's page: it becomes
+        the field's exact box (a human source). Only this form: layouts differ
+        from form to form, even from one sender."""
         if field not in FIELDS:
             raise ValidationError(f"שדה לא מוכר: {field}")
         with self.sv.repo.session() as s:
@@ -721,57 +721,11 @@ class BatchService:
             row.data = json.loads(sub.model_dump_json())
             row.updated_at = now()
             s.add(row)
-            sender = sub.fields["sender"].values
-            s.add(
-                LocationRow(
-                    submission_id=sub_id,
-                    field=field,
-                    sender=sender[0] if sender else "",
-                    page_id=page_id,
-                    x1=x1 / page.width,
-                    y1=y1 / page.height,
-                    x2=x2 / page.width,
-                    y2=y2 / page.height,
-                    user=user,
-                )
-            )
             self.audit(
                 s, user, "field_location", sub_id, field=field, bbox=[x1, y1, x2, y2]
             )
             s.commit()
         return sub
-
-    def learned_location(self, sub: Submission, field: str) -> dict | None:
-        """Where people marked this field on forms from the same sender: the
-        median box, on this form's first page. None without such marks."""
-        sender = sub.fields["sender"].values
-        if not sender or not sub.page_ids:
-            return None
-        with self.sv.repo.session() as s:
-            marks = s.exec(
-                select(LocationRow).where(
-                    LocationRow.field == field, LocationRow.sender == sender[0]
-                )
-            ).all()
-            page = s.get(PageRow, sub.page_ids[0])
-        if not marks or page is None or not page.width:
-            return None
-
-        def med(xs):
-            xs = sorted(xs)
-            return xs[len(xs) // 2]
-
-        return {
-            "page_id": page.id,
-            "bbox": [
-                round(med([m.x1 for m in marks]) * page.width),
-                round(med([m.y1 for m in marks]) * page.height),
-                round(med([m.x2 for m in marks]) * page.width),
-                round(med([m.y2 for m in marks]) * page.height),
-            ],
-            "approx": False,
-            "learned": len(marks),
-        }
 
     # --- "one fix that fixes everything" ---
 

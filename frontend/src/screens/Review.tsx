@@ -215,9 +215,7 @@ function ViewerArea({
   const mode: View = view === "zoom" && !crop ? "page" : view;
   const note = !crop
     ? "אין מיקום לשדה הזה. אפשר לסמן אותו בעמוד."
-    : crop.learned
-      ? `לפי המקום שסומן ב-${crop.learned} טפסים קודמים של השולח`
-      : crop.approx
+    : crop.approx
         ? "האזור שבו המודל ראה את הערך. המיקום המדויק לא ידוע: אפשר לסמן אותו."
         : null;
   return (
@@ -336,7 +334,7 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
             try {
               setEv(await api.setLocation(sel.sid, sel.field, page.id, bbox));
               setView("zoom");
-              toast("המיקום נשמר. בטפסים הבאים של השולח הזום יגיע לשם");
+              toast("המיקום נשמר לטופס הזה");
             } catch (e) {
               toast(e instanceof Error ? e.message : "המיקום לא נשמר");
             }

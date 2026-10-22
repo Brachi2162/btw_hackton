@@ -39,7 +39,6 @@ def field_evidence(sub_id: str, field: str, request: Request):
         field,
         service.decision.reasons_he,
         learned=[] if fr.status == "human" else service.learned_fixes(field, fr.values),
-        learned_location=service.learned_location(sub, field),
     )
 
 

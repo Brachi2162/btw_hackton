@@ -124,12 +124,9 @@ def evidence(
     field: str,
     templates: dict[str, str],
     learned: list[dict] | None = None,
-    learned_location: dict | None = None,
 ) -> dict:
     fr = sub.fields[field]
     crop = _crop(fr)
-    if (crop is None or crop["approx"]) and learned_location:
-        crop = learned_location  # where people marked it on this sender's forms
     reasons = set(fr.reasons)
     checks = []
     if fr.status == "missing" and not fr.sources:
