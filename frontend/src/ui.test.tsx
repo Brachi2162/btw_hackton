@@ -128,6 +128,11 @@ describe("Assistant", () => {
     fireEvent.change(screen.getByLabelText("שאלה ל-VERA"), { target: { value: "ועוד?" } });
     fireEvent.click(screen.getByText("שליחה")); // re-runs the scroll effect
     await waitFor(() => expect(screen.getAllByText(/268 שדות/)).toHaveLength(2));
+    // minimize keeps the conversation, and the button says so
+    fireEvent.click(screen.getByLabelText("הקטנה (השיחה נשמרת)"));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByText("חזרה לשיחה"));
+    expect(screen.getAllByText(/268 שדות/)).toHaveLength(2);
   });
 });
 
