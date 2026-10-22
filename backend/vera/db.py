@@ -57,6 +57,7 @@ class PageRow(SQLModel, table=True):
     barcodes: list = Field(default_factory=list, sa_column=Column(JSON))
     vlm: dict = Field(default_factory=dict, sa_column=Column(JSON))
     vlm_escalated: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    vlm_crops: dict = Field(default_factory=dict, sa_column=Column(JSON))
     # split | read | verify (intake stage strip); set while processing.
     stage: str | None = None
     # e.g. {"sharpness": 41.2, "warnings": ["blur"]}

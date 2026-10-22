@@ -5,7 +5,7 @@ source_weights:
   barcode: 1.0
   ocr: 0.6
   vlm_full: 0.7
-  vlm_crop: 0.4        # extra read by the same model: at most 1.1 together
+  vlm_crop: 0.7        # crop read by a third model (D-005), its own source
   vlm_escalated: 0.7   # a different model
   human: 2.0
 
@@ -15,7 +15,7 @@ source_groups:
   barcode: barcode
   ocr: ocr
   vlm_full: vlm
-  vlm_crop: vlm
+  vlm_crop: vlm_crop   # a different model from the full read (D-005)
   vlm_escalated: vlm_escalated
   human: human
 

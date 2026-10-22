@@ -119,3 +119,17 @@ def test_health_endpoint(tmp_path, monkeypatch):
     assert body["database"] is True
     assert body["job_backend"] == "inprocess"
     assert body["storage_backend"] == "local"
+
+
+def test_existing_database_gets_new_columns(tmp_path):
+    """A column added to a model later must not break an older database."""
+    from sqlalchemy import inspect, text
+
+    url = f"sqlite:///{(tmp_path / 'old.db').as_posix()}"
+    repo = Repository(url)
+    with repo.engine.begin() as conn:  # an "old" pages table, before vlm_crops
+        conn.execute(text("CREATE TABLE pages (id VARCHAR PRIMARY KEY)"))
+    repo.init_schema()
+    cols = {c["name"] for c in inspect(repo.engine).get_columns("pages")}
+    assert {"vlm_crops", "vlm_escalated", "status"} <= cols
+    repo.close()

@@ -45,9 +45,10 @@ class Repository:
         self._add_missing_columns()
 
     def _add_missing_columns(self) -> None:
-        """create_all() never alters an existing table. Columns added to a
-        model later (always nullable or with a default) are added here, so an
-        existing data/vera.db keeps working. Production would use Alembic."""
+        """create_all() makes new tables but never alters old ones. A column
+        added to a model later is added here (nullable, no data rewrite; a
+        scalar default is kept), so an existing database keeps working.
+        Anything bigger needs Alembic."""
         insp = inspect(self.engine)
         with self.engine.begin() as conn:
             for table in SQLModel.metadata.sorted_tables:

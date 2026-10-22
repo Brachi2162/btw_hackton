@@ -22,7 +22,7 @@ VERA קוראת טפסי התחייבות סרוקים/מצולמים/מפקס, 
 ## פקודות
 ```
 make up           # docker compose up (api + web), ממשק ב-http://localhost:8080
-make dev          # כמו up (D-005); הרצת ה-API מקומית: make dev-local
+make dev          # כמו up (D-006); הרצת ה-API מקומית: make dev-local
 make dtest        # כל הבדיקות ב-Docker: pytest + lint, ו-tsc + vitest של הממשק
 make test         # pytest מקומי (בדיקות Tesseract מדולגות)
 make test-docker  # בדיקות השרת בתוך הקונטיינר

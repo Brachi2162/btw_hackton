@@ -88,7 +88,8 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     import anthropic
 
     from vera.config import get_settings
-    from vera.pipeline.process import page_id_of, read_vlm
+    from vera.pipeline.decide import merge_reads
+    from vera.pipeline.process import crop_region, page_id_of, read_crop, read_vlm
     from vera.pipeline.vlm import VlmCache, VlmConfig, make_reader, render_prompt
     from vera.pipeline.vlm import sender_names
 
@@ -97,8 +98,15 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     mode = args.mode or s.vlm_mode
     # Escalation (spec 8.2.3): a stronger, different model re-reads only the
     # pages that still have an orange/grey field; it counts as its own source.
-    model = cfg.escalation_model if args.escalate else cfg.model
-    reader_name = "vlm_escalated" if args.escalate else "vlm_full"
+    # Crops (spec 8.2.2): a third model reads a full-resolution crop of the
+    # patient area, for names/IDs that two sources haven't confirmed.
+    if args.crops:
+        model, reader_name, default = cfg.crop_model, "vlm_crop", "vlm_crops.json"
+    elif args.escalate:
+        model, reader_name = cfg.escalation_model, "vlm_escalated"
+        default = "vlm_escalated.json"
+    else:
+        model, reader_name, default = cfg.model, "vlm_full", "vlm.json"
     reader = make_reader(
         mode,
         cfg,
@@ -113,21 +121,49 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     pages_dir = Path(args.pages)
     manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
     pages = [p for p in manifest["pages"] if not args.doc or p["doc"] in args.doc]
-    if args.escalate:
+    if args.escalate or args.crops:
+        from vera.models import Submission
+        from vera.pipeline.process import needs_crop, needs_escalation
+
+        need = needs_crop if args.crops else needs_escalation
         subs = json.loads((pages_dir / "submissions.json").read_text(encoding="utf-8"))
         todo = {
             pid
             for sub in subs
-            if any(f["status"] in ("review", "missing") for f in sub["fields"].values())
+            if need(Submission.model_validate(sub))
             for pid in sub["page_ids"]
         }
-        pages = [p for p in pages if f"{p['doc']}/p{p['page']:02d}" in todo]
+        pages = [p for p in pages if page_id_of(p["doc"], p["page"]) in todo]
+    if args.crops:
+        crop_prompt = (s.prompts_dir / f"{cfg.crop_prompt}.md").read_text(
+            encoding="utf-8"
+        )
+
+        def _load(name):
+            path = pages_dir / name
+            return (
+                json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+            )
+
+        full, esc = _load("vlm.json"), _load("vlm_escalated.json")
     if args.limit:
         pages = pages[: args.limit]
 
     def run(p: dict) -> tuple[str, dict]:
         page_id = page_id_of(p["doc"], p["page"])
         try:
+            if args.crops:
+                region = crop_region(merge_reads(full.get(page_id), esc.get(page_id)))
+                return page_id, read_crop(
+                    reader,
+                    pages_dir / p["image"],
+                    p["sha256"],
+                    crop_prompt,
+                    cfg.crop_prompt,
+                    cfg.crop_max_side,
+                    page_id,
+                    region,
+                )
             return page_id, read_vlm(
                 reader,
                 pages_dir / p["image"],
@@ -144,7 +180,6 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     with ThreadPoolExecutor(max_workers=cfg.concurrency) as ex:
         out = dict(ex.map(run, pages))
 
-    default = "vlm_escalated.json" if args.escalate else "vlm.json"
     out_path = Path(args.out) if args.out else pages_dir / default
     out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     ok = [v for v in out.values() if "error" not in v]
@@ -185,7 +220,16 @@ def cmd_decide(args: argparse.Namespace) -> None:
         if esc_path.is_file() and not args.no_escalated
         else {}
     )
-    vlm = {pid: merge_reads(v, escalated.get(pid)) for pid, v in vlm.items()}
+    crop_path = pages_dir / "vlm_crops.json"
+    crops = (
+        json.loads(crop_path.read_text(encoding="utf-8"))
+        if crop_path.is_file() and not args.no_escalated
+        else {}
+    )
+    vlm = {
+        pid: merge_reads(v, escalated.get(pid), crops.get(pid))
+        for pid, v in vlm.items()
+    }
     ref = _ref_date(args.ref_date)
 
     subs = [
@@ -321,6 +365,11 @@ def main(argv: list[str] | None = None) -> None:
     v.add_argument("--limit", type=int, default=0, help="first N pages only")
     v.add_argument("--mode", choices=["live", "replay"], default=None)
     v.add_argument("--out", default=None, help="default: <pages>/vlm.json")
+    v.add_argument(
+        "--crops",
+        action="store_true",
+        help="crop reads of the patient area for unconfirmed names/IDs",
+    )
     v.add_argument(
         "--escalate",
         action="store_true",
