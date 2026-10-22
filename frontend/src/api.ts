@@ -278,7 +278,10 @@ export const api = {
   upload: (id: string, files: File[]) => {
     const fd = new FormData();
     files.forEach((f) => fd.append("files", f));
-    return call<{ added: unknown[]; rejected: { filename: string; error: string }[] }>(
+    return call<{
+      added: { document_id: string; filename: string; pages: number }[];
+      rejected: { filename: string; error: string }[];
+    }>(
       "POST",
       `/batches/${id}/files`,
       fd,

@@ -4,6 +4,7 @@ import { AppCtx } from "./app-context";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Sidebar } from "./components/Sidebar";
 import { ToastProvider } from "./components/Toast";
+import { UploadDoneProvider } from "./components/UploadDone";
 import { useRoute } from "./hooks";
 import { Assistant } from "./screens/Assistant";
 import { Review } from "./screens/Review";
@@ -55,6 +56,7 @@ export function App() {
   return (
     <AppCtx.Provider value={{ batchId, setBatchId: setBatch, overview, refreshOverview, go }}>
       <ToastProvider>
+      <UploadDoneProvider>
         <div className="shell">
           <Sidebar active={screen} />
           <main className={`main main-${screen}`}>
@@ -76,6 +78,7 @@ export function App() {
         <ErrorBoundary label="הצ'אט עם VERA">
           <Assistant />
         </ErrorBoundary>
+      </UploadDoneProvider>
       </ToastProvider>
     </AppCtx.Provider>
   );

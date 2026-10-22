@@ -1,8 +1,9 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SubmissionSummary } from "./api";
 import { FormSignature } from "./components/FormSignature";
 import { ToastProvider } from "./components/Toast";
+import { UploadDoneProvider, useUploadDone } from "./components/UploadDone";
 import { nextAfterSave, nextOpenField, showValue, signatureOf } from "./fields";
 import { PropagationBar } from "./screens/fix";
 
@@ -229,5 +230,38 @@ describe("RichText", () => {
     const { container } = render(<RichText text={'<img src=x onerror="alert(1)"> **שלום**'} />);
     expect(container.querySelector("img")).toBeNull();
     expect(container.textContent).toContain("<img");
+  });
+});
+
+describe("UploadDone", () => {
+  it("says the files are in, plays the chime, and goes away by itself", async () => {
+    vi.useFakeTimers();
+    const tone = vi.fn();
+    class FakeAudio {
+      currentTime = 0;
+      destination = {};
+      createGain = () => ({ gain: { value: 0, setValueAtTime: tone, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect: (x: unknown) => x });
+      createOscillator = () => ({ type: "", frequency: { value: 0 }, connect: (x: unknown) => x, start() {}, stop() {} });
+      close = () => Promise.resolve();
+    }
+    vi.stubGlobal("AudioContext", FakeAudio);
+    function Go() {
+      const done = useUploadDone();
+      return <button onClick={() => done({ title: "הקבצים עלו בהצלחה", detail: "2 קבצים" })}>go</button>;
+    }
+    render(
+      <UploadDoneProvider>
+        <Go />
+      </UploadDoneProvider>,
+    );
+    fireEvent.click(screen.getByText("go"));
+    expect(screen.getByText("הקבצים עלו בהצלחה")).toBeTruthy();
+    expect(tone).toHaveBeenCalledTimes(2); // two notes
+    act(() => {
+      vi.advanceTimersByTime(3300);
+    });
+    expect(screen.queryByText("הקבצים עלו בהצלחה")).toBeNull();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 });
