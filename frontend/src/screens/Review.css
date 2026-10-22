@@ -268,3 +268,10 @@
     max-height: none;
   }
 }
+
+/* A guess in an empty field (D-013): visible, but unmistakably not a value. */
+.cell-guess {
+  color: var(--muted);
+  font-style: italic;
+  opacity: 0.85;
+}

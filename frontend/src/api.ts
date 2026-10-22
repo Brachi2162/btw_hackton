@@ -6,6 +6,8 @@ export type Status = "verified" | "likely" | "review" | "missing" | "human";
 export interface FieldSummary {
   values: string[];
   status: Status;
+  /** The readers' guess in an empty unreadable field (D-013): shown, not written. */
+  guess?: string | null;
 }
 
 export interface SubmissionSummary {

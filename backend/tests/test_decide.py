@@ -561,3 +561,13 @@ def test_a_clear_reading_is_still_written_next_to_an_unreadable_one(cfg):
     fr = decide_field("central_numbers", [clear, unread], [], PAGE, cfg, REF)
     assert fr.values == ["512340"] and "654321" in fr.alternatives
     assert fr.status == "review"
+
+
+def test_the_table_shows_the_guess_but_the_field_stays_empty(cfg):
+    from vera.batch import guess_of
+
+    guess = vlm("first_name", "דנה", legible=False, handwritten=True)
+    fr = decide_field("first_name", [guess], [], PAGE, cfg, REF)
+    assert fr.values == [] and guess_of(fr) == "דנה"
+    clear = decide_field("first_name", [vlm("first_name", "דנה")], [], PAGE, cfg, REF)
+    assert guess_of(clear) is None

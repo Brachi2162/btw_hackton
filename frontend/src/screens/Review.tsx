@@ -172,7 +172,7 @@ function Cell({ s, field, sel, onSelect }: { s: SubmissionSummary; field: string
       className={`cell st-${fr.status}${active ? " active" : ""}`}
       onClick={() => onSelect({ sid: s.id, field })}
       aria-pressed={active}
-      aria-label={`${FIELD_HE[field]}: ${text || "חסר"}, ${STATUS_HE[fr.status]}`}
+      aria-label={`${FIELD_HE[field]}: ${text || (fr.guess ? `ניחוש ${fr.guess}` : "חסר")}, ${STATUS_HE[fr.status]}`}
     >
       <span className="cell-icon" aria-hidden="true">
         {STATUS_ICON[fr.status]}
@@ -185,8 +185,13 @@ function Cell({ s, field, sel, onSelect }: { s: SubmissionSummary; field: string
         ) : (
           <span className="cell-text">{text}</span>
         )
+      ) : fr.guess ? (
+        // Read, but not surely (D-013): the guess, clearly marked as one; the
+        // field itself stays empty (and empty in the export) until confirmed.
+        <span className={`cell-guess${LTR_FIELDS.has(field) ? " num" : ""}`} dir="auto" title="ניחוש של המודל, לא נכתב">
+          {showValue(field, fr.guess, true)}?
+        </span>
       ) : fr.status === "review" ? (
-        // Empty and orange: read, but not surely (D-013); the guess waits in the panel.
         <span className="muted">? לא נקרא בוודאות</span>
       ) : (
         <span className="muted">—</span>

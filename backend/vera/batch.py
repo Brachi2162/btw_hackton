@@ -80,6 +80,23 @@ LEARN_FIELDS = {"sender"}
 LEARN_MIN = 2  # a fix seen this many times becomes a suggestion
 
 
+def guess_of(fr: FieldResult) -> str | None:
+    """The readers' guess for an empty unreadable field (D-013): shown on the
+    screen as a guess, never written as the value or exported."""
+    if fr.status == "review" and not fr.values and fr.alternatives:
+        if "illegible" in fr.reasons:
+            return fr.alternatives[0]
+    return None
+
+
+def _field_summary(fr: FieldResult) -> dict:
+    out = {"values": fr.values, "status": fr.status}
+    guess = guess_of(fr)
+    if guess:  # only when there is one: the usual shape stays as it was
+        out["guess"] = guess
+    return out
+
+
 def page_error(exc: Exception) -> str:
     """Why a page failed, as the secretary sees it at intake."""
     text = str(exc)
@@ -648,10 +665,7 @@ class BatchService:
             "id": sub.id,
             "page_ids": sub.page_ids,
             "row_status": sub.row_status,
-            "fields": {
-                f: {"values": fr.values, "status": fr.status}
-                for f, fr in sub.fields.items()
-            },
+            "fields": {f: _field_summary(fr) for f, fr in sub.fields.items()},
         }
 
     def submissions(self, batch_id: str) -> list[Submission]:
