@@ -152,7 +152,26 @@ export function Assistant() {
               send(text);
             }}
           >
-            <input className="input" value={text} onChange={(e) => setText(e.target.value)} placeholder="כתבי שאלה…" aria-label="שאלה ל-VERA" />
+            <textarea
+              className="input chat-text"
+              rows={2}
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+                // grow with the question, up to about five lines
+                e.target.style.height = "auto";
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 130)}px`;
+              }}
+              onKeyDown={(e) => {
+                // Enter sends, Shift+Enter starts a new line
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  send(text);
+                }
+              }}
+              placeholder="כתבי שאלה… (Enter לשליחה, Shift+Enter לשורה חדשה)"
+              aria-label="שאלה ל-VERA"
+            />
             <button className="btn primary" disabled={!text.trim() || busy}>
               שליחה
             </button>

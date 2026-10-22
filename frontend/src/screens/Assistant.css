@@ -371,10 +371,27 @@
 
 .chat-input {
   display: flex;
+  align-items: flex-end;
   gap: 8px;
   padding: 10px 12px 12px;
 }
 
 .chat-input .input {
   flex: 1;
+}
+
+/* A roomier question box: two lines to start, growing to about five. */
+.chat-text {
+  min-height: 56px;
+  max-height: 130px;
+  resize: none;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  padding: 9px 12px;
+  overflow-y: auto;
+}
+
+.chat-input .btn {
+  height: 56px;
 }
