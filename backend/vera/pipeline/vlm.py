@@ -1,7 +1,8 @@
 """Stage 7, vision-model reader (spec 8): one full-page read per page.
 
-- `VisionReader` is the interface; `ClaudeReader` calls the API, and
-  `ReplayReader` answers from the cache only, with no network (demo mode).
+- `VisionReader` is the interface; `GeminiReader` and `ClaudeReader` call the
+  APIs (picked by model name, D-006), and `ReplayReader` answers from the
+  cache only, with no network (demo mode).
 - Output is structured: the response schema is `PageReading` below, and every
   answer is validated by Pydantic. An invalid answer is retried once, then
   raises `VlmInvalid` (reason code `vlm_invalid`).
@@ -18,6 +19,7 @@ import hashlib
 import io
 import json
 import threading
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal, Protocol
@@ -370,15 +372,169 @@ class ClaudeReader:
         raise VlmInvalid(problem)
 
 
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+)
+# Gemini finish reasons that mean "won't answer", like Claude's refusal.
+_GEMINI_BLOCKED = {"SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII"}
+
+
+class GeminiReader:
+    """Live reads through the Gemini REST API (D-006); same cache and contract
+    as ClaudeReader. JSON output is constrained by the schema and then
+    validated by Pydantic, never trusted as is."""
+
+    def __init__(
+        self,
+        cfg: VlmConfig,
+        cache: VlmCache,
+        client=None,
+        model: str | None = None,
+        api_key: str | None = None,
+    ):
+        import httpx
+
+        self.cfg, self.cache = cfg, cache
+        self.model = model or cfg.model
+        self.api_key = api_key or ""
+        self.client = client or httpx.Client(timeout=cfg.timeout)
+        self._slots = threading.Semaphore(cfg.concurrency)
+
+    def _post(self, body: dict) -> dict:
+        """One call, retried with backoff on 429/5xx/connection errors."""
+        import httpx
+
+        problem = ""
+        for attempt in range(self.cfg.max_retries + 1):
+            if attempt:
+                time.sleep(min(2**attempt, 20))
+            try:
+                with self._slots:
+                    r = self.client.post(
+                        GEMINI_URL.format(model=self.model),
+                        headers={"x-goog-api-key": self.api_key},
+                        json=body,
+                    )
+            except httpx.TransportError as e:
+                problem = type(e).__name__
+                continue
+            if r.status_code == 429 or r.status_code >= 500:
+                problem = f"HTTP {r.status_code}"
+                continue
+            if r.status_code != 200:
+                # The error body names the problem (bad key, model name), never the key.
+                msg = r.json().get("error", {}).get("message", "")[:200]
+                raise VlmInvalid(f"gemini HTTP {r.status_code}: {msg}")
+            return r.json()
+        raise VlmInvalid(f"gemini unavailable: {problem}")
+
+    def read_page(
+        self,
+        img,
+        page_sha256,
+        prompt,
+        schema=PageReading,
+        prompt_version=None,
+        crop=None,
+        max_side=None,
+    ) -> VlmResult:
+        key = _key(self, page_sha256, prompt, prompt_version, crop, max_side)
+        entry = self.cache.get(key)
+        if entry is not None:
+            return _from_cache(entry, key, schema)
+
+        if crop:
+            img = img.crop(crop)
+        data = prepare_image(img, max_side or self.cfg.max_side, self.cfg.jpeg_quality)
+        body = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": base64.standard_b64encode(data).decode("ascii"),
+                            }
+                        },
+                        {"text": prompt},
+                    ],
+                }
+            ],
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "responseJsonSchema": schema.model_json_schema(),
+                "maxOutputTokens": self.cfg.max_tokens,
+            },
+        }
+        problem = ""
+        for _attempt in range(2):  # one retry on an invalid answer (spec 8.1)
+            response = self._post(body)
+            if response.get("promptFeedback", {}).get("blockReason"):
+                raise VlmInvalid("model refused to read the page")
+            candidates = response.get("candidates") or []
+            if not candidates:
+                problem = "no candidates"
+                continue
+            finish = candidates[0].get("finishReason", "")
+            if finish in _GEMINI_BLOCKED:
+                raise VlmInvalid("model refused to read the page")
+            if finish == "MAX_TOKENS":
+                problem = "truncated (max_tokens)"
+                continue
+            parts = candidates[0].get("content", {}).get("parts", [])
+            text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
+            try:
+                reading = schema.model_validate_json(text)
+            except ValidationError as e:
+                problem = f"schema: {e.error_count()} errors"
+                continue
+            meta = response.get("usageMetadata", {})
+            usage = {
+                "input_tokens": meta.get("promptTokenCount", 0),
+                "output_tokens": meta.get("candidatesTokenCount", 0)
+                + meta.get("thoughtsTokenCount", 0),
+            }
+            self.cache.put(
+                key,
+                {
+                    "model": self.model,
+                    "prompt_version": prompt_version or self.cfg.prompt,
+                    "page_sha256": page_sha256,
+                    "crop": list(crop) if crop else None,
+                    "request_id": response.get("responseId"),
+                    "usage": usage,
+                    "reading": reading.model_dump(mode="json"),
+                },
+            )
+            return VlmResult(
+                reading,
+                self.model,
+                prompt_version or self.cfg.prompt,
+                key,
+                False,
+                usage,
+            )
+        raise VlmInvalid(problem)
+
+
+def provider_of(model: str) -> str:
+    """Which API serves a model name: "gemini" or "anthropic"."""
+    return "gemini" if model.startswith("gemini") else "anthropic"
+
+
 def make_reader(
     mode: str,
     cfg: VlmConfig,
     cache: VlmCache,
     api_key: str = "",
     model: str | None = None,
+    gemini_api_key: str = "",
 ) -> VisionReader:
     if mode == "replay":
         return ReplayReader(cfg, cache, model=model)
+    if provider_of(model or cfg.model) == "gemini":
+        return GeminiReader(cfg, cache, api_key=gemini_api_key, model=model)
     return ClaudeReader(cfg, cache, api_key=api_key, model=model)
 
 

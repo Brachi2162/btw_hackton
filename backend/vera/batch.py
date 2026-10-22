@@ -45,6 +45,7 @@ from vera.pipeline.vlm import (
     VlmCache,
     VlmConfig,
     make_reader,
+    provider_of,
     render_prompt,
     sender_names,
 )
@@ -132,11 +133,15 @@ class BatchService:
         if self._readers is None:
             cfg = VlmConfig.load(self.s.config_dir)
             cache = VlmCache(self.s.data_dir / "cache" / "vlm")
-            key = self.s.anthropic_api_key
+            mode = self.s.vlm_mode
+            keys = {
+                "api_key": self.s.anthropic_api_key,
+                "gemini_api_key": self.s.gemini_api_key,
+            }
             self._readers = Readers(
-                full=make_reader(self.s.vlm_mode, cfg, cache, key),
+                full=make_reader(mode, cfg, cache, **keys),
                 escalated=make_reader(
-                    self.s.vlm_mode, cfg, cache, key, model=cfg.escalation_model
+                    mode, cfg, cache, model=cfg.escalation_model, **keys
                 ),
                 prompt=render_prompt(
                     self.s.prompts_dir,
@@ -145,7 +150,7 @@ class BatchService:
                     sender_names(self.s.config_dir),
                 ),
                 crop=(
-                    make_reader(self.s.vlm_mode, cfg, cache, key, model=cfg.crop_model)
+                    make_reader(mode, cfg, cache, model=cfg.crop_model, **keys)
                     if cfg.crop_model
                     else None
                 ),
@@ -165,11 +170,25 @@ class BatchService:
         """Why pages can't be read right now (shown at intake), or None."""
         if self._readers is not None:  # set up already (or injected by tests)
             return None
-        if self.s.vlm_mode == "live" and not self.s.anthropic_api_key:
-            return (
-                "אין מפתח למודל הראייה: צריך להוסיף ANTHROPIC_API_KEY לקובץ .env "
-                "ולהפעיל מחדש (docker compose up -d)"
+        if self.s.vlm_mode == "live":
+            cfg = VlmConfig.load(self.s.config_dir)
+            models = [cfg.model, cfg.escalation_model, cfg.crop_model]
+            have = {
+                "anthropic": self.s.anthropic_api_key,
+                "gemini": self.s.gemini_api_key,
+            }
+            missing = sorted(
+                {
+                    f"{p.upper()}_API_KEY"
+                    for p in map(provider_of, filter(None, models))
+                    if not have[p]
+                }
             )
+            if missing:
+                return (
+                    f"אין מפתח למודל הראייה: צריך להוסיף {', '.join(missing)} "
+                    "לקובץ .env ולהפעיל מחדש (docker compose up -d)"
+                )
         cache = self.s.data_dir / "cache" / "vlm"
         if self.s.vlm_mode == "replay" and not any(cache.glob("**/*.json")):
             return "מצב replay בלי מטמון קריאות: אין ממה לקרוא את העמודים"

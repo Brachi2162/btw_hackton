@@ -39,6 +39,7 @@ class Settings(BaseSettings):
 
     vlm_mode: Literal["live", "replay"] = "live"
     anthropic_api_key: str = ""
+    gemini_api_key: str = ""
 
     # Assistant (spec 15) and drafted letters. Empty key = template answers.
     assistant_model: str = "claude-opus-5-5"

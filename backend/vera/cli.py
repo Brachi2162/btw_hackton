@@ -113,6 +113,7 @@ def cmd_vlm(args: argparse.Namespace) -> None:
         VlmCache(s.data_dir / "cache" / "vlm"),
         s.anthropic_api_key,
         model=model,
+        gemini_api_key=s.gemini_api_key,
     )
     prompt = render_prompt(
         s.prompts_dir, cfg.prompt, cfg.commitment_aliases, sender_names(s.config_dir)

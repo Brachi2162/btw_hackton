@@ -1,10 +1,14 @@
 # Vision model settings (spec 8). Model names live here, not in code.
 
+# Gemini first, Claude only for what is still unresolved (D-006). The API is
+# picked by model name: gemini-* -> GEMINI_API_KEY, else ANTHROPIC_API_KEY.
 # Full-page read: fast and cheap.
+# Planned: gemini-3.8-flash / gemini-3.1-pro-preview, once the key is on a
+# paid tier (the free tier allows 20 calls/day and may train on the data).
 model: claude-haiku-5-5
 # Escalation, only for fields still orange after the decision (spec 8.2).
 escalation_model: claude-sonnet-5-5
-# Thinking depth: low | medium | high. Haiku 5.5 defaults to medium.
+# Thinking depth for Claude: low | medium | high (Gemini uses its default).
 effort: medium
 max_tokens: 16000
 

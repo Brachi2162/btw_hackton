@@ -9,12 +9,14 @@ from vera.config import get_settings
 from vera.pipeline.vlm import (
     CacheMiss,
     ClaudeReader,
+    GeminiReader,
     PageReading,
     ReplayReader,
     VlmCache,
     VlmConfig,
     VlmInvalid,
     cache_key,
+    make_reader,
     prepare_image,
     render_prompt,
     sender_names,
@@ -186,3 +188,96 @@ def test_to_candidates_flattens_and_marks_bbox_approx(tmp_path, cfg, page):
     assert all(c.reader == "vlm_full" and c.bbox_approx for c in cands)
     assert cands[0].label_nearby == "מרכזי" and cands[1].label_nearby is None
     assert cands[2].handwritten and cands[2].signals["region"] == "bottom-left"
+
+
+def gemini(parsed=None, finish="STOP", status=200, text=None):
+    body = {
+        "candidates": [
+            {
+                "finishReason": finish,
+                "content": {
+                    "parts": [
+                        {"text": "thinking...", "thought": True},
+                        {
+                            "text": (
+                                text if text is not None else parsed.model_dump_json()
+                            )
+                        },
+                    ]
+                },
+            }
+        ],
+        "usageMetadata": {
+            "promptTokenCount": 1200,
+            "candidatesTokenCount": 200,
+            "thoughtsTokenCount": 50,
+        },
+        "responseId": "resp_test",
+    }
+    return SimpleNamespace(status_code=status, json=lambda: body)
+
+
+class FakeHttp:
+    """Stands in for httpx.Client: returns queued responses in order."""
+
+    def __init__(self, *answers):
+        self.answers = list(answers)
+        self.calls = []
+
+    def post(self, url, headers, json):
+        self.calls.append({"url": url, "headers": headers, "json": json})
+        return self.answers.pop(0)
+
+
+def test_gemini_read_is_cached_and_skips_thoughts(tmp_path, cfg, page):
+    client = FakeHttp(gemini(reading(id_number=[cand("000000018")])))
+    reader = GeminiReader(cfg, VlmCache(tmp_path), client=client, model="gemini-x")
+    first = reader.read_page(page, "sha-1", "prompt")
+    again = reader.read_page(page, "sha-1", "prompt")
+    assert not first.cached and again.cached and len(client.calls) == 1
+    call = client.calls[0]
+    assert "models/gemini-x:generateContent" in call["url"]
+    assert call["headers"] == {"x-goog-api-key": ""}
+    gen = call["json"]["generationConfig"]
+    assert gen["responseMimeType"] == "application/json"
+    assert gen["responseJsonSchema"]["title"] == "PageReading"
+    image = call["json"]["contents"][0]["parts"][0]["inline_data"]
+    assert image["mime_type"] == "image/jpeg"
+    assert first.usage == {"input_tokens": 1200, "output_tokens": 250}
+    assert to_candidates(first, "d/p01")[0].model == "gemini-x"
+
+
+def test_gemini_invalid_json_is_retried_once_then_raises(tmp_path, cfg, page):
+    client = FakeHttp(gemini(text="{not json"), gemini(reading(), finish="MAX_TOKENS"))
+    reader = GeminiReader(cfg, VlmCache(tmp_path), client=client, model="gemini-x")
+    with pytest.raises(VlmInvalid):
+        reader.read_page(page, "s", "p")
+    assert len(client.calls) == 2 and not list(tmp_path.rglob("*.json"))
+
+
+def test_gemini_safety_block_is_a_refusal(tmp_path, cfg, page):
+    client = FakeHttp(gemini(reading(), finish="SAFETY"))
+    reader = GeminiReader(cfg, VlmCache(tmp_path), client=client, model="gemini-x")
+    with pytest.raises(VlmInvalid, match="refused"):
+        reader.read_page(page, "s", "p")
+    assert len(client.calls) == 1
+
+
+def test_gemini_bad_request_is_not_retried(tmp_path, cfg, page):
+    err = SimpleNamespace(
+        status_code=400, json=lambda: {"error": {"message": "model not found"}}
+    )
+    client = FakeHttp(err)
+    reader = GeminiReader(cfg, VlmCache(tmp_path), client=client, model="gemini-x")
+    with pytest.raises(VlmInvalid, match="model not found"):
+        reader.read_page(page, "s", "p")
+    assert len(client.calls) == 1
+
+
+def test_reader_is_picked_by_model_name(tmp_path, cfg):
+    cache = VlmCache(tmp_path)
+    g = make_reader("live", cfg, cache, "a", model="gemini-x", gemini_api_key="g")
+    c = make_reader("live", cfg, cache, "a", model="claude-x", gemini_api_key="g")
+    assert isinstance(g, GeminiReader) and g.api_key == "g"
+    assert isinstance(c, ClaudeReader)
+    assert isinstance(make_reader("replay", cfg, cache, model="gemini-x"), ReplayReader)
