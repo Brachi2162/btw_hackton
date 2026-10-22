@@ -172,6 +172,15 @@
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, var(--navy-2), var(--navy));
   box-shadow: 0 6px 16px rgba(13, 27, 42, 0.25);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+/* The virus profile closes the chat, like the header icon. */
+.hello-avatar:hover {
+  transform: scale(1.08);
 }
 
 .hello-virus {

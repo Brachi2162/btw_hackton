@@ -5,10 +5,10 @@
   align-items: start;
 }
 
+/* No scroll box of its own: the table runs the full length of the page and
+   only the page scrolls. `clip` (not hidden) keeps the header sticky to it. */
 .table-wrap {
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: calc(100vh - 220px);
+  overflow-x: clip;
 }
 
 .table-wrap:focus-visible {

@@ -87,9 +87,9 @@ export function Assistant() {
             {!msgs.length && (
               <>
                 <div className="chat-hello">
-                  <span className="hello-avatar" aria-hidden="true">
+                  <button className="hello-avatar" onClick={() => setOpen(false)} aria-label="סגירת השיחה" title="סגירה">
                     <Virus size={40} spikes={9} className="hello-virus" />
-                  </span>
+                  </button>
                   <div className="hello-bubble">
                     <strong>היי, אני VERA</strong>
                     <span>אפשר לשאול אותי על הטפסים, המבחנות והבירורים של היום.</span>
