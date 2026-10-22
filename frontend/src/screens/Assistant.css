@@ -181,10 +181,26 @@
   align-self: flex-end;
   background: #fff;
   border: 1px solid var(--border);
+  white-space: normal;
 }
 
+/* Thinking: the system's virus turning, as everywhere else in VERA. */
 .typing {
-  animation: pulse 1.2s infinite;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.typing-virus {
+  color: var(--teal);
+  animation: typing-spin 1.6s linear infinite;
+}
+
+@keyframes typing-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .confirm-card {

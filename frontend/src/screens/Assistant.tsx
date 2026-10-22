@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, type ChatReply } from "../api";
 import { useApp } from "../app-context";
+import { RichText } from "../components/RichText";
 import { Virus } from "../components/Virus";
 import { useToast } from "../components/Toast";
 import "./Assistant.css";
@@ -82,7 +83,7 @@ export function Assistant() {
             {!msgs.length && <p className="chat-hello">היי, אני VERA. אפשר לשאול אותי על הטפסים, המבחנות והבירורים של היום.</p>}
             {msgs.map((m, i) => (
               <div key={i} className={`msg ${m.role}`}>
-                <p>{m.content}</p>
+                {m.role === "assistant" ? <RichText text={m.content} /> : <p>{m.content}</p>}
                 {m.actions?.map((a, j) => {
                   const key = `${i}-${j}`;
                   return (
@@ -105,7 +106,12 @@ export function Assistant() {
                 })}
               </div>
             ))}
-            {busy && <div className="msg assistant typing">…</div>}
+            {busy && (
+              <div className="msg assistant typing" role="status">
+                <Virus size={26} spikes={9} className="typing-virus" />
+                <span>VERA חושבת…</span>
+              </div>
+            )}
             <div ref={end} />
           </div>
           <div className="chips">

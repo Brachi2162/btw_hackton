@@ -192,3 +192,32 @@ describe("ErrorBoundary", () => {
     expect(screen.getByText("נסי שוב")).toBeTruthy();
   });
 });
+
+describe("RichText", () => {
+  it("lays out the model's markdown: cards, tiles, a table, highlights, no stars", async () => {
+    const { RichText } = await import("./components/RichText");
+    const md = [
+      "## מה מחכה",
+      "- **268 שדות** לבדיקה",
+      "- 5 בירורים *פתוחים*",
+      "",
+      "| שולח | טפסים |",
+      "|---|---|",
+      "| שיבא | 3 |",
+    ].join("\n");
+    const { container } = render(<RichText text={md} />);
+    expect(container.querySelector(".rich-card h4")?.textContent).toBe("מה מחכה");
+    expect(container.querySelectorAll(".rich-tile")).toHaveLength(2);
+    expect(container.querySelector(".rich-hl")?.textContent).toBe("268 שדות");
+    expect(container.querySelectorAll(".rich-table td")).toHaveLength(2);
+    expect(container.textContent).not.toContain("*");
+    expect(container.textContent).not.toContain("|");
+  });
+
+  it("never injects HTML from the answer", async () => {
+    const { RichText } = await import("./components/RichText");
+    const { container } = render(<RichText text={'<img src=x onerror="alert(1)"> **שלום**'} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.textContent).toContain("<img");
+  });
+});
