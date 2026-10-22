@@ -95,6 +95,7 @@ class DecisionConfig:
     ocr_min_conf: float = 0.8
     hebrew_handwriting: set[str] = field(default_factory=set)
     profiles: list[Profile] = field(default_factory=list)
+    receipt_places: list[str] = field(default_factory=list)
 
     @classmethod
     def load(cls, config_dir: Path) -> "DecisionConfig":
@@ -125,6 +126,7 @@ class DecisionConfig:
             ocr_min_conf=c.get("ocr_min_conf", 0.8),
             hebrew_handwriting=set(c.get("hebrew_handwriting", [])),
             profiles=load_profiles(config_dir),
+            receipt_places=c.get("receipt_places", []),
         )
 
 
@@ -299,6 +301,21 @@ def _in_profile_place(g: Group, fname: str, profile: Profile | None) -> bool:
         and bool(profile.commitment_regex and profile.commitment_regions)
         and not g.problems
         and any(c.signals.get("region") in profile.commitment_regions for c in g.cands)
+    )
+
+
+def _in_receipt_place(g: Group, cfg: DecisionConfig) -> bool:
+    """A valid receipt date where the lab writes it: the "התקבל" stamp, or by
+    hand under/next to the central number (D-020, D-023)."""
+    if g.problems or g.value is None:
+        return False
+    if g.anchored or g.placed:
+        return True
+    words = [_key(w) for w in cfg.receipt_places if _key(w)]
+    return any(
+        w in _key(f"{c.label_nearby or ''} {c.evidence_text or ''}")
+        for c in g.cands
+        for w in words
     )
 
 
@@ -631,7 +648,16 @@ def decide_field(
     # A reading that every one of its readers marked unreadable is a guess:
     # it is offered to the secretary, never written as the value (iron rule
     # 1, D-013). The field stays empty and orange until a person picks.
-    guesses = [g.display for g in chosen if "illegible" in g.reasons and g.display]
+    # Except a receipt date in its place that passes every date check: there
+    # a date is the receipt date (the lab's rule, D-023). It is written, and
+    # stays orange until a person confirms it.
+    guesses = [
+        g.display
+        for g in chosen
+        if "illegible" in g.reasons
+        and g.display
+        and not (fname == "receipt_date" and _in_receipt_place(g, cfg))
+    ]
     values = [g.display for g in chosen if g.display not in guesses]
     if guesses:
         status = "review"
@@ -852,6 +878,15 @@ def decide_page(
             f, by_field.get(f, []), barcodes, page_id, cfg, ref, ocr=ocr
         )
     _mark_by_central(by_field.get("receipt_date", []), barcodes, cfg, page_size)
+    # A date whose label is this page's central number was written next to
+    # it (central, dash, date): the receipt date's place too (D-023).
+    # A reader's central number counts even if the field stayed unsure.
+    centrals = {_number_key(v) for v in fields["central_numbers"].values} | {
+        _number_key(c.value_raw) for c in by_field.get("central_numbers", [])
+    }
+    for c in by_field.get("receipt_date", []):
+        if centrals & set(map(_number_key, re.findall(r"\d{6}", c.label_nearby or ""))):
+            c.signals["by_central"] = True
     fields["receipt_date"] = decide_field(
         "receipt_date",
         by_field.get("receipt_date", []),
