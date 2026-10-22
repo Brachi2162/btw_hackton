@@ -667,3 +667,54 @@ def test_senders_match_the_closed_list(cfg, text, name):
 def test_a_sender_that_is_only_a_parent_or_ambiguous(cfg):
     assert cfg.senders.match("רבין") == "rabin" and cfg.senders.has_children("rabin")
     assert cfg.senders.match("אסותא") is None  # which Assuta? nobody guesses
+
+
+# --- receipt date in its place (D-023) ---
+
+
+def _unsure_date(value, label=None, evidence=None):
+    c = vlm("receipt_date", value, label=label, legible=False)
+    return c.model_copy(update={"evidence_text": evidence})
+
+
+def test_an_unsure_date_in_the_receipt_stamp_is_written_and_stays_orange(cfg):
+    fr = decide_field(
+        "receipt_date", [_unsure_date("20/08/2026", label="התקבל")], [], PAGE, cfg, REF
+    )
+    assert fr.values == ["2026-08-20"] and fr.status == "review"
+    fr = decide_field(
+        "receipt_date",
+        [_unsure_date("20/08/2026", evidence="faint stamp 20-08-2026")],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert fr.values == ["2026-08-20"]
+
+
+def test_an_unsure_date_elsewhere_is_only_offered(cfg):
+    fr = decide_field(
+        "receipt_date", [_unsure_date("20/08/2026", label="הערות")], [], PAGE, cfg, REF
+    )
+    assert fr.values == [] and "2026-08-20" in fr.alternatives
+
+
+def test_a_date_in_the_place_that_fails_its_checks_is_not_written(cfg):
+    fr = decide_field(
+        "receipt_date", [_unsure_date("20/08/2004", label="התקבל")], [], PAGE, cfg, REF
+    )
+    assert fr.values == [] and fr.status == "review"
+
+
+def test_a_date_labelled_with_the_central_number_is_in_its_place(cfg):
+    page = {
+        "model": "m",
+        "page_kind": "form",
+        "candidates": [
+            vlm("central_numbers", "512340", label="מרכזי").model_dump(mode="json"),
+            _unsure_date("20.8", label="512340").model_dump(mode="json"),
+        ],
+    }
+    sub = decide_page(PAGE, "b", page, [], cfg, REF)
+    assert sub.fields["receipt_date"].values == ["2026-08-20"]
