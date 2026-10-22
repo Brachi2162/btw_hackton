@@ -84,6 +84,8 @@ export function CardMode() {
 
 function FieldCard({ item, onSaved, onSkip }: { item: Item; onSaved: (p: Propagation | null) => void; onSkip: () => void }) {
   const [ev, setEv] = useState<Evidence | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const [text, setText] = useState("");
   const fix = useFix(onSaved);
   const ltr = LTR_FIELDS.has(item.field);
@@ -92,9 +94,13 @@ function FieldCard({ item, onSaved, onSkip }: { item: Item; onSaved: (p: Propaga
     // A slow answer for the previous card must not land on this one.
     let alive = true;
     setEv(null);
-    api.evidence(item.submission_id, item.field).then((e) => alive && setEv(e));
+    setLoadError(null);
+    api
+      .evidence(item.submission_id, item.field)
+      .then((e) => alive && setEv(e))
+      .catch((e) => alive && setLoadError(e instanceof Error ? e.message : String(e)));
     return () => void (alive = false);
-  }, [item.submission_id, item.field]);
+  }, [item.submission_id, item.field, attempt]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -125,7 +131,18 @@ function FieldCard({ item, onSaved, onSkip }: { item: Item; onSaved: (p: Propaga
           // nothing to crop (e.g. a missing field): show the whole form
           <img className="fc-page" src={imageUrl(item.page_ids[0], { maxSide: 900 })} alt="הטופס כולו" />
         ) : (
-          <span className="muted">טוען…</span>
+          <span className="muted" role={loadError ? "alert" : undefined}>
+            {loadError ? (
+              <>
+                לא נטען ({loadError}).{" "}
+                <button className="link" onClick={() => setAttempt((n) => n + 1)}>
+                  נסי שוב
+                </button>
+              </>
+            ) : (
+              "טוען…"
+            )}
+          </span>
         )}
       </div>
       <p className="fc-reason">{item.explanation_he}</p>

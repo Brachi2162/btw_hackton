@@ -261,6 +261,8 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
   const [page, setPage] = useState<Page | null>(null);
   const [glow, setGlow] = useState(false);
   const [view, setView] = useState<View>("zoom");
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const toast = useToast();
   const [why, setWhy] = useState(false);
   const [text, setText] = useState("");
@@ -272,14 +274,22 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
     setSub(null);
     setEv(null);
     setPage(null);
-    api.submission(sel.sid).then((s) => {
-      if (!alive) return;
-      setSub(s);
-      api.page(s.page_ids[0]).then((p) => alive && setPage(p)).catch(() => alive && setPage(null));
-    });
-    api.evidence(sel.sid, sel.field).then((e) => alive && setEv(e));
+    setLoadError(null);
+    // A failed request says so (with a retry) instead of loading forever.
+    const failed = (e: unknown) => alive && setLoadError(e instanceof Error ? e.message : String(e));
+    api
+      .submission(sel.sid)
+      .then((s) => {
+        if (!alive) return;
+        setSub(s);
+        if (s.page_ids[0]) {
+          api.page(s.page_ids[0]).then((p) => alive && setPage(p)).catch(() => alive && setPage(null));
+        }
+      })
+      .catch(failed);
+    api.evidence(sel.sid, sel.field).then((e) => alive && setEv(e)).catch(failed);
     return () => void (alive = false);
-  }, [sel.sid, sel.field]);
+  }, [sel.sid, sel.field, attempt]);
 
   const fr = sub?.fields[sel.field];
   const options = ev?.options ?? [];
@@ -341,7 +351,20 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
           }}
         />
       ) : (
-        <div className="viewer placeholder muted">{sub ? "אין תמונה לעמוד" : "טוען…"}</div>
+        <div className="viewer placeholder muted">
+          {loadError ? (
+            <span role="alert">
+              הטופס לא נטען ({loadError}).{" "}
+              <button className="link" onClick={() => setAttempt((n) => n + 1)}>
+                נסי שוב
+              </button>
+            </span>
+          ) : sub ? (
+            "אין תמונה לעמוד"
+          ) : (
+            "טוען…"
+          )}
+        </div>
       )}
       {fr && (
         <div className="panel-body">

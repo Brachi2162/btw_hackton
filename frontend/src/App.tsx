@@ -33,6 +33,7 @@ export function App() {
   const [route, go] = useRoute();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [batchId, setBatch] = useState<string | null>(null);
+  const [offline, setOffline] = useState(false);
   const screen = SCREENS[route[0]] ? route[0] : "review";
 
   const refreshOverview = useCallback(() => {
@@ -40,9 +41,10 @@ export function App() {
       .overview()
       .then((o) => {
         setOverview(o);
+        setOffline(false);
         setBatch((cur) => cur ?? o.latest_batch_id);
       })
-      .catch(() => {});
+      .catch(() => setOffline(true));
   }, []);
 
   useEffect(() => {
@@ -58,6 +60,14 @@ export function App() {
         <div className="shell">
           <Sidebar active={screen} />
           <main className={`main main-${screen}`}>
+            {offline && (
+              <div className="offline-bar" role="alert">
+                אין חיבור לשרת של VERA. העבודה שנשמרה לא אבדה; המסך יתחבר מחדש לבד.{" "}
+                <button className="link" onClick={refreshOverview}>
+                  לנסות עכשיו
+                </button>
+              </div>
+            )}
             <ErrorBoundary key={screen} label="המסך הזה">
               <Suspense fallback={<div className="page empty">טוען…</div>}>
                 <Screen />
