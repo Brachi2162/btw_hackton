@@ -541,3 +541,23 @@ def test_two_providers_reading_the_same_crop_make_it_green(cfg):
         "first_name", [crop("vlm_crop"), crop("vlm_crop_check")], [], PAGE, cfg, REF
     )
     assert fr.status == "verified"
+
+
+def test_an_unreadable_guess_is_offered_not_written(cfg):
+    guess = vlm("first_name", "דנה", legible=False, handwritten=True)
+    fr = decide_field("first_name", [guess], [], PAGE, cfg, REF)
+    assert fr.values == [] and fr.status == "review" and "illegible" in fr.reasons
+    assert fr.alternatives[0] == "דנה" and "לבחירה" in fr.explanation_he
+
+    from vera.evidence import options
+
+    first = options(fr)[0]
+    assert first["value"] == "דנה" and "ניחוש, לא קריא" in first["readers"]
+
+
+def test_a_clear_reading_is_still_written_next_to_an_unreadable_one(cfg):
+    clear = vlm("central_numbers", "512340", label="מרכזי")
+    unread = vlm("central_numbers", "654321", label="מרכזי", legible=False)
+    fr = decide_field("central_numbers", [clear, unread], [], PAGE, cfg, REF)
+    assert fr.values == ["512340"] and "654321" in fr.alternatives
+    assert fr.status == "review"

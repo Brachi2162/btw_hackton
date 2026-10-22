@@ -92,8 +92,11 @@ def options(fr: FieldResult, learned: list[dict] | None = None) -> list[dict]:
                 out.setdefault(v, set()).add(READER_HE.get(s.reader, s.reader))
     for v in fr.values:
         out.setdefault(v, set())
+    unread = "illegible" in fr.reasons and not fr.values
     for v in fr.alternatives:
-        out.setdefault(v, set()).add("מועמד שנדחה")
+        # With an empty unreadable field, the alternatives start with the
+        # readers' guess (D-013): say so, not "rejected".
+        out.setdefault(v, set()).add("ניחוש, לא קריא" if unread else "מועמד שנדחה")
     return [{"value": v, "readers": sorted(r)} for v, r in out.items()][:5]
 
 

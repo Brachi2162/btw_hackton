@@ -542,15 +542,23 @@ def decide_field(
             sorted({str(d.year) for v in (aux_dates or {}).values() for d in v})
         ),
     }
+    # A reading that every one of its readers marked unreadable is a guess:
+    # it is offered to the secretary, never written as the value (iron rule
+    # 1, D-013). The field stays empty and orange until a person picks.
+    guesses = [g.display for g in chosen if "illegible" in g.reasons and g.display]
+    values = [g.display for g in chosen if g.display not in guesses]
+    if guesses:
+        status = "review"
     return FieldResult(
         field=fname,
-        values=[g.display for g in chosen],
+        values=values,
         status=status,
         score=round(sum(g.score for g in chosen) / len(chosen), 3),
         reasons=[r for r in reasons if r in ReasonCode.__args__],
-        explanation_he=_explain(cfg, status, reasons, ctx),
+        explanation_he=_explain(cfg, status, reasons, ctx)
+        + ("; הניחוש מוצע לבחירה ולא נכתב" if guesses else ""),
         sources=[_source(c) for g in chosen for c in g.cands],
-        alternatives=[g.display for g in rejected if g.display] + overridden,
+        alternatives=guesses + [g.display for g in rejected if g.display] + overridden,
     )
 
 

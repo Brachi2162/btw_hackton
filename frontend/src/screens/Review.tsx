@@ -185,6 +185,9 @@ function Cell({ s, field, sel, onSelect }: { s: SubmissionSummary; field: string
         ) : (
           <span className="cell-text">{text}</span>
         )
+      ) : fr.status === "review" ? (
+        // Empty and orange: read, but not surely (D-013); the guess waits in the panel.
+        <span className="muted">? לא נקרא בוודאות</span>
       ) : (
         <span className="muted">—</span>
       )}
