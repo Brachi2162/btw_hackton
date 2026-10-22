@@ -870,6 +870,29 @@ class BatchService:
         create_for_batch(self, sub.batch_id)  # opens them once the review is done
         return sub
 
+    def accept_all(self, batch_id: str, user: str) -> dict:
+        """Approve all, on the review table: every field that holds a value
+        and is not green yet is accepted as it is, one logged accept each.
+        Empty fields are left alone (a guess is not a value, iron rule 1):
+        they still need a value or a follow-up with the sender."""
+        with self.sv.repo.session() as s:
+            batch = s.get(BatchRow, batch_id)
+            if batch is None:
+                raise KeyError(batch_id)
+            if batch.locked:
+                raise PermissionError("batch is exported and locked")
+        accepted = left_empty = 0
+        for sub in self.submissions(batch_id):
+            for field, fr in sub.fields.items():
+                if fr.status in ("verified", "human", "missing"):
+                    continue
+                if not fr.values:
+                    left_empty += 1
+                    continue
+                self.correct(sub.id, field, None, user)
+                accepted += 1
+        return {"accepted": accepted, "left_empty": left_empty}
+
     # --- learning from people (D-011) ---
 
     def learned_fixes(self, field: str, values: list[str]) -> list[dict]:

@@ -299,6 +299,8 @@ export const api = {
     call<InboxPreview>("POST", "/inbox/import", { path, today_only, recursive }),
   submission: (id: string) => call<Submission>("GET", `/submissions/${id}`),
   page: (id: string) => call<Page>("GET", `/pages/${id}`),
+  acceptAll: (batchId: string) =>
+    call<{ accepted: number; left_empty: number }>("POST", `/batches/${batchId}/accept-all`),
   accept: (sid: string, field: string) =>
     call<Submission & { propagation: Propagation | null }>("POST", `/submissions/${sid}/fields/${field}/accept`),
   correct: (sid: string, field: string, values: string[], force = false) =>

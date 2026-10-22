@@ -174,3 +174,29 @@ def test_unknown_batch_and_page_are_404(client):
     assert client.get("/api/batches/nope").status_code == 404
     assert client.get("/api/pages/nope/image").status_code == 404
     assert client.get("/api/submissions/nope").status_code == 404
+
+
+def test_accept_all_greens_values_and_leaves_empty_fields(client, tmp_path):
+    bid = client.post("/api/batches", json={"name": "t", "ref_date": "2026-09-01"})
+    bid = bid.json()["id"]
+    upload(client, bid, tmp_path)
+    before = wait_done(client, bid)["submissions"]
+    has_value = sum(
+        1
+        for s in before
+        for f in s["fields"].values()
+        if f["values"] and f["status"] in ("likely", "review")
+    )
+
+    r = client.post(f"/api/batches/{bid}/accept-all", headers={"X-User": "tester"})
+    assert r.status_code == 200
+    assert r.json()["accepted"] == has_value
+
+    for s in client.get(f"/api/batches/{bid}").json()["submissions"]:
+        for f in s["fields"].values():
+            if f["values"]:
+                assert f["status"] in ("verified", "human")
+            else:  # nothing accepted into an empty field
+                assert f["status"] != "human"
+
+    assert client.post("/api/batches/nope/accept-all").status_code == 404
