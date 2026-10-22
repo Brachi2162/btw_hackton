@@ -791,9 +791,14 @@ class BatchService:
             fr.history.append(
                 Correction(user=user, at=now(), old_values=old, new_values=new, via=via)
             )
-            fr.values, fr.status = new, "human"
+            # Left empty on purpose: the form doesn't say, so it goes grey and,
+            # once the review is done, to a follow-up with the sender (D-018).
+            empty = action == "edit" and not new
+            fr.values, fr.status = new, "missing" if empty else "human"
             fr.explanation_he = explanation or (
-                "אושר ידנית" if action == "accept" else "תוקן ידנית"
+                "המזכירה סימנה: אין בטופס, לבירור עם השולח"
+                if empty
+                else "אושר ידנית" if action == "accept" else "תוקן ידנית"
             )
             sub.row_status = worst_status([f.status for f in sub.fields.values()])
             row.data = json.loads(sub.model_dump_json())
@@ -823,6 +828,9 @@ class BatchService:
             )
             s.commit()
         self.events.publish(sub.batch_id, "submission_updated", self.summary(sub))
+        from vera.followups import create_for_batch
+
+        create_for_batch(self, sub.batch_id)  # opens them once the review is done
         return sub
 
     # --- learning from people (D-011) ---

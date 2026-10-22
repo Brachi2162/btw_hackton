@@ -49,13 +49,23 @@ describe("fields", () => {
     expect(signatureOf(s.fields)).toEqual(["missing", "verified", "verified", "verified", "verified"]);
   });
 
-  it("Enter goes to the next non-green field, wrapping around", () => {
-    const subs = [sub("a", { id_number: "review" }), sub("b", { sender: "likely", receipt_date: "missing" })];
+  it("Enter goes to the next field that waits (yellow/orange), wrapping around", () => {
+    const subs = [
+      sub("a", { id_number: "review" }),
+      sub("b", { sender: "likely", first_name: "missing", receipt_date: "review" }),
+    ];
     expect(nextOpenField(subs, null)).toEqual({ sid: "a", field: "id_number" });
     expect(nextOpenField(subs, { sid: "a", field: "id_number" })).toEqual({ sid: "b", field: "sender" });
+    // the grey first name is done (D-018): straight to the orange date
     expect(nextOpenField(subs, { sid: "b", field: "sender" })).toEqual({ sid: "b", field: "receipt_date" });
     expect(nextOpenField(subs, { sid: "b", field: "receipt_date" })).toEqual({ sid: "a", field: "id_number" });
     expect(nextOpenField([sub("c", {})], null)).toBeNull();
+  });
+
+  it("grey fields count as done: only yellow and orange wait", () => {
+    const subs = [sub("a", { sender: "missing", id_number: "review" })];
+    expect(nextOpenField(subs, null)).toEqual({ sid: "a", field: "id_number" });
+    expect(nextAfterSave(subs, { sid: "a", field: "id_number" })).toBeNull();
   });
 
   it("after a save, finishes the same form first, even a field before it", () => {

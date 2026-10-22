@@ -25,11 +25,45 @@ def aware(dt: datetime | None) -> datetime | None:
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
-def create_for_batch(bs, batch_id: str) -> int:
-    """One follow-up per form with missing fields, one per invalid ID.
-    Idempotent: running it again adds nothing."""
+# A field still waiting for a person; anything else is done: green, fixed by a
+# person, or grey (nothing on the form, or the secretary couldn't fill it).
+WAITING = {"likely", "review"}
+
+
+def review_done(subs) -> bool:
+    """The secretary went over the whole batch: no yellow or orange left."""
+    return all(fr.status not in WAITING for sub in subs for fr in sub.fields.values())
+
+
+def _bad_id(values: list[str]) -> bool:
+    from vera.normalize import norm_id
+
+    return any(norm_id(v).problems for v in values)
+
+
+def create_for_batch(bs, batch_id: str, force: bool = False) -> int:
+    """Follow-ups only once the review of the batch is finished (D-018): one
+    per form whose fields stayed empty (grey), one per ID kept although it is
+    invalid. While fields still wait for a person, follow-ups the system
+    opened too early and nobody touched are taken back. Idempotent. `force`:
+    open them anyway (demo history)."""
+    subs = bs.submissions(batch_id)
     with bs.sv.repo.session() as s:
         batch = s.get(BatchRow, batch_id)
+        if not force and not review_done(subs):
+            early = s.exec(
+                select(FollowupRow).where(
+                    FollowupRow.batch_id == batch_id,
+                    FollowupRow.kind.in_(["missing_field", "invalid_id"]),
+                    FollowupRow.status == "open",
+                    FollowupRow.draft.is_(None),
+                    FollowupRow.note.is_(None),
+                )
+            ).all()
+            for f in early:
+                s.delete(f)
+            s.commit()
+            return 0
         existing = {
             (f.submission_id, f.kind)
             for f in s.exec(
@@ -37,7 +71,7 @@ def create_for_batch(bs, batch_id: str) -> int:
             ).all()
         }
         added = 0
-        for sub in bs.submissions(batch_id):
+        for sub in subs:
             name = " ".join(
                 v for v in (value(sub, "first_name"), value(sub, "last_name")) if v
             )
@@ -60,14 +94,10 @@ def create_for_batch(bs, batch_id: str) -> int:
                 )
                 added += 1
             idf = sub.fields.get("id_number")
-            bad_id = idf is not None and (
-                {"checksum_failed", "validation_failed"} & set(idf.reasons)
-            )
-            if (
-                bad_id
-                and idf.status == "review"
-                and (sub.id, "invalid_id") not in (existing)
-            ):
+            # The ID as it stands now (a person may have fixed it): still
+            # invalid after the review means the sender has to be asked.
+            bad_id = idf is not None and idf.values and _bad_id(idf.values)
+            if bad_id and (sub.id, "invalid_id") not in existing:
                 s.add(
                     FollowupRow(
                         kind="invalid_id",

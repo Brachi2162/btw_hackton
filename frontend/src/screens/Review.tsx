@@ -406,6 +406,17 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
             <button className="btn" disabled={!text.trim() || fix.busy}>
               שמירה
             </button>
+            {fr.status !== "missing" && (
+              <button
+                type="button"
+                className="btn ghost no-value"
+                onClick={() => fix.run(sel.sid, sel.field, "")}
+                disabled={fix.busy}
+                title="אין את הערך בטופס: השדה יישאר ריק, ובסוף הבדיקה ייפתח בירור עם השולח"
+              >
+                אין בטופס – לבירור
+              </button>
+            )}
             {!isGreen(fr.status) && fr.values.length > 0 && (
               <button type="button" className="btn primary" onClick={() => fix.run(sel.sid, sel.field, null)} disabled={fix.busy}>
                 אישור הערך

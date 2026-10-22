@@ -354,7 +354,7 @@ def seed(bs, weeks: int = 4, seed_value: int = 7, today: date | None = None) -> 
         totals["forms"] += n
 
         # (no tube scans: the tubes screen was removed from the UI)
-        create_for_batch(bs, bid)
+        create_for_batch(bs, bid, force=True)  # demo history: as if reviewed
         with bs.sv.repo.session() as s:  # age them; most old ones are done
             for f in s.exec(select(FollowupRow).where(FollowupRow.batch_id == bid)):
                 f.created_at = created + timedelta(minutes=rng.randint(30, 90))
