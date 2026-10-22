@@ -174,3 +174,34 @@ def test_unknown_batch_and_page_are_404(client):
     assert client.get("/api/batches/nope").status_code == 404
     assert client.get("/api/pages/nope/image").status_code == 404
     assert client.get("/api/submissions/nope").status_code == 404
+
+
+def test_sidebar_count_is_the_open_batch_and_drops_on_approval(client, tmp_path):
+    def waiting_on_screen(b):  # what the review screen counts: yellow + orange
+        return sum(
+            1
+            for s in b["submissions"]
+            for f in s["fields"].values()
+            if f["status"] in ("likely", "review")
+        )
+
+    old = client.post("/api/batches", json={"name": "old", "ref_date": "2026-09-01"})
+    upload(client, old.json()["id"], tmp_path)
+    wait_done(client, old.json()["id"])
+    bid = client.post("/api/batches", json={"name": "t", "ref_date": "2026-09-01"})
+    bid = bid.json()["id"]
+    upload(client, bid, tmp_path)
+    b = wait_done(client, bid)
+
+    o = client.get(f"/api/overview?batch_id={bid}").json()
+    assert o["review_waiting_batch"] == waiting_on_screen(b) > 0
+    assert o["review_waiting"] > o["review_waiting_batch"]  # both open batches
+    assert client.get("/api/overview").json()["review_waiting_batch"] is None
+
+    sub = b["submissions"][0]
+    field = next(
+        f for f, v in sub["fields"].items() if v["status"] in ("likely", "review")
+    )
+    client.post(f"/api/submissions/{sub['id']}/fields/{field}/accept")
+    after = client.get(f"/api/overview?batch_id={bid}").json()
+    assert after["review_waiting_batch"] == o["review_waiting_batch"] - 1

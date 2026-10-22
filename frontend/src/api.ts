@@ -174,6 +174,8 @@ export interface Weekly {
 
 export interface Overview {
   review_waiting: number;
+  /** yellow + orange fields of the batch asked for (as its review screen counts) */
+  review_waiting_batch: number | null;
   open_followups: number;
   overdue_followups: number;
   forms_waiting_for_tube: number;
@@ -271,7 +273,8 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
 }
 
 export const api = {
-  overview: () => call<Overview>("GET", "/overview"),
+  overview: (batchId?: string | null) =>
+    call<Overview>("GET", batchId ? `/overview?batch_id=${encodeURIComponent(batchId)}` : "/overview"),
   batches: () => call<BatchListItem[]>("GET", "/batches"),
   batch: (id: string) => call<Batch>("GET", `/batches/${id}`),
   createBatch: (name: string) => call<BatchListItem>("POST", "/batches", { name }),

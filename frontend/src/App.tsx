@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { api, type Overview } from "./api";
 import { AppCtx } from "./app-context";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -35,9 +35,13 @@ export function App() {
   const [offline, setOffline] = useState(false);
   const screen = SCREENS[route[0]] ? route[0] : "home";
 
+  // The sidebar counts the open batch, so the overview is asked for it; a
+  // ref keeps refreshOverview stable for the screens that call it.
+  const batchRef = useRef(batchId);
+  batchRef.current = batchId;
   const refreshOverview = useCallback(() => {
     api
-      .overview()
+      .overview(batchRef.current)
       .then((o) => {
         setOverview(o);
         setOffline(false);
@@ -51,6 +55,11 @@ export function App() {
     const t = setInterval(refreshOverview, 15000);
     return () => clearInterval(t);
   }, [refreshOverview]);
+
+  // Another batch opened (picker, new upload): its count, now.
+  useEffect(() => {
+    if (batchId) refreshOverview();
+  }, [batchId, refreshOverview]);
 
   const Screen = SCREENS[screen];
   return (

@@ -13,7 +13,8 @@ const ITEMS: { key: string; label: string; icon: string }[] = [
 
 export function Sidebar({ active }: { active: string }) {
   const { overview, go } = useApp();
-  const waiting = overview?.review_waiting ?? 0;
+  // the open batch, counted like its review screen (yellow + orange)
+  const waiting = overview?.review_waiting_batch ?? overview?.review_waiting ?? 0;
   return (
     <nav className="sidebar" aria-label="ניווט ראשי">
       <button className="logo" onClick={() => go("home")} aria-label="VERA, עמוד הבית">
