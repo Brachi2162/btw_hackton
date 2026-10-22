@@ -8,3 +8,10 @@
   min-width: 0;
   position: relative;
 }
+
+/* ErrorBoundary: one broken part, the rest of the app keeps working */
+.error-box {
+  margin: 24px;
+  padding: 16px 20px;
+  border-inline-start: 4px solid var(--review, #e07a3f);
+}

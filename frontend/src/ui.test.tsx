@@ -105,3 +105,45 @@ describe("PropagationBar", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+
+describe("Assistant", () => {
+  it("shows the reply to a question without breaking the page", async () => {
+    const answer = {"reply": "יש **268 שדות** לבדיקה.\n- 5 בירורים", "actions": [], "tools_used": ["work_overview"], "suggestions": ["מה מחכה לי עכשיו?", "אילו מבחנות הגיעו בלי טופס?", "אילו בירורים פתוחים יותר מיממה?", "איך היה השבוע?"], "mode": "model"};
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(answer), { headers: { "content-type": "application/json" } }),
+    );
+    Element.prototype.scrollIntoView = vi.fn(); // jsdom has none
+    const { Assistant } = await import("./screens/Assistant");
+    render(
+      <ToastProvider>
+        <Assistant />
+      </ToastProvider>,
+    );
+    fireEvent.click(screen.getByText(/שאלי את VERA/));
+    fireEvent.change(screen.getByLabelText("שאלה ל-VERA"), { target: { value: "מה מחכה לי?" } });
+    fireEvent.click(screen.getByText("שליחה"));
+    await waitFor(() => expect(screen.getByText(/268 שדות/)).toBeTruthy());
+  });
+});
+
+describe("ErrorBoundary", () => {
+  it("keeps the rest of the page when one part throws, and offers a retry", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { ErrorBoundary } = await import("./components/ErrorBoundary");
+    function Boom(): never {
+      throw new Error("boom");
+    }
+    render(
+      <div>
+        <p>שאר המסך</p>
+        <ErrorBoundary label="הצ'אט">
+          <Boom />
+        </ErrorBoundary>
+      </div>,
+    );
+    expect(screen.getByText("שאר המסך")).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain("boom");
+    expect(screen.getByText("נסי שוב")).toBeTruthy();
+  });
+});

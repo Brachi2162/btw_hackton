@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { api, type Overview } from "./api";
 import { AppCtx } from "./app-context";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Sidebar } from "./components/Sidebar";
 import { ToastProvider } from "./components/Toast";
 import { useRoute } from "./hooks";
@@ -57,12 +58,16 @@ export function App() {
         <div className="shell">
           <Sidebar active={screen} />
           <main className={`main main-${screen}`}>
-            <Suspense fallback={<div className="page empty">טוען…</div>}>
-              <Screen />
-            </Suspense>
+            <ErrorBoundary key={screen} label="המסך הזה">
+              <Suspense fallback={<div className="page empty">טוען…</div>}>
+                <Screen />
+              </Suspense>
+            </ErrorBoundary>
           </main>
         </div>
-        <Assistant />
+        <ErrorBoundary label="הצ'אט עם VERA">
+          <Assistant />
+        </ErrorBoundary>
       </ToastProvider>
     </AppCtx.Provider>
   );
