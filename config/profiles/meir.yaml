@@ -1,0 +1,10 @@
+# Form type: טופס מאיר. Derived from 2 dev-set pages (part2) and the ground
+# truth; check with the lab before relying on it (D-019). Structure only:
+# patterns and places, never values from the samples (iron rule 5).
+id: meir
+name: טופס מאיר
+senders: [meir]
+page_kinds: [form]
+commitment_regex: '^\d{5}$'
+commitment_regions: []
+notes: "5 ספרות; המיקום עוד לא ידוע"

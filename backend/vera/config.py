@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     scan_folder_host: str = ""
     # Pages below this sharpness get a blur warning (see batch.page_quality).
     blur_threshold: float = 40.0
+    # Skewed / dark scans (vera.pipeline.enhance). Pages tilted this much get
+    # a warning; from deskew_min_angle they are levelled (0 = off: levelling
+    # changes the image, so cached reads of the samples would miss, D-021).
+    skew_warn_angle: float = 2.0
+    deskew_min_angle: float = 0.0
+    # Mean grey level (0-255) below which a page is brightened.
+    dark_mean_threshold: float = 150.0
     # Weekly report: manual entry time per form, for "hours saved".
     manual_seconds_per_form: int = 100
     # ...minus the time a person still spends per field they touch.

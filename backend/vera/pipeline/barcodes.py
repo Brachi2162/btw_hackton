@@ -10,8 +10,8 @@ Barcodes are deduplicated by (format, text, position). This stage only says
 what is encoded where; which field a barcode belongs to (central number,
 commitment, ID...) is decided later from the label next to it (spec 3.6).
 That label is read here (D-016): printed text right around each barcode, in
-three rotations, since stickers often print it sideways ("מרכזי" turned 90°
-reads to a model like "CLCI").
+several rotations, since stickers often print it sideways ("מרכזי" turned 90°
+reads to a model like "CLCI") and are often glued on at a slant.
 """
 
 import re
@@ -162,6 +162,9 @@ def read_barcodes(img: Image.Image, crops: bool = True) -> list[Barcode]:
 
 
 LABEL_PAD = 0.6  # of the barcode's longer side: right around it, not the page
+# Sideways labels on stickers often glued on at a slant: 90/270 plus +-15°
+# (on dev: the label found on 19 of 22 pages instead of 15).
+LABEL_ANGLES = (0, 90, 270, 75, 105, 255, 285)
 
 
 @lru_cache
@@ -191,7 +194,7 @@ def label_barcodes(img: Image.Image, barcodes: list[Barcode], words=None) -> Non
         x1, y1, x2, y2 = b.bbox
         pad = int(max(x2 - x1, y2 - y1) * LABEL_PAD)
         area = gray.crop((max(0, x1 - pad), max(0, y1 - pad), x2 + pad, y2 + pad))
-        for angle in (0, 90, 270):
+        for angle in LABEL_ANGLES:
             try:
                 text = pytesseract.image_to_string(
                     area.rotate(angle, expand=True), lang="heb", config="--psm 11"

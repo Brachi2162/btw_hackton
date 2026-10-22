@@ -1,0 +1,10 @@
+# Form type: טופס לניאדו. Derived from 2 dev-set pages (part2) and the ground
+# truth; check with the lab before relying on it (D-019). Structure only:
+# patterns and places, never values from the samples (iron rule 5).
+id: laniado
+name: טופס לניאדו
+senders: [laniado]
+page_kinds: [form]
+commitment_regex: '^X\d{6}$'
+commitment_regions: [middle-right]
+notes: "האות X ואחריה 6 ספרות, באמצע מימין"

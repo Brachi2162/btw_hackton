@@ -184,6 +184,18 @@ export interface Overview {
   scan_folder: string;
 }
 
+export interface WatchStatus {
+  enabled: boolean;
+  folder: string;
+  today_only: boolean;
+  recursive: boolean;
+  batch_id: string | null;
+  interval: number;
+  last_check: string | null;
+  error: string | null;
+  added_today: number;
+}
+
 export interface InboxPreview {
   folder: string;
   relevant: number;
@@ -277,6 +289,9 @@ export const api = {
       "GET",
       `/inbox?${new URLSearchParams({ path, today: String(today), recursive: String(recursive) })}`,
     ),
+  watch: () => call<WatchStatus>("GET", "/inbox/watch"),
+  setWatch: (folder: string, enabled: boolean, today_only: boolean, recursive: boolean) =>
+    call<WatchStatus>("PUT", "/inbox/watch", { folder, enabled, today_only, recursive }),
   importFolder: (path: string, today_only: boolean, recursive: boolean) =>
     call<InboxPreview>("POST", "/inbox/import", { path, today_only, recursive }),
   submission: (id: string) => call<Submission>("GET", `/submissions/${id}`),

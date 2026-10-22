@@ -112,6 +112,34 @@ def inbox_preview(
         raise HTTPException(422, str(e))
 
 
+class WatchIn(BaseModel):
+    folder: str = ""
+    enabled: bool
+    today_only: bool = True
+    recursive: bool = False
+
+
+@router.get("/inbox/watch")
+def watch_status(request: Request):
+    """Is a folder being watched, which, and when was it last looked at."""
+    return request.app.state.watch.get()
+
+
+@router.put("/inbox/watch")
+def watch_set(body: WatchIn, request: Request, x_user: str | None = Header(None)):
+    """Watch a folder: new forms in it go to review by themselves (D-017)."""
+    try:
+        return request.app.state.watch.set(
+            body.folder,
+            body.enabled,
+            user_of(x_user),
+            today_only=body.today_only,
+            recursive=body.recursive,
+        )
+    except inbox.InboxError as e:
+        raise HTTPException(422, str(e))
+
+
 class ImportIn(BaseModel):
     path: str = ""
     today_only: bool = False

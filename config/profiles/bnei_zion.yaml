@@ -1,0 +1,10 @@
+# Form type: טופס בני ציון. Derived from 2 dev-set pages (part2) and the ground
+# truth; check with the lab before relying on it (D-019). Structure only:
+# patterns and places, never values from the samples (iron rule 5).
+id: bnei_zion
+name: טופס בני ציון
+senders: [bnei_zion]
+page_kinds: [form]
+commitment_regex: '^\d{6}$'
+commitment_regions: [top-right]
+notes: "6 ספרות, בראש הטופס מימין (ליד 'לכבוד'); באותו אורך כמו מספר מרכזי"
