@@ -40,6 +40,12 @@ ocr_min_conf: 0.8
 # review instead of competing as a reading (D-012). Printed Latin is fine.
 hebrew_handwriting: [first_name, last_name]
 
+# Fields where a value that passes every rule of its own (format, check
+# digit, its label next to it, no decoy, dates that fit) is green even from
+# one reader, and even when the models put it in different fields (D-016).
+# Not names: no rule can tell a misread name.
+rules_suffice: [central_numbers, commitment_numbers, receipt_date, sender]
+
 anchor_bonus: 0.3      # the right label next to the value
 illegible_penalty: 0.5 # the reader itself said it can't read it
 decoy_penalty: 1.0     # next to a decoy label (spec 3.4)

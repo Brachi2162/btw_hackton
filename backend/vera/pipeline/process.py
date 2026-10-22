@@ -11,7 +11,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from vera.pipeline.barcodes import read_barcodes
+from vera.pipeline.barcodes import label_barcodes, read_barcodes
 from vera.pipeline.pages import _process_page, file_sha256
 from vera.pipeline.vlm import CacheMiss, VisionReader, VlmInvalid, to_candidates
 
@@ -29,7 +29,10 @@ def prepare_page(
         Path(src), index, file_sha256(Path(src)), out_dir, dpi, orient
     )
     with Image.open(Path(out_dir) / record.image) as img:
-        barcodes = [b.to_dict() for b in read_barcodes(img.convert("RGB"))]
+        page = img.convert("RGB")
+        found = read_barcodes(page)
+        label_barcodes(page, found)
+        barcodes = [b.to_dict() for b in found]
     return {"record": asdict(record), "barcodes": barcodes}
 
 

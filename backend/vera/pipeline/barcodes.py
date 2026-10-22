@@ -9,9 +9,14 @@ Two passes over the upright page:
 Barcodes are deduplicated by (format, text, position). This stage only says
 what is encoded where; which field a barcode belongs to (central number,
 commitment, ID...) is decided later from the label next to it (spec 3.6).
+That label is read here (D-016): printed text right around each barcode, in
+three rotations, since stickers often print it sideways ("מרכזי" turned 90°
+reads to a model like "CLCI").
 """
 
+import re
 from dataclasses import asdict, dataclass
+from functools import lru_cache
 
 import cv2
 import numpy as np
@@ -36,6 +41,7 @@ class Barcode:
     bbox: BBox  # page pixels, upright image
     orientation: int  # degrees, as zxing reports it
     via: str  # "page" or "crop"
+    label: str | None = None  # a field label printed right next to it (D-016)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -153,3 +159,46 @@ def read_barcodes(img: Image.Image, crops: bool = True) -> list[Barcode]:
                     found.append(b)
     found.sort(key=lambda b: (b.bbox[1], b.bbox[0]))
     return found
+
+
+LABEL_PAD = 0.6  # of the barcode's longer side: right around it, not the page
+
+
+@lru_cache
+def label_words() -> tuple[str, ...]:
+    """Labels that name a barcode's field, from config (the central number's
+    anchors): rules live in config, not in code."""
+    import yaml
+
+    from vera.config import get_settings
+
+    path = get_settings().config_dir / "confidence.yaml"
+    conf = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return tuple(conf.get("anchors", {}).get("central_numbers", []))
+
+
+def label_barcodes(img: Image.Image, barcodes: list[Barcode], words=None) -> None:
+    """Set `label` on each barcode with one of `words` printed right around it,
+    as a whole word ("המרכזית" in a stamp is not "מרכזי")."""
+    import pytesseract
+
+    words = label_words() if words is None else words
+    if not words:
+        return
+    found = re.compile("|".join(rf"(?<![א-ת]){re.escape(w)}(?![א-ת])" for w in words))
+    gray = img.convert("L")
+    for b in barcodes:
+        x1, y1, x2, y2 = b.bbox
+        pad = int(max(x2 - x1, y2 - y1) * LABEL_PAD)
+        area = gray.crop((max(0, x1 - pad), max(0, y1 - pad), x2 + pad, y2 + pad))
+        for angle in (0, 90, 270):
+            try:
+                text = pytesseract.image_to_string(
+                    area.rotate(angle, expand=True), lang="heb", config="--psm 11"
+                )
+            except pytesseract.TesseractError:
+                break
+            m = found.search(text)
+            if m:
+                b.label = m.group(0)
+                break

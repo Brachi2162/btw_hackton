@@ -625,6 +625,8 @@ class BatchService:
                 continue
             if old.page_ids != [p.id]:
                 continue  # a form joined from several pages: leave it as is
+            if p.barcodes and any("label" not in b for b in p.barcodes) and p.image:
+                p.barcodes = self._label_stored(p)
             crops = dict(p.vlm_crops or {})
             check = crops.pop("check", None)
             new = decide_page(
@@ -650,6 +652,20 @@ class BatchService:
         for bid in {p.batch_id for p, _ in rows}:
             create_for_batch(self, bid)
         return done
+
+    def _label_stored(self, p: PageRow) -> list[dict]:
+        """Barcodes read before labels existed (D-016): look for the label
+        around each one now, and keep it with the page."""
+        from PIL import Image
+
+        from vera.pipeline.barcodes import Barcode, label_barcodes
+
+        found = [Barcode(**{**b, "bbox": tuple(b["bbox"])}) for b in p.barcodes]
+        with Image.open(self.work_dir(p.batch_id) / p.image) as img:
+            label_barcodes(img, found)
+        out = [b.to_dict() for b in found]
+        self._set_page(p.id, barcodes=out)
+        return out
 
     def _save_submission(self, sub: Submission, position: int | None = None) -> None:
         with self.sv.repo.session() as s:

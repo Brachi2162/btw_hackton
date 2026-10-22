@@ -89,6 +89,8 @@ class DecisionConfig:
     commitment_aliases: list[str] = field(default_factory=list)
     self_verifying: set[str] = field(default_factory=set)
     label_required: set[str] = field(default_factory=set)
+    rules_suffice: set[str] = field(default_factory=set)
+    check_overrides_doubt: set[str] = field(default_factory=set)
     ocr_min_conf: float = 0.8
     hebrew_handwriting: set[str] = field(default_factory=set)
 
@@ -116,6 +118,8 @@ class DecisionConfig:
             commitment_aliases=vlm.get("commitment_aliases", []),
             self_verifying=set(c.get("self_verifying", [])),
             label_required=set(c.get("label_required", [])),
+            rules_suffice=set(c.get("rules_suffice", [])),
+            check_overrides_doubt=set(c.get("check_overrides_doubt", [])),
             ocr_min_conf=c.get("ocr_min_conf", 0.8),
             hebrew_handwriting=set(c.get("hebrew_handwriting", [])),
         )
@@ -180,15 +184,35 @@ def _barcode_value(fname: str, text: str) -> str | None:
 
 
 def _support_with_barcodes(
-    fname: str, cands: list[Candidate], barcodes: list[dict], page_id: str
+    fname: str,
+    cands: list[Candidate],
+    barcodes: list[dict],
+    page_id: str,
+    anchors: list[str] = (),
 ) -> list[Candidate]:
-    """A barcode becomes a candidate of a field only when it encodes the same
-    value a reader found for that field: the barcode alone can't tell which
-    field it is (spec 3.6), the label next to the VLM value does."""
+    """A barcode becomes a candidate of a field when it encodes the same value
+    a reader found for that field: the barcode alone can't tell which field
+    it is (spec 3.6), the label next to the VLM value does. Or when the
+    field's own label is printed right next to the barcode (D-016): then the
+    barcode needs no reader at all."""
     out = []
     for b in barcodes:
         bv = _barcode_value(fname, b["text"])
         if bv is None:
+            continue
+        if b.get("label") and _has_label(b["label"], anchors):
+            out.append(
+                Candidate(
+                    field=fname,
+                    value_raw=b["text"],
+                    value_norm=bv,
+                    reader="barcode",
+                    page_id=page_id,
+                    bbox=tuple(b["bbox"]),
+                    evidence_text=f"{b['format']}: {b['text']} ({b['label']})",
+                    label_nearby=b["label"],
+                )
+            )
             continue
         for c in cands:
             if c.value_norm == bv:
@@ -317,8 +341,18 @@ def _status(
         "name_split_ambiguous",
         "label_missing",
     }
+    # A strong check of its own (the ID check digit) outweighs the reader's
+    # "not sure": a misread digit would have failed it (D-016).
+    if fname in cfg.check_overrides_doubt:
+        blocking = blocking - {"illegible"}
+    # The field's label is next to it and every rule passes: that settles
+    # which field it is, even when the models put it in different fields.
+    if fname in cfg.rules_suffice and g.anchored:
+        reasons = [r for r in reasons if r != "disagree_sources"]
     if blocking & set(reasons):
         return "review", reasons
+    if fname in cfg.rules_suffice and not needs_anchor:
+        return "verified", reasons  # all of the field's rules pass (D-016)
     if len(srcs) >= 2 and not needs_anchor:
         return "verified", reasons
     if fname in cfg.self_verifying:
@@ -459,7 +493,9 @@ def decide_field(
         c.signals["problems"] = ",".join(n.problems)
         c.signals["rule"] = n.rule
     if fname in BARCODE_FIELDS:
-        cands = cands + _support_with_barcodes(fname, cands, barcodes, page_id)
+        cands = cands + _support_with_barcodes(
+            fname, cands, barcodes, page_id, cfg.anchors.get(fname, [])
+        )
     if ocr and fname in OCR_FIELDS:
         cands = cands + _support_with_ocr(fname, cands, ocr, page_id, cfg, ref)
 
@@ -587,7 +623,10 @@ def _cross_field_conflicts(
     for f in BARCODE_FIELDS:
         fr = fields[f]
         clash = [v for v in fr.values if proposed.get(_number_key(v), {f}) - {f}]
-        if clash and fr.status in ("verified", "likely", "review"):
+        # Green by its rules means its own label is next to it: that label,
+        # not the models' vote, says which field it is (D-016).
+        settled = fr.status == "verified" and f in cfg.rules_suffice
+        if clash and not settled and fr.status in ("verified", "likely", "review"):
             fr.status = "review"
             fr.reasons = list(dict.fromkeys(fr.reasons + ["disagree_sources"]))
             others = sorted(proposed[_number_key(clash[0])] - {f})

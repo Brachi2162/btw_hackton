@@ -119,8 +119,12 @@ def test_agreement_without_the_label_is_not_green(cfg):
     assert fr.status == "likely"
 
 
-def test_vlm_alone_is_yellow(cfg):
+def test_vlm_alone_is_yellow_without_its_label_green_with_it(cfg):
     fr = decide_field(
+        "central_numbers", [vlm("central_numbers", "512340")], [], PAGE, cfg, REF
+    )
+    assert fr.status == "likely" and "source_single" in fr.reasons
+    labeled = decide_field(
         "central_numbers",
         [vlm("central_numbers", "512340", label="מרכזי")],
         [],
@@ -128,7 +132,8 @@ def test_vlm_alone_is_yellow(cfg):
         cfg,
         REF,
     )
-    assert fr.status == "likely" and "source_single" in fr.reasons
+    # every rule of the field passes, its label included (D-016)
+    assert labeled.status == "verified" and "source_single" in labeled.reasons
 
 
 def test_decoy_label_goes_to_review_even_with_barcode(cfg):
@@ -226,8 +231,9 @@ def test_page_commitment_never_equals_central_and_row_is_worst(cfg):
         ],
     }
     sub = decide_page(PAGE, "b1", page, [barcode("512340")], cfg, REF)
-    assert sub.fields["central_numbers"].status == "review"
-    assert "disagree_sources" in sub.fields["central_numbers"].reasons
+    # "מרכזי" next to it settles which field it is, whatever the models said
+    assert sub.fields["central_numbers"].status == "verified"
+    assert sub.fields["central_numbers"].values == ["512340"]
     assert sub.fields["commitment_numbers"].values == ["88120"]
     assert sub.fields["sender"].values == ["כללית"]
     assert sub.fields["first_name"].status == "missing"
@@ -275,7 +281,8 @@ def test_two_reads_of_the_same_model_are_one_source(cfg):
         cfg,
         REF,
     )
-    assert fr.status == "likely" and "source_single" in fr.reasons
+    # one source, though green now: its rules pass and its label is there
+    assert "source_single" in fr.reasons and fr.status == "verified"
 
 
 def test_crop_read_by_a_third_model_is_its_own_source(cfg):
@@ -388,16 +395,9 @@ def test_id_one_source_stays_orange_when_anything_blocks(cfg, cands):
     assert fr.status == "review"
 
 
-def test_one_source_rule_is_only_for_self_verifying_fields(cfg):
-    fr = decide_field(
-        "central_numbers",
-        [vlm("central_numbers", "512340", label="מרכזי")],
-        [],
-        PAGE,
-        cfg,
-        REF,
-    )
-    assert fr.status == "likely"
+def test_one_source_green_never_applies_to_names(cfg):
+    fr = decide_field("first_name", [vlm("first_name", "דנה")], [], PAGE, cfg, REF)
+    assert fr.status == "likely"  # no rule can tell a misread name
 
 
 def test_commitment_without_its_label_goes_to_review(cfg):
@@ -414,7 +414,7 @@ def test_commitment_without_its_label_goes_to_review(cfg):
         cfg,
         REF,
     )
-    assert labeled.status == "likely" and "label_missing" not in labeled.reasons
+    assert labeled.status == "verified" and "label_missing" not in labeled.reasons
 
 
 def ocr_line(*words, conf=0.95):
@@ -476,7 +476,7 @@ def test_vision_proves_the_digits_not_the_field(cfg):
         REF,
         ocr=[ocr_line("512341")],  # a different number: no support
     )
-    assert other.status == "likely" and "source_single" in other.reasons
+    assert "source_single" in other.reasons  # Vision added nothing
 
 
 def test_a_crop_reads_box_stays_approximate(cfg):
@@ -587,3 +587,18 @@ def test_an_uncertain_value_without_a_box_still_shows_where_it_came_from(cfg):
     # top row, and the overlap of the right and center columns
     assert where == {"page_id": PAGE, "bbox": [400, 0, 800, 900], "approx": True}
     assert _crop(fr) is None  # without the page size there's no place to draw
+
+
+def test_a_barcode_with_the_label_beside_it_is_the_central_number(cfg):
+    # The model read another number; "מרכזי" is printed by this barcode.
+    labelled = {**barcode("512340"), "label": "מרכזי"}
+    page = {
+        "page_kind": "form",
+        "candidates": [vlm("central_numbers", "107646").model_dump()],
+    }
+    sub = decide_page(PAGE, "b1", page, [labelled], cfg, REF)
+    central = sub.fields["central_numbers"]
+    assert central.values == ["512340"] and central.status == "verified"
+    assert "מרכזי" in central.sources[0].evidence_text
+    plain = decide_page(PAGE, "b1", page, [barcode("512340")], cfg, REF)
+    assert plain.fields["central_numbers"].values == ["107646"]  # no label: no say

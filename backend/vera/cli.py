@@ -47,10 +47,13 @@ def cmd_pages(args: argparse.Namespace) -> None:
 def _page_barcodes(path: Path) -> list[dict]:
     from PIL import Image
 
-    from vera.pipeline.barcodes import read_barcodes
+    from vera.pipeline.barcodes import label_barcodes, read_barcodes
 
     with Image.open(path) as img:
-        return [b.to_dict() for b in read_barcodes(img.convert("RGB"))]
+        page = img.convert("RGB")
+        found = read_barcodes(page)
+        label_barcodes(page, found)
+        return [b.to_dict() for b in found]
 
 
 def cmd_barcodes(args: argparse.Namespace) -> None:
