@@ -4,6 +4,7 @@ import { useApp } from "../app-context";
 import { useToast } from "../components/Toast";
 import { VirusBackground } from "../components/VirusBackground";
 import { useDoneChime } from "../sound";
+import { useUploadDone } from "../components/UploadDone";
 import "./Intake.css";
 
 const STAGES = ["פיצול", "זיהוי שולח", "קריאה משלושה מקורות", "אימות"];
@@ -26,6 +27,7 @@ const todayName = () => {
 export function Intake() {
   const { setBatchId, go, overview, refreshOverview } = useApp();
   const toast = useToast();
+  const uploadDone = useUploadDone();
   const [over, setOver] = useState(false);
   const [batch, setBatch] = useState<Batch | null>(null);
   const [rejected, setRejected] = useState<{ filename: string; error: string }[]>([]);
@@ -53,6 +55,13 @@ export function Intake() {
       const b = await api.createBatch(todayName());
       const r = await api.upload(b.id, files);
       setRejected(r.rejected);
+      if (r.added.length) {
+        const pages = r.added.reduce((n, a) => n + a.pages, 0);
+        uploadDone({
+          title: "הקבצים עלו בהצלחה",
+          detail: `${countHe(r.added.length, "קובץ", "קבצים")} · ${countHe(pages, "עמוד", "עמודים")} בקריאה`,
+        });
+      }
       await follow(b.id);
     } catch (e) {
       toast(e instanceof Error ? e.message : "ההעלאה נכשלה");
@@ -75,7 +84,14 @@ export function Intake() {
           </p>
         )}
 
-        <FolderImport onImported={follow} />
+        <FolderImport
+          onImported={(id, files) => {
+            if (files) {
+              uploadDone({ title: "הקבצים נקלטו מהתיקייה", detail: `${countHe(files, "קובץ", "קבצים")} בקריאה` });
+            }
+            follow(id);
+          }}
+        />
 
         <div
           className={`drop${over ? " over" : ""}`}
@@ -164,7 +180,7 @@ export function Intake() {
 
 /** Import from the scanner folder: the server takes only the relevant files
  * (documents, not yet imported), no upload through the browser. */
-function FolderImport({ onImported }: { onImported: (id: string) => void }) {
+function FolderImport({ onImported }: { onImported: (id: string, files?: number) => void }) {
   const toast = useToast();
   const [path, setPath] = useState("");
   const [today, setToday] = useState(false); // re-imports are skipped anyway
@@ -238,9 +254,8 @@ function FolderImport({ onImported }: { onImported: (id: string) => void }) {
     try {
       const r = await api.importFolder(path, today, deep);
       if (r.batch_id) {
-        toast(`נקלטו ${r.relevant} קבצים מהתיקייה`);
         setPreview(null);
-        onImported(r.batch_id);
+        onImported(r.batch_id, r.relevant);
       } else {
         toast("אין קבצים חדשים בתיקייה");
         setPreview(r);
@@ -356,4 +371,9 @@ function FolderImport({ onImported }: { onImported: (id: string) => void }) {
       )}
     </section>
   );
+}
+
+/** "קובץ אחד", "2 קבצים": Hebrew counts read naturally. */
+function countHe(n: number, one: string, many: string) {
+  return n === 1 ? `${one} אחד` : `${n} ${many}`;
 }

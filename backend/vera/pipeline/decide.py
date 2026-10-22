@@ -62,6 +62,8 @@ FIELDS = [
 ]
 MULTI = {"central_numbers", "commitment_numbers"}
 BARCODE_FIELDS = {"central_numbers", "commitment_numbers", "id_number"}
+# Readers of the patient-details crop: what they read sits next to the name.
+CROP_READERS = {"vlm_crop", "vlm_crop_check"}
 # Fields Vision OCR can confirm (D-009); the sender is a name from a list.
 OCR_FIELDS = {
     "central_numbers",
@@ -401,8 +403,11 @@ def _status(
         "label_missing",
     }
     # A strong check of its own (the ID check digit) outweighs the reader's
-    # "not sure": a misread digit would have failed it (D-016).
-    if fname in cfg.check_overrides_doubt:
+    # "not sure", but only where the value belongs: read in the patient-area
+    # crop (next to the name) or by its own label (D-024). On dev a valid ID
+    # read elsewhere on the page was someone else's.
+    in_place = g.anchored or any(c.reader in CROP_READERS for c in g.cands)
+    if fname in cfg.check_overrides_doubt and in_place:
         blocking = blocking - {"illegible"}
     # The field's label is next to it and every rule passes: that settles
     # which field it is, even when the models put it in different fields.
@@ -624,10 +629,13 @@ def decide_field(
         and ranked[0].score - ranked[1].score < cfg.competitor_margin
     )
     statuses, reasons = [], []
+    settled = set()  # groups whose own checks outweigh the doubt (D-024)
     for g in chosen:
         st, rs = _status(g, fname, cfg, competitor)
         statuses.append(st)
         reasons += rs
+        if st == "verified":
+            settled.add(id(g))
     reasons = list(dict.fromkeys(reasons))
     status = worst_status(statuses)
     top = chosen[0]
@@ -657,6 +665,7 @@ def decide_field(
         if "illegible" in g.reasons
         and g.display
         and not (fname == "receipt_date" and _in_receipt_place(g, cfg))
+        and id(g) not in settled  # green by its own checks: not a guess
     ]
     values = [g.display for g in chosen if g.display not in guesses]
     if guesses:

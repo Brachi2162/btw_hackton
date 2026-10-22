@@ -75,7 +75,10 @@ def israeli_id_ok(nine: str) -> bool:
 
 
 def norm_id(raw: str) -> Norm:
-    """Digits only; drop surplus leading zeros; pad to 9; check digit."""
+    """Digits only; an Israeli ID is 9 digits (Tamar). 8 digits is the same ID
+    with its leading zero left out, which forms often do; fewer means a digit
+    was lost, and padding it with zeros could fake a valid check digit, so it
+    fails instead. Surplus leading zeros are dropped; check digit last."""
     d = _digits(raw)
     if not d:
         return Norm(None, ["validation_failed"], "ספרות בלבד")
@@ -86,8 +89,8 @@ def norm_id(raw: str) -> Norm:
     d = d.zfill(9)
     if not d.strip("0"):  # all zeros passes the check digit, but is no ID
         return Norm(d, ["validation_failed"], "לא אפסים בלבד")
-    if len(_digits(raw)) < 5:
-        return Norm(d, ["validation_failed"], "לפחות 5 ספרות")
+    if len(_digits(raw)) < 8:  # on dev: every ID read with 7 or fewer was wrong
+        return Norm(d, ["validation_failed"], "9 ספרות")
     if not israeli_id_ok(d):
         return Norm(d, ["checksum_failed"], "ספרת ביקורת")
     return Norm(d)
