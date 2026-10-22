@@ -21,7 +21,11 @@ clear elsewhere in this crop (the same writer); then prefer readings that make a
 Hebrew name; only then context. Never replace what you see with a common name that
 "looks close", never complete missing letters from context, never copy one name into
 both fields.
-ID: read digit by digit and count the digits; never add or drop one.
+ID: read digit by digit and count the digits; never add or drop one. Handwritten
+digits are easily confused: 1/7 (a top bar? a bar across?), 4/9 (open or closed
+top?), 5/6/0, 3/8 (open or closed left side?), 2/7. Compare with the same digit where
+it is clear in this crop. Never change a digit so the ID passes its check digit: give
+what you read, and if you are unsure of any digit, `id_legible` is false.
 
 WHAT TO RETURN
 - `first_name`, `last_name`, `id_number`: exactly as written. Not there: "".
