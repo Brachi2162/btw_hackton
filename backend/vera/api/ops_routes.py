@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from vera import followups as fu
 from vera import handover as ho
-from vera import reports, tubes
+from vera import inbox, reports, tubes
 from vera.api.routes import svc, user_of
 from vera.batch import ValidationError
 from vera.evidence import evidence
@@ -57,6 +57,40 @@ def propagate(
         raise HTTPException(409, str(e))
     except ValidationError as e:
         raise HTTPException(422, str(e))
+
+
+# --- import from the scanner folder ---
+
+
+@router.get("/inbox")
+def inbox_preview(request: Request, path: str = "", today: bool = False):
+    try:
+        return inbox.scan(svc(request), path, today_only=today)
+    except inbox.InboxError as e:
+        raise HTTPException(422, str(e))
+
+
+class ImportIn(BaseModel):
+    path: str = ""
+    today_only: bool = False
+
+
+@router.post("/inbox/import")
+async def inbox_import(
+    body: ImportIn, request: Request, x_user: str | None = Header(None)
+):
+    """Takes only the relevant files from the folder; same processing as an
+    upload, without sending files through the browser."""
+    service = svc(request)
+    try:
+        out = inbox.import_folder(service, body.path, user_of(x_user), body.today_only)
+    except inbox.InboxError as e:
+        raise HTTPException(422, str(e))
+    if out["added"]:
+        out["job_id"] = await service.sv.jobs.submit(
+            service.process_batch, out["batch_id"]
+        )
+    return out
 
 
 # --- tubes ---

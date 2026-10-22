@@ -73,6 +73,7 @@ export interface Batch {
     done: number;
     failed: number;
     stages: (string | null)[];
+    errors: string[];
   }[];
   quality_warnings: { page_id: string; message_he: string; sharpness: number | null }[];
 }
@@ -194,6 +195,16 @@ export interface Overview {
   batches_not_exported: number;
   latest_batch_id: string | null;
   has_demo: boolean;
+  vlm_problem: string | null;
+  scan_folder: string;
+}
+
+export interface InboxPreview {
+  folder: string;
+  relevant: number;
+  skipped: number;
+  files: { path: string; size: number; relevant: boolean; reason: string; reason_he: string }[];
+  batch_id?: string | null;
 }
 
 export interface Note {
@@ -276,6 +287,10 @@ export const api = {
       fd,
     );
   },
+  inbox: (path: string, today: boolean) =>
+    call<InboxPreview>("GET", `/inbox?${new URLSearchParams({ path, today: String(today) })}`),
+  importFolder: (path: string, today_only: boolean) =>
+    call<InboxPreview>("POST", "/inbox/import", { path, today_only }),
   submission: (id: string) => call<Submission>("GET", `/submissions/${id}`),
   page: (id: string) => call<Page>("GET", `/pages/${id}`),
   accept: (sid: string, field: string) =>

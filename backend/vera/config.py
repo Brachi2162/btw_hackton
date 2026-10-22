@@ -42,6 +42,10 @@ class Settings(BaseSettings):
 
     # Assistant (spec 15) and drafted letters. Empty key = template answers.
     assistant_model: str = "claude-opus-5-5"
+    # Scanner folder for "import from folder" (vera/inbox.py): where it is
+    # mounted in the container, and its path on the host as people type it.
+    inbox_dir: Path = Path("/inbox")
+    scan_folder_host: str = ""
     # Pages below this sharpness get a blur warning (see batch.page_quality).
     blur_threshold: float = 40.0
     # Weekly report: manual entry time per form, for "hours saved".

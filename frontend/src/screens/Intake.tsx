@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api, type Batch } from "../api";
+import { api, type Batch, type InboxPreview } from "../api";
 import { useApp } from "../app-context";
 import { useToast } from "../components/Toast";
 import { VirusBackground } from "../components/VirusBackground";
@@ -17,8 +17,13 @@ function stageIndex(b: Batch | null): number {
   return Math.min(...st.map((s) => DONE_UPTO[s] ?? 0));
 }
 
+const todayName = () => {
+  const d = new Date();
+  return `בוקר ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
+
 export function Intake() {
-  const { setBatchId, go, refreshOverview } = useApp();
+  const { setBatchId, go, overview, refreshOverview } = useApp();
   const toast = useToast();
   const [over, setOver] = useState(false);
   const [batch, setBatch] = useState<Batch | null>(null);
@@ -35,27 +40,41 @@ export function Intake() {
     if (batch?.status === "done") refreshOverview();
   }, [batch?.status, refreshOverview]);
 
+  async function follow(id: string) {
+    setBatchId(id);
+    setBatch(await api.batch(id));
+  }
+
   async function start(files: File[]) {
     if (!files.length) return;
-    const d = new Date();
-    const name = `בוקר ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
     try {
-      const b = await api.createBatch(name);
-      setBatchId(b.id);
+      const b = await api.createBatch(todayName());
       const r = await api.upload(b.id, files);
       setRejected(r.rejected);
-      setBatch(await api.batch(b.id));
+      await follow(b.id);
     } catch (e) {
       toast(e instanceof Error ? e.message : "ההעלאה נכשלה");
     }
   }
 
   const idx = stageIndex(batch);
+  const failed = batch?.documents.reduce((n, d) => n + d.failed, 0) ?? 0;
+  const errors = [...new Set(batch?.documents.flatMap((d) => d.errors) ?? [])];
+
   return (
     <div className="page intake">
       <VirusBackground />
       <div className="intake-inner">
         <h1>קליטה</h1>
+
+        {overview?.vlm_problem && (
+          <p className="setup-warn" role="alert">
+            ⚠ {overview.vlm_problem}
+          </p>
+        )}
+
+        <FolderImport onImported={follow} defaultPath={overview?.scan_folder ?? ""} />
+
         <div
           className={`drop${over ? " over" : ""}`}
           role="button"
@@ -102,10 +121,12 @@ export function Intake() {
                 <li key={d.id}>
                   <span className="fname">{d.filename}</span>
                   <span className="fbar">
-                    <span style={{ width: `${d.pages ? ((d.done + d.failed) / d.pages) * 100 : 0}%` }} />
+                    <span style={{ width: `${d.pages ? (d.done / d.pages) * 100 : 0}%` }} />
+                    <span className="fbar-failed" style={{ width: `${d.pages ? (d.failed / d.pages) * 100 : 0}%` }} />
                   </span>
                   <span className="num muted">
                     {d.done}/{d.pages}
+                    {d.failed > 0 && <span className="failed-n"> · {d.failed} נכשלו</span>}
                   </span>
                 </li>
               ))}
@@ -116,6 +137,12 @@ export function Intake() {
                 </li>
               ))}
             </ul>
+            {failed > 0 &&
+              errors.map((e) => (
+                <p key={e} className="fail-warn" role="alert">
+                  {failed} עמודים לא נקראו: {e}
+                </p>
+              ))}
             {batch.quality_warnings.map((w) => (
               <p key={w.page_id} className="blur-warn" role="alert">
                 ⚠ {w.message_he}
@@ -130,5 +157,121 @@ export function Intake() {
         )}
       </div>
     </div>
+  );
+}
+
+/** Import from the scanner folder: the server takes only the relevant files
+ * (documents, not yet imported), no upload through the browser. */
+function FolderImport({ onImported, defaultPath }: { onImported: (id: string) => void; defaultPath: string }) {
+  const toast = useToast();
+  const [path, setPath] = useState("");
+  const [today, setToday] = useState(false); // re-imports are skipped anyway
+  const [preview, setPreview] = useState<InboxPreview | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!path && defaultPath) setPath(defaultPath);
+  }, [defaultPath, path]);
+
+  async function check(e?: React.FormEvent) {
+    e?.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      setPreview(await api.inbox(path, today));
+    } catch (err) {
+      setPreview(null);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function run() {
+    setBusy(true);
+    try {
+      const r = await api.importFolder(path, today);
+      if (r.batch_id) {
+        toast(`נקלטו ${r.relevant} קבצים מהתיקייה`);
+        setPreview(null);
+        onImported(r.batch_id);
+      } else {
+        toast("אין קבצים חדשים בתיקייה");
+        setPreview(r);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const skippedBy = preview
+    ? Object.entries(
+        preview.files
+          .filter((f) => !f.relevant)
+          .reduce<Record<string, number>>((m, f) => ({ ...m, [f.reason_he]: (m[f.reason_he] ?? 0) + 1 }), {}),
+      )
+    : [];
+
+  return (
+    <section className="card folder-card">
+      <h2>קליטה מתיקייה</h2>
+      <p className="muted">הדביקי את הנתיב לתיקיית הסריקות. נקלטים רק טפסים שעוד לא נקלטו.</p>
+      <form className="folder-row" onSubmit={check}>
+        <input
+          className="input num"
+          dir="ltr"
+          value={path}
+          onChange={(e) => {
+            setPath(e.target.value);
+            setPreview(null);
+          }}
+          placeholder="C:\Scans\2026-10-22"
+          aria-label="נתיב התיקייה"
+        />
+        <label className="today">
+          <input type="checkbox" checked={today} onChange={(e) => (setToday(e.target.checked), setPreview(null))} /> רק מהיום
+        </label>
+        <button className="btn" disabled={busy}>
+          בדיקה
+        </button>
+      </form>
+      {error && (
+        <p className="fail-warn" role="alert">
+          {error}
+        </p>
+      )}
+      {preview && (
+        <div className="folder-preview">
+          <p>
+            <strong className="num">{preview.relevant}</strong> קבצים רלוונטיים
+            {skippedBy.length > 0 && (
+              <span className="muted">
+                {" "}
+                · דילוג על {skippedBy.map(([why, n]) => `${n} (${why})`).join(", ")}
+              </span>
+            )}
+          </p>
+          {preview.relevant > 0 && (
+            <ul className="folder-files">
+              {preview.files
+                .filter((f) => f.relevant)
+                .slice(0, 8)
+                .map((f) => (
+                  <li key={f.path} className="num" dir="ltr">
+                    {f.path}
+                  </li>
+                ))}
+              {preview.relevant > 8 && <li className="muted">ועוד {preview.relevant - 8}</li>}
+            </ul>
+          )}
+          <button className="btn primary" onClick={run} disabled={busy || !preview.relevant}>
+            קליטת <span className="num">{preview.relevant}</span> קבצים
+          </button>
+        </div>
+      )}
+    </section>
   );
 }

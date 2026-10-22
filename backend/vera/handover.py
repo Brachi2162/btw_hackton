@@ -55,6 +55,9 @@ def overview(bs) -> dict:
         "batches_not_exported": len(open_batches),
         "latest_batch_id": batches[0].id if batches else None,
         "has_demo": any(b.demo for b in batches),
+        # intake: why pages can't be read now, and the scanner folder
+        "vlm_problem": bs.vlm_problem(),
+        "scan_folder": bs.s.scan_folder_host or str(bs.s.inbox_dir),
     }
 
 

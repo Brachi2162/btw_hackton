@@ -32,6 +32,8 @@ services:
         required: false
     environment:
       DATA_DIR: /data
+      # "import from folder": the scanner folder, as people type its path
+      SCAN_FOLDER_HOST: ${SCAN_FOLDER:-./inbox}
     ports:
       - "${API_HOST_PORT:-8000}:8000"
     volumes:
@@ -40,6 +42,8 @@ services:
       - ./eval:/eval
       - ./config:/config
       - ./prompts:/prompts
+      # scanner folder (read-only): set SCAN_FOLDER in .env to the real one
+      - ${SCAN_FOLDER:-./inbox}:/inbox:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
