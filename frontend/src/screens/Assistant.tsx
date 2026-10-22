@@ -22,7 +22,11 @@ export function Assistant() {
   const [handled, setHandled] = useState<Record<string, "ok" | "no">>({});
   const end = useRef<HTMLDivElement>(null);
 
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [msgs, busy]);
+  // Braces: newer Chrome returns a Promise from scrollIntoView, and React
+  // would call an effect's return value as its cleanup ("n is not a function").
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "end" });
+  }, [msgs, busy]);
 
   async function send(q: string) {
     q = q.trim();

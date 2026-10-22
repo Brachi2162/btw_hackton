@@ -110,10 +110,11 @@ describe("PropagationBar", () => {
 describe("Assistant", () => {
   it("shows the reply to a question without breaking the page", async () => {
     const answer = {"reply": "יש **268 שדות** לבדיקה.\n- 5 בירורים", "actions": [], "tools_used": ["work_overview"], "suggestions": ["מה מחכה לי עכשיו?", "אילו מבחנות הגיעו בלי טופס?", "אילו בירורים פתוחים יותר מיממה?", "איך היה השבוע?"], "mode": "model"};
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
       new Response(JSON.stringify(answer), { headers: { "content-type": "application/json" } }),
     );
-    Element.prototype.scrollIntoView = vi.fn(); // jsdom has none
+    // As in newer Chrome, scrollIntoView returns a Promise (jsdom has none).
+    Element.prototype.scrollIntoView = vi.fn(() => Promise.resolve()) as never;
     const { Assistant } = await import("./screens/Assistant");
     render(
       <ToastProvider>
@@ -124,6 +125,9 @@ describe("Assistant", () => {
     fireEvent.change(screen.getByLabelText("שאלה ל-VERA"), { target: { value: "מה מחכה לי?" } });
     fireEvent.click(screen.getByText("שליחה"));
     await waitFor(() => expect(screen.getByText(/268 שדות/)).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("שאלה ל-VERA"), { target: { value: "ועוד?" } });
+    fireEvent.click(screen.getByText("שליחה")); // re-runs the scroll effect
+    await waitFor(() => expect(screen.getAllByText(/268 שדות/)).toHaveLength(2));
   });
 });
 
