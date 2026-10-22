@@ -89,6 +89,11 @@ def page_error(exc: Exception) -> str:
             f"סינון האינטרנט (NetFree) חסם את הפנייה למודל הראייה. "
             f"צריך לבקש מ-NetFree לפתוח את {host} לשימוש עבודה, ואז להעלות שוב."
         )
+    if "credit balance is too low" in text or "exceeded your current quota" in text:
+        return (
+            "נגמר הקרדיט במפתח של מודל הראייה, ולכן העמוד לא נקרא. צריך להטעין "
+            "את חשבון ה-API ואז ללחוץ 'נסי שוב'."
+        )
     return f"{type(exc).__name__}: {text[:300]}"
 
 

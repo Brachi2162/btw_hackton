@@ -304,3 +304,10 @@ def test_page_error_explains_a_filter_block_in_hebrew():
     msg = page_error(RuntimeError(BLOCK_PAGE))
     assert "NetFree" in msg and "api.anthropic.com" in msg and "<html>" not in msg
     assert page_error(ValueError("boom")) == "ValueError: boom"
+
+
+def test_page_error_says_when_the_api_credit_is_gone():
+    from vera.batch import page_error
+
+    msg = page_error(RuntimeError("Error code: 400 - Your credit balance is too low"))
+    assert "נגמר הקרדיט" in msg and "נסי שוב" in msg

@@ -106,9 +106,28 @@ class CropReading(BaseModel):
     box_bottom: int
 
 
+class CropReadingV3(BaseModel):
+    """The response schema of crop_patient.v3 (D-014): v1's plain reading,
+    with a confidence per field and a second reading of each name when one
+    is still reasonable, offered to the person instead of chosen silently."""
+
+    first_name: str
+    first_name_alt: str
+    last_name: str
+    last_name_alt: str
+    id_number: str
+    first_name_legible: bool
+    last_name_legible: bool
+    id_legible: bool
+
+
 def crop_schema(prompt_version: str) -> type[BaseModel]:
     """Each crop prompt has its own schema; v1 answers stay in the cache."""
-    return CropReadingV1 if prompt_version.endswith(".v1") else CropReading
+    if prompt_version.endswith(".v1"):
+        return CropReadingV1
+    if prompt_version.endswith(".v3"):
+        return CropReadingV3
+    return CropReading
 
 
 class VlmInvalid(RuntimeError):
@@ -683,9 +702,13 @@ def crop_to_candidates(
 ) -> list[Candidate]:
     """A crop read of the patient area -> name/ID candidates."""
     r = result.reading
+    alts = {}
     if isinstance(r, CropReadingV1):
         first_ok = last_ok = r.name_legible
         line = ""
+    elif isinstance(r, CropReadingV3):
+        first_ok, last_ok, line = r.first_name_legible, r.last_name_legible, ""
+        alts = {"first_name": r.first_name_alt, "last_name": r.last_name_alt}
     else:
         first_ok = r.first_name_legible and _letters_match(
             r.first_name_letters, r.first_name
@@ -694,12 +717,20 @@ def crop_to_candidates(
             r.last_name_letters, r.last_name
         )
         line = r.name_line
-    out = []
-    for field_name, value, legible in (
+    readings = [
         ("first_name", r.first_name, first_ok),
         ("last_name", r.last_name, last_ok),
         ("id_number", r.id_number, r.id_legible),
-    ):
+    ]
+    # A second reasonable reading is a guess by definition: it competes as an
+    # unreadable candidate, so the person gets both and nothing is chosen.
+    readings += [
+        (f, alt, False)
+        for f, alt in alts.items()
+        if alt.strip() and alt.strip() != getattr(r, f).strip()
+    ]
+    out = []
+    for field_name, value, legible in readings:
         if not value.strip():
             continue
         out.append(

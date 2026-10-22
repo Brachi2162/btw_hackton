@@ -151,3 +151,34 @@ def test_v1_answers_keep_their_schema_and_never_zoom():
     cands = crop_to_candidates(r, "doc/p01", (0, 0, 10, 10))
     assert [c.field for c in cands] == ["first_name", "last_name"]
     assert not any(c.legible for c in cands)
+
+
+def test_v3_reads_have_a_confidence_per_field_and_offer_the_second_reading():
+    from vera.pipeline.vlm import (
+        CropReadingV3,
+        VlmResult,
+        crop_schema,
+        crop_to_candidates,
+    )
+
+    assert crop_schema("crop_patient.v3") is CropReadingV3
+    reading = CropReadingV3(
+        first_name="דנה",
+        first_name_alt="דינה",
+        last_name="כהן",
+        last_name_alt="כהן",  # the same reading again: not a second one
+        id_number="12345674",
+        first_name_legible=False,
+        last_name_legible=True,
+        id_legible=True,
+    )
+    cands = crop_to_candidates(
+        VlmResult(reading, "m", "crop_patient.v3", "k", True), "p", (0, 0, 10, 10)
+    )
+    got = {(c.field, c.value_raw, c.legible) for c in cands}
+    assert got == {
+        ("first_name", "דנה", False),
+        ("first_name", "דינה", False),
+        ("last_name", "כהן", True),
+        ("id_number", "12345674", True),
+    }
