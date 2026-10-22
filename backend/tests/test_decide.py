@@ -645,3 +645,25 @@ def test_a_handwritten_date_under_the_central_number_is_the_receipt_date(cfg):
         date_read("vlm_full", "bottom-left"), date_read("vlm_escalated", "bottom-left")
     )
     assert far.status != "verified"  # elsewhere on the page: no say
+
+
+@pytest.mark.parametrize(
+    "text,name",
+    [
+        ("השרון (רבין)", "מרכז רפואי רבין - קמפוס גולדה השרון"),
+        ("כללית - בילינסון", "מרכז רפואי רבין - קמפוס בילינסון"),
+        ("מרכז שניידר לרפואת ילדים", "מרכז שניידר לרפואת ילדים בישראל"),
+        ("אסותא אשדוד", "בית החולים האוניברסיטאי אסותא אשדוד"),
+        ("המרכז הרפואי אסותא אשדוד-כלניות", "המרכז הרפואי אסותא אשדוד-כלניות"),
+        ("שמיר (אסף הרופא)", "המרכז הרפואי שמיר – אסף הרופא"),
+        ("Hadassah Ein Kerem", "מרכז רפואי הדסה - בית החולים עין כרם"),
+    ],
+)
+def test_senders_match_the_closed_list(cfg, text, name):
+    sid = cfg.senders.match(text)
+    assert sid and cfg.senders.name(sid) == name
+
+
+def test_a_sender_that_is_only_a_parent_or_ambiguous(cfg):
+    assert cfg.senders.match("רבין") == "rabin" and cfg.senders.has_children("rabin")
+    assert cfg.senders.match("אסותא") is None  # which Assuta? nobody guesses
