@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "../app-context";
 import { VirusCanvas } from "../components/VirusCanvas";
-import { playSpinNote, unlockAudio } from "../sound";
 import "./Home.css";
 
 // The welcome page: what VERA does, told while the virus turns with the
@@ -116,40 +115,9 @@ function CountUp({ value }: { value: number }) {
   return <span className="num">{n}</span>;
 }
 
-const SOUND_KEY = "vera.home.sound";
-
-/** The virus plays soft notes as it turns; on unless turned off here, and
- * remembered per browser. */
-function useSpinSound() {
-  const [on, setOn] = useState(() => {
-    try {
-      return localStorage.getItem(SOUND_KEY) !== "off";
-    } catch {
-      return true;
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(SOUND_KEY, on ? "on" : "off");
-    } catch {
-      /* private window: just not remembered */
-    }
-    if (!on) return;
-    // browsers allow sound only after a click or a key on the page
-    window.addEventListener("pointerdown", unlockAudio);
-    window.addEventListener("keydown", unlockAudio);
-    return () => {
-      window.removeEventListener("pointerdown", unlockAudio);
-      window.removeEventListener("keydown", unlockAudio);
-    };
-  }, [on]);
-  return [on, setOn] as const;
-}
-
 export function Home() {
   const { overview, go } = useApp();
   const [stage, setStage] = useState(0);
-  const [sound, setSound] = useSpinSound();
   const rootRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
 
@@ -273,16 +241,7 @@ export function Home() {
 
         <div className="story-stage">
           <div className="stage-sticky">
-            <VirusCanvas stage={stage} onTurn={sound ? playSpinNote : undefined} />
-            <button
-              className={`stage-sound${sound ? " on" : ""}`}
-              onClick={() => setSound((s) => !s)}
-              aria-pressed={sound}
-              aria-label={sound ? "השתקת הצלילים של הנגיף" : "הפעלת הצלילים של הנגיף"}
-              title={sound ? "השתקה" : "הפעלת צלילים"}
-            >
-              {sound ? "🔊" : "🔇"}
-            </button>
+            <VirusCanvas stage={stage} />
             <div className="stage-caption" key={stage}>
               {stage === 0 ? "גררי את העכבר או גללי: הנגיף מסתובב" : STEPS[stage - 1].title}
             </div>
