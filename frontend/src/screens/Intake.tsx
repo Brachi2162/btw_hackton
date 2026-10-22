@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api, type Batch, type InboxPreview } from "../api";
+import { api, type Batch, type InboxPreview, type WatchStatus } from "../api";
 import { useApp } from "../app-context";
 import { useToast } from "../components/Toast";
 import { VirusBackground } from "../components/VirusBackground";
@@ -170,6 +170,38 @@ function FolderImport({ onImported }: { onImported: (id: string) => void }) {
   const [preview, setPreview] = useState<InboxPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [watch, setWatchState] = useState<WatchStatus | null>(null);
+
+  // Watching a folder (D-017): the status refreshes while it is on.
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      api
+        .watch()
+        .then((w) => alive && setWatchState(w))
+        .catch(() => {});
+    load();
+    const t = setInterval(load, 10000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, []);
+
+  async function toggleWatch() {
+    setBusy(true);
+    setError(null);
+    try {
+      const on = !watch?.enabled;
+      const w = await api.setWatch(on ? path : "", on, today, deep);
+      setWatchState(w);
+      toast(on ? "התיקייה במעקב: כל טופס חדש ייקלט לבד" : "המעקב הופסק");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   // remembered per computer: the scans folder rarely changes
   useEffect(() => {
@@ -257,7 +289,35 @@ function FolderImport({ onImported }: { onImported: (id: string) => void }) {
         <button className="btn" disabled={busy}>
           בדיקה
         </button>
+        <button
+          type="button"
+          className={`btn watch-btn${watch?.enabled ? " on" : ""}`}
+          onClick={toggleWatch}
+          disabled={busy || (!watch?.enabled && !path.trim())}
+          aria-pressed={!!watch?.enabled}
+        >
+          {watch?.enabled ? "⏸ הפסקת מעקב" : "👁 מעקב אוטומטי"}
+        </button>
       </form>
+      {watch?.enabled && (
+        <div className="watch-status" role="status">
+          <span className="watch-dot" aria-hidden="true" />
+          <span>
+            התיקייה <span className="num" dir="ltr">{watch.folder}</span> במעקב: כל טופס חדש נקלט לבד (בדיקה כל{" "}
+            {watch.interval} שניות{watch.today_only ? ", רק מהיום" : ""}).
+          </span>
+          <span className="muted">
+            נקלטו היום: <span className="num">{watch.added_today}</span>
+            {watch.last_check && ` · נבדק לאחרונה ${new Date(watch.last_check).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`}
+          </span>
+          {watch.batch_id && (
+            <button className="link" onClick={() => onImported(watch.batch_id!)}>
+              לאצווה של המעקב
+            </button>
+          )}
+          {watch.error && <span className="fail-warn">{watch.error}</span>}
+        </div>
+      )}
       {error && (
         <p className="fail-warn" role="alert">
           {error}

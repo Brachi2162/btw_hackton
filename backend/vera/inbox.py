@@ -188,6 +188,15 @@ def import_folder(
     chosen = [f for f in preview["files"] if f["relevant"]]
     if not chosen:
         return {**preview, "batch_id": None, "added": []}
+    d = datetime.now(timezone.utc).astimezone()
+    batch = bs.create_batch(f"בוקר {d:%d/%m}", None, user)
+    added = add_chosen(bs, batch.id, text, chosen, user)
+    return {**preview, "batch_id": batch.id, "added": added}
+
+
+def add_chosen(bs, batch_id: str, text: str, chosen: list[dict], user: str) -> list:
+    """Add the files a scan chose to a batch (import, and the folder watch).
+    A file that changed since the scan is skipped with the reason."""
     if is_url(text):
         remote = UrlFolder(text)
 
@@ -200,12 +209,10 @@ def import_folder(
         def read(f):
             return (folder / f["path"]).read_bytes()
 
-    d = datetime.now(timezone.utc).astimezone()
-    batch = bs.create_batch(f"בוקר {d:%d/%m}", None, user)
     added = []
     for f in chosen:
         try:
-            added.append(bs.add_file(batch.id, f["path"], read(f), user))
+            added.append(bs.add_file(batch_id, f["path"], read(f), user))
         except (UnsupportedFileError, InboxError) as e:  # changed since the preview
             f["relevant"], f["reason_he"] = False, str(e)
-    return {**preview, "batch_id": batch.id, "added": added}
+    return added
