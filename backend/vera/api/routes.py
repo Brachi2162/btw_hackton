@@ -167,6 +167,18 @@ async def retry_failed(
     return {"requeued": requeued, "job_id": job_id}
 
 
+@router.post("/batches/{batch_id}/accept-all")
+def accept_all(batch_id: str, request: Request, x_user: str | None = Header(None)):
+    """Accept every field with a value that is not green yet; empty fields
+    stay empty."""
+    try:
+        return svc(request).accept_all(batch_id, user_of(x_user))
+    except KeyError:
+        raise HTTPException(404, "batch not found")
+    except PermissionError as e:
+        raise HTTPException(409, str(e))
+
+
 @router.get("/batches/{batch_id}/events")
 async def events(batch_id: str, request: Request):
     """SSE: page_done, submission_updated, batch_done, warning."""

@@ -82,6 +82,17 @@ export function App() {
                 <Screen />
               </Suspense>
             </ErrorBoundary>
+            <footer className="site-footer" dir="ltr">
+              <span>© {new Date().getFullYear()} VERA. All rights reserved.</span>
+              <span>
+                Tamar Winer · <a href="tel:+972556746177">055-674-6177</a> ·{" "}
+                <a href="mailto:winer4852@gmail.com">winer4852@gmail.com</a>
+              </span>
+              <span>
+                Brachi Wertheimer · <a href="tel:+972548542902">054-854-2902</a> ·{" "}
+                <a href="mailto:brw2902@gmail.com">brw2902@gmail.com</a>
+              </span>
+            </footer>
           </main>
         </div>
         <ErrorBoundary label="הצ'אט עם VERA">

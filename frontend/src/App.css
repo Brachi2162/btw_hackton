@@ -7,6 +7,31 @@
   flex: 1;
   min-width: 0;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Copyright and contacts, at the bottom of every screen. */
+.site-footer {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 22px;
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.site-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--teal);
+  text-decoration: underline;
 }
 
 /* ErrorBoundary: one broken part, the rest of the app keeps working */
