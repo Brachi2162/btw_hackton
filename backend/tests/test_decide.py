@@ -51,7 +51,9 @@ def barcode(text, bbox=(10, 10, 200, 60)):
 def test_id_checksum_and_padding():
     assert israeli_id_ok("000000018")
     assert norm_id("18").problems == ["validation_failed"]  # too short
-    assert norm_id("12345674").value == "012345674"
+    assert norm_id("12345674").value == "012345674"  # 8: the leading 0 left out
+    # 7 digits: a digit was lost; zero-padding it must not fake a valid ID
+    assert norm_id("1234567").problems == ["validation_failed"]
     assert norm_id("0012345674").value == "012345674"  # surplus leading zero
     assert norm_id("012345675").problems == ["checksum_failed"]
 
@@ -718,3 +720,16 @@ def test_a_date_labelled_with_the_central_number_is_in_its_place(cfg):
     }
     sub = decide_page(PAGE, "b", page, [], cfg, REF)
     assert sub.fields["receipt_date"].values == ["2026-08-20"]
+
+
+def test_a_valid_id_next_to_the_name_is_green_even_if_the_reader_hesitated(cfg):
+    unsure = vlm("id_number", "12345674", legible=False, handwritten=True)
+    by_name = unsure.model_copy(update={"reader": "vlm_crop"})
+    fr = decide_field("id_number", [by_name], [], PAGE, cfg, REF)
+    assert fr.status == "verified"  # the check digit + its place (D-024)
+    # read elsewhere on the page: the doubt still holds
+    elsewhere = decide_field("id_number", [unsure], [], PAGE, cfg, REF)
+    assert elsewhere.status == "review" and "illegible" in elsewhere.reasons
+    # next to the name but the check digit fails: never green
+    bad = by_name.model_copy(update={"value_raw": "12345675"})
+    assert decide_field("id_number", [bad], [], PAGE, cfg, REF).status == "review"

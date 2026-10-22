@@ -46,6 +46,12 @@ hebrew_handwriting: [first_name, last_name]
 # Not names: no rule can tell a misread name.
 rules_suffice: [central_numbers, commitment_numbers, receipt_date, sender]
 
+# Fields whose own check (the ID check digit) outweighs the reader's "not
+# sure", when the value is where it belongs: read next to the name (the
+# patient-area crop) or by its label (D-024). Tamar: an ID is 9 digits, by
+# the name or "ת.ז.".
+check_overrides_doubt: [id_number]
+
 # Where the lab puts the receipt date (D-023): the "התקבל" stamp, or by hand
 # next to the central number. A valid date the reader found there (its label
 # or its evidence says so) is the receipt date: written even when the reader
