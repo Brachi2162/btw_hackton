@@ -25,6 +25,8 @@ class BatchRow(SQLModel, table=True):
     status: str = "new"  # new | processing | done | exported
     locked: bool = False
     exported_at: datetime | None = None
+    # Made-up history from `make seed-demo`; shown with a "נתוני דוגמה" badge.
+    demo: bool = False
 
 
 class DocumentRow(SQLModel, table=True):
@@ -56,6 +58,10 @@ class PageRow(SQLModel, table=True):
     vlm: dict = Field(default_factory=dict, sa_column=Column(JSON))
     vlm_escalated: dict = Field(default_factory=dict, sa_column=Column(JSON))
     vlm_crops: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    # split | read | verify (intake stage strip); set while processing.
+    stage: str | None = None
+    # e.g. {"sharpness": 41.2, "warnings": ["blur"]}
+    quality: dict = Field(default_factory=dict, sa_column=Column(JSON))
 
 
 class SubmissionRow(SQLModel, table=True):
@@ -79,6 +85,57 @@ class CorrectionRow(SQLModel, table=True):
     new_values: list = Field(default_factory=list, sa_column=Column(JSON))
     via: str = "ui"
     action: str = "edit"  # edit | accept
+
+
+class TubeScanRow(SQLModel, table=True):
+    """One tube scanned at the bench (USB scanner types number + Enter)."""
+
+    __tablename__ = "tube_scans"
+    id: int | None = Field(default=None, primary_key=True)
+    batch_id: str = Field(foreign_key="batches.id", index=True)
+    number: str  # normalized: digits/letters only, no leading zeros
+    raw: str
+    scanned_at: datetime = Field(default_factory=now)
+    user: str = "lab"
+    submission_id: str | None = None  # None = tube without a form
+    slot: int  # 0-based order in the batch; rack = slot // 30
+    demo: bool = False
+
+
+class FollowupRow(SQLModel, table=True):
+    """Something a person has to chase: a missing field, an invalid ID, a
+    tube without a form. Drafts are written for a human to send."""
+
+    __tablename__ = "followups"
+    id: int | None = Field(default=None, primary_key=True)
+    kind: str  # missing_field | invalid_id | tube_orphan
+    batch_id: str | None = Field(default=None, index=True)
+    submission_id: str | None = None
+    field: str | None = None
+    sender: str | None = None
+    title_he: str
+    detail_he: str = ""
+    status: str = "open"  # open | sent | closed
+    created_at: datetime = Field(default_factory=now)
+    updated_at: datetime = Field(default_factory=now)
+    closed_at: datetime | None = None
+    draft: str | None = None
+    note: str | None = None
+    demo: bool = False
+
+
+class ShiftNoteRow(SQLModel, table=True):
+    """End-of-shift handover: a team note plus a snapshot of what's open."""
+
+    __tablename__ = "shift_notes"
+    id: int | None = Field(default=None, primary_key=True)
+    at: datetime = Field(default_factory=now)
+    author: str
+    text: str
+    summary: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    acked_by: str | None = None
+    acked_at: datetime | None = None
+    demo: bool = False
 
 
 class AuditRow(SQLModel, table=True):

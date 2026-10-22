@@ -1,0 +1,136 @@
+.why {
+  border: 0;
+  border-radius: 14px;
+  padding: 0;
+  width: min(680px, 94vw);
+  max-height: 88vh;
+  box-shadow: 0 24px 60px rgba(13, 27, 42, 0.3);
+  color: var(--text);
+}
+
+.why::backdrop {
+  background: rgba(13, 27, 42, 0.5);
+}
+
+.why header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+
+.why-steps {
+  list-style: none;
+  counter-reset: step;
+  margin: 0;
+  padding: 18px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.why-steps > li {
+  counter-increment: step;
+  position: relative;
+  padding-inline-start: 42px;
+}
+
+.why-steps > li::before {
+  content: counter(step);
+  position: absolute;
+  inset-inline-start: 0;
+  top: -2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
+.why-steps h3 {
+  margin-bottom: 8px;
+}
+
+.why-crop {
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.why-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.why-table th {
+  text-align: start;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.why-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.why-table .quote {
+  color: var(--muted);
+}
+
+.why-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.why-checks li {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.why-checks .mark {
+  font-weight: 700;
+  width: 16px;
+}
+
+.why-checks .ok .mark {
+  color: var(--verified);
+}
+
+.why-checks .bad .mark {
+  color: var(--review);
+}
+
+.decision {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

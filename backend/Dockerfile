@@ -17,6 +17,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     openssl \
+    fonts-dejavu-core \
     tesseract-ocr \
     tesseract-ocr-heb \
     && rm -rf /var/lib/apt/lists/*

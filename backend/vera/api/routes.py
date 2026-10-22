@@ -8,6 +8,7 @@ import asyncio
 import io
 import json
 from datetime import date
+from urllib.parse import unquote
 
 from fastapi import APIRouter, File, Header, HTTPException, Query, Request
 from fastapi import UploadFile
@@ -17,7 +18,7 @@ from pydantic import BaseModel
 from sqlmodel import select
 
 from vera.batch import BatchService, ExportBlocked, ValidationError
-from vera.db import BatchRow, PageRow
+from vera.db import BatchRow, DocumentRow, PageRow
 from vera.pipeline.ingest import UnsupportedFileError
 
 router = APIRouter(prefix="/api")
@@ -28,7 +29,8 @@ def svc(request: Request) -> BatchService:
 
 
 def user_of(x_user: str | None) -> str:
-    return (x_user or "lab").strip()[:50] or "lab"
+    # The UI URL-encodes the header: HTTP headers can't carry Hebrew as is.
+    return unquote(x_user or "lab").strip()[:50] or "lab"
 
 
 # --- batches ---
@@ -62,7 +64,49 @@ def get_batch(batch_id: str, request: Request):
         out = batch.model_dump()
     out["counts"] = service.counts(batch_id)
     out["submissions"] = [service.summary(x) for x in service.submissions(batch_id)]
+    out.update(_progress(service, batch_id))
     return out
+
+
+def _progress(service: BatchService, batch_id: str) -> dict:
+    """Per-file progress for the intake screen, and blur warnings."""
+    with service.sv.repo.session() as s:
+        docs = s.exec(
+            select(DocumentRow)
+            .where(DocumentRow.batch_id == batch_id)
+            .order_by(DocumentRow.seq)
+        ).all()
+        pages = s.exec(select(PageRow).where(PageRow.batch_id == batch_id)).all()
+    by_doc: dict[str, list[PageRow]] = {}
+    for p in pages:
+        by_doc.setdefault(p.document_id, []).append(p)
+    documents, warnings = [], []
+    for d in docs:
+        ps = by_doc.get(d.id, [])
+        documents.append(
+            {
+                "id": d.id,
+                "filename": d.filename,
+                "pages": d.page_count,
+                "done": sum(p.status == "done" for p in ps),
+                "failed": sum(p.status == "failed" for p in ps),
+                "stages": [p.stage for p in ps if p.status == "processing"],
+            }
+        )
+        for p in ps:
+            q = p.quality or {}
+            if "blur" in q.get("warnings", []):
+                warnings.append(
+                    {
+                        "page_id": p.id,
+                        "filename": d.filename,
+                        "page_no": p.page_no,
+                        "sharpness": q.get("sharpness"),
+                        "message_he": f"{d.filename} עמ' {p.page_no}: העמוד מטושטש, "
+                        "כדאי לסרוק שוב",
+                    }
+                )
+    return {"documents": documents, "quality_warnings": warnings}
 
 
 @router.post("/batches/{batch_id}/files")
@@ -169,15 +213,19 @@ class FieldEdit(BaseModel):
 
 
 def _correct(request, sub_id, field, values, x_user, force=False):
+    service = svc(request)
     try:
-        sub = svc(request).correct(sub_id, field, values, user_of(x_user), force)
+        sub = service.correct(sub_id, field, values, user_of(x_user), force)
     except KeyError:
         raise HTTPException(404, "submission not found")
     except PermissionError as e:
         raise HTTPException(409, str(e))
     except ValidationError as e:
         raise HTTPException(422, str(e))
-    return sub.model_dump(mode="json")
+    out = sub.model_dump(mode="json")
+    # "One fix that fixes everything": offer the same value to other forms.
+    out["propagation"] = service.propagation(sub, field)
+    return out
 
 
 @router.patch("/submissions/{sub_id}/fields/{field}")

@@ -1,0 +1,87 @@
+.viewer {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e9eef2;
+}
+
+.viewer-img {
+  display: block;
+  transition: filter 0.3s;
+}
+
+.viewer-img.dimmed {
+  filter: blur(2.5px) brightness(0.62) saturate(0.8);
+}
+
+.lens {
+  position: absolute;
+  border-radius: 50%;
+  background-repeat: no-repeat;
+  background-color: #fff;
+  border: 3px solid var(--teal);
+  box-shadow:
+    0 0 0 6px rgba(95, 208, 203, 0.35),
+    0 0 28px rgba(95, 208, 203, 0.55),
+    0 12px 30px rgba(0, 0, 0, 0.35);
+  transition:
+    left 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+    top 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+    background-position 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.lens-label {
+  position: absolute;
+  transform: translateX(-50%);
+  background: var(--teal);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition:
+    left 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+    top 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.glow {
+  position: absolute;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.glow-verified {
+  background: rgba(31, 157, 85, 0.12);
+  box-shadow: 0 0 10px 3px rgba(31, 157, 85, 0.35);
+}
+
+.glow-likely {
+  background: rgba(224, 169, 59, 0.16);
+  box-shadow: 0 0 10px 3px rgba(224, 169, 59, 0.45);
+}
+
+.glow-review {
+  background: rgba(221, 107, 32, 0.14);
+  animation: breathe 2.6s ease-in-out infinite;
+}
+
+.scanline {
+  position: absolute;
+  inset-inline: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--glow), var(--teal), var(--glow), transparent);
+  box-shadow: 0 0 16px 4px rgba(95, 208, 203, 0.6);
+  animation: scan 2.2s linear infinite;
+}
+
+@keyframes scan {
+  from {
+    top: 0;
+  }
+  to {
+    top: 100%;
+  }
+}

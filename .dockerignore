@@ -1,0 +1,7 @@
+# Only the web image builds from the repo root; send it just what it needs.
+*
+!frontend
+!backend/netfree-certs.sh
+!backend/certs
+frontend/node_modules
+frontend/dist

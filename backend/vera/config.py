@@ -40,6 +40,15 @@ class Settings(BaseSettings):
     vlm_mode: Literal["live", "replay"] = "live"
     anthropic_api_key: str = ""
 
+    # Assistant (spec 15) and drafted letters. Empty key = template answers.
+    assistant_model: str = "claude-opus-5-5"
+    # Pages below this sharpness get a blur warning (see batch.page_quality).
+    blur_threshold: float = 40.0
+    # Weekly report: manual entry time per form, for "hours saved".
+    manual_seconds_per_form: int = 100
+    # ...minus the time a person still spends per field they touch.
+    review_seconds_per_field: int = 15
+
     cors_origins: str = "http://localhost:3000,http://localhost:5173"
 
     @property

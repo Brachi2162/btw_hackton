@@ -6,7 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from vera import __version__
+from vera.api.ops_routes import router as ops_router
 from vera.api.routes import router
+from vera.assistant import Assistant
 from vera.batch import BatchService
 from vera.config import get_settings
 from vera.services import Services, build_services
@@ -17,6 +19,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     services = build_services(get_settings())
     app.state.services = services
     app.state.batches = BatchService(services)
+    app.state.assistant = Assistant(app.state.batches)
     try:
         yield
     finally:
@@ -25,6 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="VERA API", version=__version__, lifespan=lifespan)
 app.include_router(router)
+app.include_router(ops_router)
 
 app.add_middleware(
     CORSMiddleware,

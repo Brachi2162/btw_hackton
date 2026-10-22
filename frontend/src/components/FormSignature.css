@@ -1,0 +1,8 @@
+.sig {
+  flex: none;
+  display: block;
+}
+
+.sig-pulse {
+  animation: pulse 2.4s ease-in-out infinite;
+}

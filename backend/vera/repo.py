@@ -46,8 +46,9 @@ class Repository:
 
     def _add_missing_columns(self) -> None:
         """create_all() makes new tables but never alters old ones. A column
-        added to a model later is added here (nullable, no data rewrite), so
-        an existing database keeps working. Anything bigger needs Alembic."""
+        added to a model later is added here (nullable, no data rewrite; a
+        scalar default is kept), so an existing database keeps working.
+        Anything bigger needs Alembic."""
         insp = inspect(self.engine)
         with self.engine.begin() as conn:
             for table in SQLModel.metadata.sorted_tables:
@@ -55,10 +56,18 @@ class Repository:
                     continue
                 have = {c["name"] for c in insp.get_columns(table.name)}
                 for col in table.columns:
-                    if col.name not in have:
-                        ddl = col.type.compile(dialect=self.engine.dialect)
-                        sql = f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" '
-                        conn.execute(text(sql + ddl))
+                    if col.name in have:
+                        continue
+                    ddl = col.type.compile(dialect=self.engine.dialect)
+                    default = col.default.arg if col.default is not None else None
+                    sql = f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {ddl}'
+                    if isinstance(default, bool):
+                        sql += f" DEFAULT {int(default)}"
+                    elif isinstance(default, (int, float)):
+                        sql += f" DEFAULT {default}"
+                    elif isinstance(default, str):
+                        sql += " DEFAULT '" + default.replace("'", "''") + "'"
+                    conn.execute(text(sql))
 
     @contextmanager
     def session(self) -> Iterator[Session]:

@@ -314,6 +314,30 @@ def cmd_gt_template(args: argparse.Namespace) -> None:
     print(f"{len(pages)} empty rows -> {args.out}")
 
 
+def _batch_service():
+    from vera.batch import BatchService
+    from vera.config import get_settings
+    from vera.services import build_services
+
+    return BatchService(build_services(get_settings()))
+
+
+def cmd_seed_demo(args: argparse.Namespace) -> None:
+    from vera.demo import seed
+
+    t = seed(_batch_service(), weeks=args.weeks)
+    print(
+        f"demo data: {t['batches']} batches, {t['forms']} forms, {t['tubes']} tubes "
+        "(marked demo=true; remove with clear-demo)"
+    )
+
+
+def cmd_clear_demo(args: argparse.Namespace) -> None:
+    from vera.demo import clear
+
+    print(f"removed {clear(_batch_service())['batches_removed']} demo batches")
+
+
 def main(argv: list[str] | None = None) -> None:
     # Parallelism comes from our process pool; keep Tesseract single-threaded.
     os.environ.setdefault("OMP_THREAD_LIMIT", "1")
@@ -382,6 +406,13 @@ def main(argv: list[str] | None = None) -> None:
     )
     g.add_argument("--force", action="store_true", help="overwrite (loses edits!)")
     g.set_defaults(func=cmd_gt_template)
+
+    sd = sub.add_parser("seed-demo", help="made-up history for the demo (demo=true)")
+    sd.add_argument("--weeks", type=int, default=4)
+    sd.set_defaults(func=cmd_seed_demo)
+
+    cd = sub.add_parser("clear-demo", help="remove everything seed-demo created")
+    cd.set_defaults(func=cmd_clear_demo)
 
     args = parser.parse_args(argv)
     args.func(args)
