@@ -63,6 +63,9 @@ def test_central_and_commitment_rules():
     assert norm_commitment("x 120 044").value == "X120044"
     assert norm_commitment("00120").value == "00120"  # leading zeros kept
     assert norm_commitment("12").problems == ["validation_failed"]
+    assert norm_commitment("AB-120044").value == "AB120044"  # letters allowed
+    assert norm_commitment("120044 c").value == "120044C"
+    assert norm_commitment("BIOHAZARD").problems == ["validation_failed"]
 
 
 @pytest.mark.parametrize(

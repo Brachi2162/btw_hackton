@@ -11,7 +11,10 @@ import unicodedata
 from dataclasses import dataclass, field
 from datetime import date
 
-DEFAULT_COMMITMENT_RE = r"^[A-Z]?\d{4,12}$"
+# Commitment numbers are text, not numbers: digits, sometimes English letters
+# around them (Tamar: "can contain English letters"). Digits are required, so
+# a word such as "BIOHAZARD" is never a commitment number.
+DEFAULT_COMMITMENT_RE = r"^[A-Z]{0,3}\d{4,12}[A-Z]{0,2}$"
 CENTRAL_RE = r"^\d{6}$"
 # Hebrew/Latin letters, spaces, hyphen, apostrophe/geresh (ג', צ').
 NAME_RE = re.compile(r"^[A-Za-zא-ת][A-Za-zא-ת '\-׳״\"]{0,29}$")
