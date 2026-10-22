@@ -44,6 +44,7 @@ from vera.pipeline.process import (
 from vera.pipeline.vlm import (
     VlmCache,
     VlmConfig,
+    filter_blocked,
     make_reader,
     provider_of,
     render_prompt,
@@ -57,6 +58,18 @@ EXT = {"pdf": "pdf", "jpeg": "jpg", "png": "png", "heic": "heic"}
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # spec 16: bound work per upload
 # Fields where one confirmation is offered to the rest of the batch.
 PROPAGATE_FIELDS = {"receipt_date"}
+
+
+def page_error(exc: Exception) -> str:
+    """Why a page failed, as the secretary sees it at intake."""
+    text = str(exc)
+    if filter_blocked(text):
+        host = "api.anthropic.com" if "anthropic" in text else "כתובת מודל הראייה"
+        return (
+            f"סינון האינטרנט (NetFree) חסם את הפנייה למודל הראייה. "
+            f"צריך לבקש מ-NetFree לפתוח את {host} לשימוש עבודה, ואז להעלות שוב."
+        )
+    return f"{type(exc).__name__}: {text[:300]}"
 
 
 def page_quality(image: Path, threshold: float) -> dict:
@@ -399,9 +412,7 @@ class BatchService:
             self.events.publish(batch_id, "submission_updated", self.summary(sub))
         except Exception as exc:  # one bad page must not sink the batch
             log.exception("page %s failed", page_id)
-            self._set_page(
-                page_id, status="failed", error=f"{type(exc).__name__}: {exc}"
-            )
+            self._set_page(page_id, status="failed", error=page_error(exc))
             self.events.publish(
                 batch_id, "warning", {"page_id": page_id, "error": type(exc).__name__}
             )

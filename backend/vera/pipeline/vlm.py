@@ -422,8 +422,13 @@ class GeminiReader:
                 problem = f"HTTP {r.status_code}"
                 continue
             if r.status_code != 200:
+                if filter_blocked(r.text):
+                    raise VlmInvalid(f"filter blocked: {r.text[:200]}")
                 # The error body names the problem (bad key, model name), never the key.
-                msg = r.json().get("error", {}).get("message", "")[:200]
+                try:
+                    msg = r.json().get("error", {}).get("message", "")[:200]
+                except ValueError:
+                    msg = r.text[:200]
                 raise VlmInvalid(f"gemini HTTP {r.status_code}: {msg}")
             return r.json()
         raise VlmInvalid(f"gemini unavailable: {problem}")
@@ -516,6 +521,12 @@ class GeminiReader:
                 usage,
             )
         raise VlmInvalid(problem)
+
+
+def filter_blocked(text: str) -> bool:
+    """A network content filter (NetFree) answered with its block page
+    instead of the API's answer."""
+    return "netfree.link/block" in text
 
 
 def provider_of(model: str) -> str:

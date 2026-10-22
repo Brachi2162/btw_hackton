@@ -265,7 +265,9 @@ def test_gemini_safety_block_is_a_refusal(tmp_path, cfg, page):
 
 def test_gemini_bad_request_is_not_retried(tmp_path, cfg, page):
     err = SimpleNamespace(
-        status_code=400, json=lambda: {"error": {"message": "model not found"}}
+        status_code=400,
+        text="{}",
+        json=lambda: {"error": {"message": "model not found"}},
     )
     client = FakeHttp(err)
     reader = GeminiReader(cfg, VlmCache(tmp_path), client=client, model="gemini-x")
@@ -281,3 +283,24 @@ def test_reader_is_picked_by_model_name(tmp_path, cfg):
     assert isinstance(g, GeminiReader) and g.api_key == "g"
     assert isinstance(c, ClaudeReader)
     assert isinstance(make_reader("replay", cfg, cache, model="gemini-x"), ReplayReader)
+
+
+BLOCK_PAGE = (
+    '<!DOCTYPE html><html><body><iframe src="//netfree.link/block/#%7B%22url'
+    '%22:%22https:%2F%2Fapi.anthropic.com%2Fv1%2Fmessages%22%7D"></iframe>'
+)
+
+
+def test_gemini_filter_block_page_is_named_not_parsed(tmp_path, cfg, page):
+    html = SimpleNamespace(status_code=418, text=BLOCK_PAGE, json=lambda: 1 / 0)
+    reader = GeminiReader(cfg, VlmCache(tmp_path), client=FakeHttp(html), model="g")
+    with pytest.raises(VlmInvalid, match="filter blocked"):
+        reader.read_page(page, "s", "p")
+
+
+def test_page_error_explains_a_filter_block_in_hebrew():
+    from vera.batch import page_error
+
+    msg = page_error(RuntimeError(BLOCK_PAGE))
+    assert "NetFree" in msg and "api.anthropic.com" in msg and "<html>" not in msg
+    assert page_error(ValueError("boom")) == "ValueError: boom"
