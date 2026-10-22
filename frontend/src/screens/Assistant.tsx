@@ -80,7 +80,29 @@ export function Assistant() {
             </button>
           </header>
           <div className="chat-body">
-            {!msgs.length && <p className="chat-hello">היי, אני VERA. אפשר לשאול אותי על הטפסים, המבחנות והבירורים של היום.</p>}
+            {!msgs.length && (
+              <>
+                <div className="chat-hello">
+                  <span className="hello-avatar" aria-hidden="true">
+                    <Virus size={40} spikes={9} className="hello-virus" />
+                  </span>
+                  <div className="hello-bubble">
+                    <strong>היי, אני VERA</strong>
+                    <span>אפשר לשאול אותי על הטפסים, המבחנות והבירורים של היום.</span>
+                  </div>
+                </div>
+                <div className="starters">
+                  {chips.map((c) => (
+                    <button key={c} className="starter" onClick={() => send(c)} disabled={busy}>
+                      <span className="starter-icon" aria-hidden="true">
+                        {iconFor(c)}
+                      </span>
+                      <span>{c}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             {msgs.map((m, i) => (
               <div key={i} className={`msg ${m.role}`}>
                 {m.role === "assistant" ? <RichText text={m.content} /> : <p>{m.content}</p>}
@@ -114,13 +136,15 @@ export function Assistant() {
             )}
             <div ref={end} />
           </div>
-          <div className="chips">
-            {chips.map((c) => (
-              <button key={c} className="chip" onClick={() => send(c)} disabled={busy}>
-                {c}
-              </button>
-            ))}
-          </div>
+          {msgs.length > 0 && (
+            <div className="chips" aria-label="שאלות מוכנות">
+              {chips.map((c) => (
+                <button key={c} className="chip" onClick={() => send(c)} disabled={busy}>
+                  <span aria-hidden="true">{iconFor(c)}</span> {c}
+                </button>
+              ))}
+            </div>
+          )}
           <form
             className="chat-input"
             onSubmit={(e) => {
@@ -137,4 +161,14 @@ export function Assistant() {
       )}
     </>
   );
+}
+
+/** A small icon per ready question, by its topic. */
+function iconFor(q: string): string {
+  if (/מחכה|עכשיו/.test(q)) return "📋";
+  if (/בירור|פני/.test(q)) return "🔔";
+  if (/שבוע|דוח/.test(q)) return "📈";
+  if (/מבחנ/.test(q)) return "🧪";
+  if (/שולח|בית חולים/.test(q)) return "🏥";
+  return "💬";
 }
