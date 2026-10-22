@@ -645,10 +645,10 @@ def decide_page(
         sid = sender.values[0]
         sender.values = [cfg.senders.name(sid)]
         # A parent organization (כללית) may hide a more specific hospital on
-        # the form, and the most specific one is required (spec 3.5): agreement
-        # on the parent is not enough for green.
-        if sender.status == "verified" and cfg.senders.has_children(sid):
-            sender.status = "likely"
+        # the form, and the most specific one is required (spec 3.5): on the
+        # dev set a bare parent was always a hospital misread, so it's a check.
+        if sender.status in ("verified", "likely") and cfg.senders.has_children(sid):
+            sender.status = "review"
             sender.explanation_he = cfg.reasons_he.get("sender_parent_only", "")
 
     fields = {f: fields[f] for f in FIELDS}

@@ -332,7 +332,7 @@ def test_screenshot_date_next_to_central_becomes_receipt_date(cfg):
     assert sub.fields["receipt_date"].values == ["2026-08-25"]
 
 
-def test_parent_organization_sender_is_never_green(cfg):
+def test_parent_organization_sender_is_a_check(cfg):
     page = {
         "page_kind": "form",
         "sender_guess": "כללית",
@@ -341,7 +341,8 @@ def test_parent_organization_sender_is_never_green(cfg):
     }
     sub = decide_page(PAGE, "b1", page, [], cfg, REF)
     assert sub.fields["sender"].values == ["כללית"]
-    assert sub.fields["sender"].status == "likely"
+    assert sub.fields["sender"].status == "review"
+    assert "בית חולים" in sub.fields["sender"].explanation_he
 
 
 def test_models_disagreeing_on_the_field_send_it_to_review(cfg):
