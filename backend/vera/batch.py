@@ -161,6 +161,20 @@ class BatchService:
             )
         return self._readers
 
+    def vlm_problem(self) -> str | None:
+        """Why pages can't be read right now (shown at intake), or None."""
+        if self._readers is not None:  # set up already (or injected by tests)
+            return None
+        if self.s.vlm_mode == "live" and not self.s.anthropic_api_key:
+            return (
+                "אין מפתח למודל הראייה: צריך להוסיף ANTHROPIC_API_KEY לקובץ .env "
+                "ולהפעיל מחדש (docker compose up -d)"
+            )
+        cache = self.s.data_dir / "cache" / "vlm"
+        if self.s.vlm_mode == "replay" and not any(cache.glob("**/*.json")):
+            return "מצב replay בלי מטמון קריאות: אין ממה לקרוא את העמודים"
+        return None
+
     def audit(self, session, user: str, action: str, target: str, **detail) -> None:
         session.add(AuditRow(user=user, action=action, target=target, detail=detail))
 
@@ -238,6 +252,17 @@ class BatchService:
                 .join(DocumentRow, PageRow.document_id == DocumentRow.id)
             ).all()
             jobs = [(p.id, d.id, d.kind, p.page_no) for p, d in pages]
+
+        problem = self.vlm_problem()
+        if problem:
+            # Without a reader every page would fail after the costly prepare
+            # step; fail them now, with the reason, so the screen can say so.
+            for page_id, *_ in jobs:
+                self._set_page(page_id, status="failed", error=problem)
+            self.events.publish(
+                batch_id, "warning", {"error": "vlm", "message": problem}
+            )
+            jobs = []
 
         sem = asyncio.Semaphore(max(1, self.s.max_concurrent_jobs))
 

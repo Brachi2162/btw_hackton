@@ -144,6 +144,76 @@
   transition: width 0.4s;
 }
 
+.fbar {
+  display: flex;
+}
+
+.fbar .fbar-failed {
+  background: var(--review);
+}
+
+.failed-n {
+  color: var(--review-text);
+}
+
+.fail-warn,
+.setup-warn {
+  margin: 0;
+  background: var(--review-bg);
+  color: var(--review-text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.setup-warn {
+  font-weight: 500;
+}
+
+.folder-card {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.folder-card p {
+  margin: 0;
+}
+
+.folder-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.folder-row .input {
+  flex: 1;
+  min-width: 240px;
+}
+
+.today {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.folder-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.folder-files {
+  margin: 0;
+  padding-inline-start: 18px;
+  font-size: 13px;
+}
+
 .files .rejected {
   color: var(--review-text);
   grid-template-columns: minmax(0, 220px) 1fr;

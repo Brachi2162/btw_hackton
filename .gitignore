@@ -12,6 +12,10 @@ data/*
 *.db-wal
 *.db-shm
 
+# Default scanner folder (SCAN_FOLDER): scans contain personal data
+inbox/*
+!inbox/.gitkeep
+
 # Outputs
 eval/reports/
 *.xlsx

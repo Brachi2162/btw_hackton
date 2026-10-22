@@ -91,6 +91,8 @@ def _progress(service: BatchService, batch_id: str) -> dict:
                 "done": sum(p.status == "done" for p in ps),
                 "failed": sum(p.status == "failed" for p in ps),
                 "stages": [p.stage for p in ps if p.status == "processing"],
+                # distinct reasons, so the screen can say why pages failed
+                "errors": sorted({p.error for p in ps if p.error})[:3],
             }
         )
         for p in ps:
