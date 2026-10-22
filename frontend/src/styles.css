@@ -292,11 +292,12 @@ h3 {
   }
 }
 
-/* The welcome page scrolls without showing a scrollbar. */
-html.no-scrollbar {
+/* No visible scrollbars anywhere: everything still scrolls with the wheel,
+   the touchpad and the keyboard. */
+* {
   scrollbar-width: none;
 }
 
-html.no-scrollbar::-webkit-scrollbar {
+*::-webkit-scrollbar {
   display: none;
 }

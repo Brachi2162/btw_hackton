@@ -150,12 +150,6 @@ export function Home() {
     };
   }, []);
 
-  // the page scrolls (the story), but without a visible scrollbar
-  useEffect(() => {
-    document.documentElement.classList.add("no-scrollbar");
-    return () => document.documentElement.classList.remove("no-scrollbar");
-  }, []);
-
   // scroll progress
   useEffect(() => {
     const onScroll = () => {
