@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "4fa37bbfc60db80ee3c5fa00a9d3b3e46d3232deae797c834f7b0fd15ac8a3da",
+ "crop": [
+  497,
+  0,
+  1990,
+  1588
+ ],
+ "request_id": "xRfaap_SHZfkkdUPquXBoQE",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 9109
+ },
+ "reading": {
+  "first_name": "אברהם",
+  "last_name": "",
+  "id_number": "11223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

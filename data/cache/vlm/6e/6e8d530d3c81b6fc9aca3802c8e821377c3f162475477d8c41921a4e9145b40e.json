@@ -1,0 +1,81 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "f46975d0ecc86751be8588f171126bd670b08339221b1fcc079abdc8f79fc194",
+ "request_id": "req_011CgF8S4guu6RzR1XKrG36f",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 544
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז רפואי מאיר",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "948258",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "948258",
+     "region": "bottom-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026",
+     "region": "bottom-right"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז רפואי מאיר",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכז רפואי מאיר",
+     "evidence_text": "מרכז רפואי מאיר",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2825751832-01",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "2825751832-01",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "12.9.18",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "12 9 018 2 6",
+     "region": "middle-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "12.9.18",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "12 9 018 2 6",
+     "region": "middle-left"
+    }
+   ]
+  }
+ }
+}

@@ -265,3 +265,40 @@ describe("UploadDone", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("Intake", () => {
+  it("picks up a batch still being read when the screen is opened again", async () => {
+    const live = {
+      id: "b1",
+      name: "בוקר 23/10",
+      created_at: "2026-10-23T08:00:00",
+      ref_date: "2026-10-23",
+      status: "processing",
+      locked: false,
+      demo: false,
+      counts: { pages: { processing: 1 } },
+      submissions: [],
+      documents: [{ id: "d1", filename: "forms.pdf", pages: 3, done: 1, failed: 0, stages: ["read"], errors: [] }],
+      quality_warnings: [],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const body = url.endsWith("/api/batches")
+          ? [{ id: "b1", name: live.name, created_at: live.created_at, status: "processing", locked: false, demo: false }]
+          : url.includes("/api/batches/b1")
+            ? live
+            : {};
+        return new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } });
+      }),
+    );
+    const { Intake } = await import("./screens/Intake");
+    render(
+      <ToastProvider>
+        <Intake />
+      </ToastProvider>,
+    );
+    // the file is still there, with its progress, after coming back
+    expect(await screen.findByText("forms.pdf")).toBeTruthy();
+  });
+});

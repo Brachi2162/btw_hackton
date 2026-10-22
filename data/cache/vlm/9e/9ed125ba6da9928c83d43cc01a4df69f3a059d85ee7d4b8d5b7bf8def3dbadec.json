@@ -1,0 +1,90 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "b59906378ca99f0bc7d9e0ad86dfdf2bd659a07d1579034e2b886da21378ce65",
+ "request_id": "req_011CgF8QJvrdTdExAtuvqE4t",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 1702
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [
+    {
+     "value_raw": "Yo. Cohen",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מס' החולה",
+     "evidence_text": "handwritten blue name near מס' החולה",
+     "region": "top-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwritten digits 112233 4 under 54",
+     "region": "middle-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945740",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "barcode sticker 945740 with vertical label",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "11.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "945740",
+     "evidence_text": "blue handwritten date under central number sticker",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "264800879",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "printed 2648 00879 sticker",
+     "region": "middle-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "25.07.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "PCR-ZIKA",
+     "evidence_text": "handwritten date 25.07.26 in results area",
+     "region": "middle-center"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "27.07.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "27.07.26 written near ID block",
+     "region": "top-left"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,90 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "d17285193bbf701830a1fe35504f933bce536d5fa89c1ec292b07cc8f3790e7d",
+ "request_id": "req_011CgFUstghuhfc6ox7WV8nJ",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 587
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "אסותא אשדוד",
+  "page_marker": "Page 1 of 2",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "שמלה",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "אב:",
+     "evidence_text": "אב: שלמה",
+     "region": "middle-right"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "112223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ת.ז. 112223344",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "141046589",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "141046589",
+     "region": "middle-center"
+    }
+   ],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "אסותא אשדוד",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בית החולים הציבורי",
+     "evidence_text": "בית החולים הציבורי אסותא אשדוד",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "947476",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "947476",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "25/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "תאריך: 25/8/26",
+     "region": "middle-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "22/08/26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ת.קבלה",
+     "evidence_text": "ת.קבלה: 22/08/26",
+     "region": "top-right"
+    }
+   ]
+  }
+ }
+}

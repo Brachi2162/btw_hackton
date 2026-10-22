@@ -1,0 +1,116 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "34d9eafb3d5dc06120e524cd5a3ad9ec45ff1fd7d45aa872e78866fe53da2ca3",
+ "request_id": "req_011CgFUv6i4RbqGhVinwdKps",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 784
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": false,
+  "sender_guess": "מרכז רפואי מאיר",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Doe",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "שם פרטי",
+     "evidence_text": "Doe. (Jane?) handwritten in blue over patient sticker",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Doe",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "שם המשפחה",
+     "evidence_text": "Doe handwritten in blue over sticker",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "2825747366-01",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "2825747366-01",
+     "region": "top-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "948257",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "948257",
+     "region": "bottom-center"
+    },
+    {
+     "value_raw": "82857",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "82857 vertical barcode sticker",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל stamp 31-08-2026",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז רפואי מאיר",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "מרכז רפואי מאיר",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "112233344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "112233344 handwritten blue over highlighter",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "13.09.24",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "13.09.24",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "27.08.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "27.08.26",
+     "region": "top-right"
+    }
+   ]
+  }
+ }
+}

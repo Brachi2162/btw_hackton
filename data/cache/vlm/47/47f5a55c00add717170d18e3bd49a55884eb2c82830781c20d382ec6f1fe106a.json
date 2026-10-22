@@ -1,0 +1,81 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "4f4cf3f082f663166743b49e74ff70ebed08276453a33d4100f1c1d77db31c58",
+ "request_id": "req_011CgF8wbDFth5WZLQjDx22q",
+ "usage": {
+  "input_tokens": 5733,
+  "output_tokens": 1676
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז רפואי קפלן",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "112233 44 (blue handwriting near sticker)",
+     "region": "middle-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947550",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "947550 (printed barcode on yellow highlight)",
+     "region": "top-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "26.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "26.8.26 (blue handwriting on yellow highlight under 947550)",
+     "region": "top-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז רפואי קפלן",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "קפלן (printed logo top right)",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "66608489",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "66608489 (printed barcode on yellow highlight)",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "23.08.2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "23.08.2026 תאריך",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

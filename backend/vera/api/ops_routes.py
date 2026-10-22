@@ -255,8 +255,8 @@ def letter(body: LetterIn, request: Request):
 
 
 @router.get("/overview")
-def overview(request: Request):
-    return ho.overview(svc(request))
+def overview(request: Request, batch_id: str | None = None):
+    return ho.overview(svc(request), batch_id)
 
 
 @router.get("/handover")

@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "0d30c9e4c281d0bef9bf2acbdc65cd3a09effb7a93ba7a07ba52a90c184f5cb1",
+ "crop": [
+  499,
+  0,
+  1996,
+  1592
+ ],
+ "request_id": "uhbaarqFO5-M28oP3reAWQ",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 1806
+ },
+ "reading": {
+  "first_name": "ישראל",
+  "last_name": "לוי",
+  "id_number": "04223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

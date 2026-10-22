@@ -1,0 +1,99 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "d17285193bbf701830a1fe35504f933bce536d5fa89c1ec292b07cc8f3790e7d",
+ "request_id": "req_011CgFUHf6hWb3SHt766LfJw",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 687
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "כללית",
+  "page_marker": "Page 1 of 2",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Gaei",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue name above sticker birth date 07/03/1982",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Ilsae",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue name at top of patient sticker",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11272344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ת.ז. 11272344 highlighted handwritten over sticker",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947476",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode with 947476 highlighted yellow",
+     "region": "top-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "25-08-2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "stamp with faint date 25-08-2026 highlighted",
+     "region": "middle-right"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "כללית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "קופ\"ח",
+     "evidence_text": "קופ\"ח כללית",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "141046589",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר מבחנה/מיכל",
+     "evidence_text": "141046589 highlighted above barcode",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "25/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך:",
+     "evidence_text": "תאריך: 25/8/26",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

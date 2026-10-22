@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "b59906378ca99f0bc7d9e0ad86dfdf2bd659a07d1579034e2b886da21378ce65",
+ "crop": [
+  0,
+  881,
+  1488,
+  2643
+ ],
+ "request_id": "KRjaasX6Ctv3nsEPgpC8qAo",
+ "usage": {
+  "input_tokens": 1328,
+  "output_tokens": 5160
+ },
+ "reading": {
+  "first_name": "יוסף",
+  "last_name": "כוכבי",
+  "id_number": "11223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

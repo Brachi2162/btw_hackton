@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "60626ac4a0de1f0ffd9084c249b4fa74f1bfdd361f6704405cdd59e2cb29566f",
+ "crop": [
+  1010,
+  0,
+  2525,
+  1657
+ ],
+ "request_id": "XxfaavvsGMidnsEP38q2oQ4",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 1791
+ },
+ "reading": {
+  "first_name": "יאיר",
+  "last_name": "שניצר",
+  "id_number": "3344",
+  "name_legible": true,
+  "id_legible": false
+ }
+}

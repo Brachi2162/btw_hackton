@@ -1,0 +1,81 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "f46975d0ecc86751be8588f171126bd670b08339221b1fcc079abdc8f79fc194",
+ "request_id": "req_011CgF8wBk8EthzPqt7SZz74",
+ "usage": {
+  "input_tokens": 5733,
+  "output_tokens": 2362
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז רפואי מאיר",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יוסי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwriting over patient sticker: יוסי יוסף",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "יוסף",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwriting over patient sticker: יוסי יוסף",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "948258",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode sticker with printed 948258 near חתימת מזכירות המעבדות",
+     "region": "bottom-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז רפואי מאיר",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "מרכז רפואי מאיר מסונף לפקולטה לרפואה",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [],
+   "form_date": [],
+   "sample_date": [
+    {
+     "value_raw": "29.08.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "תאריך לקיחת הדגימה boxes with handwritten digits",
+     "region": "middle-left"
+    }
+   ]
+  }
+ }
+}

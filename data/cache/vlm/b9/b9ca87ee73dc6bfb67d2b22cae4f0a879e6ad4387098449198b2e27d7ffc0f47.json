@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "ed3153b48d9f192ae8ee75b59b7e01d1e531cc6445e79d0ed11bfe7c5aa6d213",
+ "crop": [
+  995,
+  0,
+  2488,
+  1593
+ ],
+ "request_id": "gBbaarmlB4bGvdIP_-OOmQo",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 2846
+ },
+ "reading": {
+  "first_name": "יוסף",
+  "last_name": "פרחי",
+  "id_number": "",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

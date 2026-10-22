@@ -1,0 +1,36 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v2",
+ "page_sha256": "ca12f93e4b8a91be995f6abddeea00f239e052140daeb05bea3dbde80d1a0b67",
+ "crop": [
+  705,
+  0,
+  2820,
+  1116
+ ],
+ "request_id": "req_011CgHRUtXnpPxwVgazMi4tm",
+ "usage": {
+  "input_tokens": 3395,
+  "output_tokens": 771
+ },
+ "reading": {
+  "name_line": "11223344 יוסף. [שם משפחה חתוך בקצה התמונה]",
+  "first_name_letters": [
+   "י",
+   "ו",
+   "ס",
+   "ף"
+  ],
+  "first_name": "יוסף",
+  "last_name_letters": [],
+  "last_name": "",
+  "id_number": "11223344",
+  "first_name_legible": false,
+  "last_name_legible": false,
+  "id_legible": true,
+  "box_left": 635,
+  "box_top": 105,
+  "box_right": 1000,
+  "box_bottom": 175
+ }
+}

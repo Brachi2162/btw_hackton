@@ -1,0 +1,107 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "f72c7cf8fb63d2769e90ab786ac93fde3dffe5368e8db592584211c21fedc79e",
+ "request_id": "req_011CgF8mo679V4ofH58yFxF7",
+ "usage": {
+  "input_tokens": 5733,
+  "output_tokens": 833
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי הלל יפה",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "הלל יפה",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "הלל יפה handwritten in blue highlighter top-left",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "12108148",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה",
+     "evidence_text": "12108148 מקרה",
+     "region": "middle-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945986",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "945986 barcode sticker top-left",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "GLCL",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "GLCL vertical sticker top-center",
+     "region": "top-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "13/08/2026",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "handwritten date 11/08/26 with 8:13 under sample date",
+     "region": "middle-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי הלל יפה",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בית החולים הממשלתי",
+     "evidence_text": "בית החולים הממשלתי ... המרכז הרפואי הלל יפה",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2648 00956",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מעבדה",
+     "evidence_text": "2648 00956 barcode sticker middle-right",
+     "region": "middle-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "11/08/26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "handwritten 11.08.26 next to תאריך לקיחת הדגימה",
+     "region": "middle-center"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "8:13",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שעת לקיחת הדגימה",
+     "evidence_text": "handwritten 8:13 next to שעת לקיחת הדגימה",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

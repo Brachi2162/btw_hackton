@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "3952ba75ef003849e7a82cb6a2164018ad5ed940632316c0f588e56dcbfb29b6",
+ "crop": [
+  992,
+  0,
+  2480,
+  1590
+ ],
+ "request_id": "mRbaasneGMWFxN8PoZLWwAw",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 1610
+ },
+ "reading": {
+  "first_name": "רומי",
+  "last_name": "יוסף",
+  "id_number": "0011223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

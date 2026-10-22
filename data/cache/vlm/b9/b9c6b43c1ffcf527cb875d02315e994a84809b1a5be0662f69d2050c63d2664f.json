@@ -1,0 +1,81 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "a1e0636557fbc349128a30be8f8d9d80166ccf1c91b53d5b878c6df04ceca868",
+ "request_id": "req_011CgF8YLphCQMMtZ8T5C2tb",
+ "usage": {
+  "input_tokens": 5461,
+  "output_tokens": 2559
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "11223344 (handwritten blue on patient sticker, under yellow highlight)",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946622",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "946622 (printed under barcode, vertical label on yellow highlight)",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-08-2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "1 8 -08- 2026 (yellow-highlighted stamp)",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי בני ציון",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לוגו המרכז הרפואי",
+     "evidence_text": "המרכז הרפואי בני ציון; מ.ר. בני-ציון",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "436703",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "436703 (printed above barcode)",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [],
+   "sample_date": [
+    {
+     "value_raw": "18.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "תאריך לקיחת הדגימה: 18.8.26 (handwritten, partly struck through)",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

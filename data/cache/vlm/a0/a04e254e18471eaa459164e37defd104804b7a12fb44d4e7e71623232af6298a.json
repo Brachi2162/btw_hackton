@@ -1,0 +1,108 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "de8ac7e961d5d4ec8ee9e89f0f1c077be64f0eb9a20e7cfc739a0f7f22e134c8",
+ "crop": null,
+ "request_id": "req_011CgGvVQQmmQd2EAKziXa6C",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 728
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מאוחדת",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "שם",
+     "evidence_text": "שם: בי\"ח תל השומר עי\"ש שיבא",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "0011223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת\"ז",
+     "evidence_text": "ת\"ז 0011223344",
+     "region": "bottom-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "939376",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "939376",
+     "region": "top-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-06-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 18 -06- 2026",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מאוחדת",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "מאוחדת רמה אחרת",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "730578626",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התחייבות מספר",
+     "evidence_text": "התחייבות מספר 730578626",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "0046025783",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "0046025783",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "15.06.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך הפקה",
+     "evidence_text": "תאריך הפקה : 15.06.2026",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "15.06.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך הטיפול",
+     "evidence_text": "תאריך הטיפול: 15.06.2026",
+     "region": "top-right"
+    }
+   ]
+  }
+ }
+}

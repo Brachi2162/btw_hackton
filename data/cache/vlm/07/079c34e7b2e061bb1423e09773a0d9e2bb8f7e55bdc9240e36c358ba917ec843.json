@@ -1,0 +1,23 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "cde584257579568ee7759863653e7ea874b67d393e0eb860d0c8a5509015c050",
+ "crop": [
+  992,
+  0,
+  2480,
+  1579
+ ],
+ "request_id": "req_011CgG5Xvtg7u1CSEugFrtb2",
+ "usage": {
+  "input_tokens": 3730,
+  "output_tokens": 462
+ },
+ "reading": {
+  "first_name": "ישראל",
+  "last_name": "ישראלי",
+  "id_number": "11223344",
+  "name_legible": false,
+  "id_legible": false
+ }
+}

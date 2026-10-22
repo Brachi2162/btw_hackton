@@ -1,0 +1,108 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "2b632b93ce72d7b99f50e65df45113c736d46f2f5b4550c27838f2b359d252e2",
+ "crop": null,
+ "request_id": "req_011CgHftUykj4vkwrb7SbC8o",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 1867
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי לניאדו",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "גבריאל מרכסקוביץ",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "שם ... מרכסקוביץ (handwritten over patient sticker)",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "גבריאל מרכסקוביץ",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "שם ... מרכסקוביץ (handwritten over patient sticker)",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223314",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "11223314 (blue handwriting on patient sticker)",
+     "region": "middle-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "26224944",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לניאדו",
+     "evidence_text": "26224944 (barcode sticker)",
+     "region": "middle-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי לניאדו",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לניאדו",
+     "evidence_text": "לניאדו מרכז רפואי צאנז",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "X132797",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "X132797 (barcode sticker)",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "948246",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "נא לציין בכחר יד",
+     "evidence_text": "948246 (sticker near הבדיקה הנדרשת)",
+     "region": "bottom-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 27/8/26",
+     "region": "middle-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

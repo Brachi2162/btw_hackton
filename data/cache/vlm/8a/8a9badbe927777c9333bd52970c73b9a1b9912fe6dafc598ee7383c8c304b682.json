@@ -1,0 +1,99 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "a8037828736f7b3ffe347f407120ba0878d0ff63c9b6d17b74a1a8a1972c6a85",
+ "request_id": "req_011CgFUunvVSqyxEP4AmDEMG",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 715
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי לניאדו",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יבגני",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "handwritten blue name over sticker near פנימית ב 26/08/2026 1988",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "blue handwritten 11223344 on patient sticker near ת.ז.",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "948246",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "948246 barcode sticker with vertical מרכזי",
+     "region": "middle-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל stamp 31-08-2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי לניאדו",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לניאדו",
+     "evidence_text": "לניאדו מרכז רפואי צאנז logo",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "X132797",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "X132797 barcode sticker",
+     "region": "middle-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "handwritten 27/8/26 next to תאריך",
+     "region": "middle-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

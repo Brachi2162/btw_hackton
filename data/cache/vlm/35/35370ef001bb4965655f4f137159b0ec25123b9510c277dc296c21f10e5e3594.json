@@ -1,0 +1,125 @@
+{
+ "model": "gemini-3.8-flash",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "b59906378ca99f0bc7d9e0ad86dfdf2bd659a07d1579034e2b886da21378ce65",
+ "crop": null,
+ "request_id": "s73ZavzcA_-ixN8P09PFqQU",
+ "usage": {
+  "input_tokens": 1982,
+  "output_tokens": 4022
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי הלל יפה",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "חיים",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מס' החולה:",
+     "evidence_text": "חיים מ.ז.:",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "Hee. Fee.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מס' החולה:",
+     "evidence_text": "מס' החולה: Hee. Fee.",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "חיים",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מס' החולה:",
+     "evidence_text": "חיים מ.ז.:",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "Hee. Fee.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מס' החולה:",
+     "evidence_text": "מס' החולה: Hee. Fee.",
+     "region": "top-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מ.ז.:",
+     "evidence_text": "11223344 מ.ז.:",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945740",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "945740 מרכזי",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "11.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מרכזי",
+     "evidence_text": "945740 מרכזי 11.8.26",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי הלל יפה",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בית החולים הממשלתי",
+     "evidence_text": "המרכז הרפואי הלל יפה",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2648 00879",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בדיקה בקטריולוגית",
+     "evidence_text": "2648 00879",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27.07.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "פנימית א",
+     "evidence_text": "27.07.26 פנימית א",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "28.07.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "PCR-zika 28.07.26",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

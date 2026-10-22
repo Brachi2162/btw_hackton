@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "1aa76740a773460e9e8404a8b5829060a28d9c493947797c81aba3edf345ea06",
+ "crop": [
+  496,
+  882,
+  1984,
+  2647
+ ],
+ "request_id": "AhjaarmEC_mjnsEPuuC8mQE",
+ "usage": {
+  "input_tokens": 1328,
+  "output_tokens": 2826
+ },
+ "reading": {
+  "first_name": "רחל",
+  "last_name": "גרין",
+  "id_number": "11223348",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

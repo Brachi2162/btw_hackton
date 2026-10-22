@@ -1,0 +1,41 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v2",
+ "page_sha256": "fd1e17fdf13af91811d6bb44a9fa34c6b1fb49fa2c49d8950e55537a8422a80f",
+ "crop": [
+  855,
+  998,
+  1964,
+  1180
+ ],
+ "request_id": "req_011CgHRRA6p12sLauSpoj6CM",
+ "usage": {
+  "input_tokens": 2275,
+  "output_tokens": 1251
+ },
+ "reading": {
+  "name_line": "ישראל· (blue) שרף (green, uncertain)",
+  "first_name_letters": [
+   "י",
+   "ש",
+   "ר",
+   "א",
+   "ל"
+  ],
+  "first_name": "ישראל",
+  "last_name_letters": [
+   "ש",
+   "ר",
+   "ף"
+  ],
+  "last_name": "שרף",
+  "id_number": "11223344",
+  "first_name_legible": false,
+  "last_name_legible": false,
+  "id_legible": false,
+  "box_left": 100,
+  "box_top": 310,
+  "box_right": 870,
+  "box_bottom": 740
+ }
+}

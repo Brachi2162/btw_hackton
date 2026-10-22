@@ -1,0 +1,73 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "409c71fa885b9aa7f5d98365f633b5aa09d21972556b35e109bfba3dc410b747",
+ "crop": null,
+ "request_id": "req_011CgH5WiSYrZfcjofNuHnEe",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 1720
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "רוזנבלט מעבדה רפואית",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "ID / PASS:",
+     "evidence_text": "ID / PASS: 11223344",
+     "region": "middle-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947493",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "947493",
+     "region": "top-right"
+    }
+   ],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "רוזנבלט מעבדה רפואית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "רוזנבלט מעבדה רפואית בע\"מ",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [],
+   "form_date": [
+    {
+     "value_raw": "23.8.2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תל-אביב",
+     "evidence_text": "23.8.2026 תל-אביב",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "25-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "אחר",
+     "evidence_text": "25-08-2026",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

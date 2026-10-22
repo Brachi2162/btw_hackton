@@ -1,0 +1,91 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "4f5b66fc9ee43e2e69ebbe7c948b7cd167911e335e1797cf5ce8145db58cdb7a",
+ "crop": null,
+ "request_id": "req_011CgH5aQSCRcxvYJ4PYHdRC",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 731
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": false,
+  "sender_guess": "המרכז הרפואי שמיר (אסף הרופא)",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ופשל יסי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "אצל החולה",
+     "evidence_text": "אצל החולה [handwritten blue name, struck-through text before it]",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ופשל יסי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "אצל החולה",
+     "evidence_text": "אצל החולה [handwritten blue name, struck-through text before it]",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223314",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ת.ז. 11223314 (blue handwriting, highlighted)",
+     "region": "middle-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947683",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode sticker",
+     "evidence_text": "947683",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי הגריאטרי ביה\"ח שמואל-הרופא",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מסונף לביה\"ס לרפואה ע\"ש סאקלר אוניברסיטת ת\"א",
+     "evidence_text": "המרכז הרפואי הגריאטרי ביה\"ח \"שמואל-הרופא\"",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "נ\"ם תח\"ב",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "אל:",
+     "evidence_text": "אל: [handwritten text]",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "26.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 26.8.26",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

@@ -1,0 +1,109 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "240bbdd11dab0445f5e875a166cdbc1fd0c3830990da3486bda7e7a36594efa8",
+ "crop": null,
+ "request_id": "req_011CgH5V82KvzdwdLe2aoMQR",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 2117
+ },
+ "reading": {
+  "page_kind": "lab_report",
+  "upright": true,
+  "sender_guess": "לאומית",
+  "page_marker": "Page 1/1",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ɔ. ɔ. ɔ.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם ומשפחה:",
+     "evidence_text": "שם ומשפחה: (blue handwriting over highlighter, unclear)",
+     "region": "middle-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ɔ. ɔ. ɔ.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם ומשפחה:",
+     "evidence_text": "שם ומשפחה: (blue handwriting over highlighter, unclear)",
+     "region": "middle-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "0011223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.:",
+     "evidence_text": "00112233 44 (blue handwriting) ת.ז.:",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "939404",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "939404 (barcode sticker, vertical label)",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-06-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 18-06-2026 (stamp)",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "לאומית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לאומית שירותי בריאות",
+     "evidence_text": "לאומית שירותי בריאות מעבדה מרכזית",
+     "region": "bottom-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "990012538",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מידע כללי",
+     "evidence_text": "990012538 (highlighted) מידע כללי",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "18/06/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך הפקת הדוח",
+     "evidence_text": "תאריך הפקת הדוח 18/06/2026",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "17/06/26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "זמן דגימה",
+     "evidence_text": "10:44 - 17/06/26 זמן דגימה:",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

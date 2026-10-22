@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "fd1e17fdf13af91811d6bb44a9fa34c6b1fb49fa2c49d8950e55537a8422a80f",
+ "crop": [
+  494,
+  881,
+  1976,
+  2643
+ ],
+ "request_id": "EhjaauuPLJvxnsEP2rDAwQU",
+ "usage": {
+  "input_tokens": 1328,
+  "output_tokens": 4028
+ },
+ "reading": {
+  "first_name": "אלכס",
+  "last_name": "כהן",
+  "id_number": "11223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

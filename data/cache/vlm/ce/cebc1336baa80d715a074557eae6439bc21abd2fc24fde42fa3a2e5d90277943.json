@@ -1,0 +1,98 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "b965ccc7e0ca23eea5f6d976c0147941fc8c3873cb5e4397ad00990b2a04e7c0",
+ "request_id": "req_011CgFUKFFnbTA7TPYjFTh1R",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 721
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי לניאדו",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Rabin Rabin",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwriting over patient sticker near 'מדבקה'",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Rabin Rabin",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwriting over patient sticker near 'מדבקה'",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תעודת",
+     "evidence_text": "11223344 ...... תעודת",
+     "region": "middle-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947328",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode sticker 947328 with vertical text highlighted",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "24-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 24-08-2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-right"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "לניאדו",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכז רפואי צאנז",
+     "evidence_text": "לניאדו מרכז רפואי צאנז; בית חולים לניאדו - קרית צאנז - נתניה",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "X132767",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "X132767 above barcode",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "26220695",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode 26220695",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [],
+   "sample_date": []
+  }
+ }
+}

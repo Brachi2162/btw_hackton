@@ -1,0 +1,98 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "aba5737e49b09c1ce9d6c2713b44833c115872e7a6a732fe23d6ee2cc3f436e6",
+ "request_id": "req_011CgF8pXjiDkKsx9NEvjqEi",
+ "usage": {
+  "input_tokens": 7499,
+  "output_tokens": 709
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי שמיר (אסף הרופא)",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "Cool Pacer",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ינקב מ.ז.: 112 2 33514 פנימית ג 29.07.26",
+     "region": "top-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947768",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode",
+     "evidence_text": "947768 מספר התחייבות",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "2646",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות 2646",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "27-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "27-08-2026",
+     "region": "middle-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי שמיר (אסף הרופא)",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "המרכז הרפואי שמיר (אסף הרופא) מסונף לפקולטה לרפואה",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "12602233",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה",
+     "evidence_text": "מקרה: 12602233",
+     "region": "middle-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך: 27.8.26",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "29.07.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "29.07.26",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

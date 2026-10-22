@@ -22,8 +22,15 @@ def _since(s) -> datetime:
     return datetime.combine(now().date(), time.min, tzinfo=timezone.utc)
 
 
-def overview(bs) -> dict:
-    """Counts for the sidebar and the handover: what is waiting now."""
+# Fields that still wait for a person: yellow and orange. Grey (not on the
+# form) and green are done, as on the review screen (D-018, D-025).
+WAITING = ("likely", "review")
+
+
+def overview(bs, batch_id: str | None = None) -> dict:
+    """Counts for the sidebar and the handover: what is waiting now. With
+    `batch_id`, also that batch's own waiting fields: the number the review
+    screen of that batch shows, so the sidebar matches it."""
     with bs.sv.repo.session() as s:
         batches = s.exec(select(BatchRow).order_by(BatchRow.created_at.desc())).all()
         followups = s.exec(
@@ -36,19 +43,23 @@ def overview(bs) -> dict:
         }
     at = now()
     waiting, no_tube, open_batches = 0, 0, []
+    in_batch = None
     for b in batches:
-        if b.locked:
+        if b.locked and b.id != batch_id:
             continue
-        open_batches.append(b.id)
+        here = 0
         for sub in bs.submissions(b.id):
-            waiting += sum(
-                1
-                for fr in sub.fields.values()
-                if fr.status in ("likely", "review", "missing")
-            )
-            no_tube += sub.id not in matched
+            here += sum(1 for fr in sub.fields.values() if fr.status in WAITING)
+            if not b.locked:
+                no_tube += sub.id not in matched
+        if b.id == batch_id:
+            in_batch = here
+        if not b.locked:
+            open_batches.append(b.id)
+            waiting += here
     return {
         "review_waiting": waiting,
+        "review_waiting_batch": in_batch,  # None without (or a wrong) batch_id
         "open_followups": len(followups),
         "overdue_followups": sum(at - aware(f.created_at) > OVERDUE for f in followups),
         "forms_waiting_for_tube": no_tube,

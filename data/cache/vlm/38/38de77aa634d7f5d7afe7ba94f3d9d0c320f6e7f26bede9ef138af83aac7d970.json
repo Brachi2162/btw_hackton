@@ -1,0 +1,116 @@
+{
+ "model": "gemini-3.8-flash",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "a8037828736f7b3ffe347f407120ba0878d0ff63c9b6d17b74a1a8a1972c6a85",
+ "crop": null,
+ "request_id": "B77ZaqaCCpbm28oPt-zVuA8",
+ "usage": {
+  "input_tokens": 1982,
+  "output_tokens": 4602
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי לניאדו",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "G.e. Poe",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "משפחה",
+     "evidence_text": "משפחה G.e. Poe",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "G.e. Poe",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "משפחה",
+     "evidence_text": "משפחה G.e. Poe",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ת.ז. 11223344",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "948246",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "948246 מרכזי",
+     "region": "middle-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31 -08- 2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31 -08- 2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי לניאדו",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לניאדו",
+     "evidence_text": "לניאדו מרכז רפואי צאנז",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "X132797",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "X132797",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "26224944",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "26224944",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "27/8/26 תאריך",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "26/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "26/08/2026 1988",
+     "region": "top-center"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}
