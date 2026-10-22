@@ -35,6 +35,7 @@ from vera.models import (
     Submission,
     worst_status,
 )
+from vera.pipeline.gvision import find_value
 from vera.normalize import (
     Norm,
     SenderIndex,
@@ -58,6 +59,15 @@ FIELDS = [
 ]
 MULTI = {"central_numbers", "commitment_numbers"}
 BARCODE_FIELDS = {"central_numbers", "commitment_numbers", "id_number"}
+# Fields Vision OCR can confirm (D-009); the sender is a name from a list.
+OCR_FIELDS = {
+    "central_numbers",
+    "commitment_numbers",
+    "id_number",
+    "receipt_date",
+    "first_name",
+    "last_name",
+}
 
 
 @dataclass
@@ -77,6 +87,7 @@ class DecisionConfig:
     commitment_aliases: list[str] = field(default_factory=list)
     self_verifying: set[str] = field(default_factory=set)
     label_required: set[str] = field(default_factory=set)
+    ocr_min_conf: float = 0.8
 
     @classmethod
     def load(cls, config_dir: Path) -> "DecisionConfig":
@@ -102,6 +113,7 @@ class DecisionConfig:
             commitment_aliases=vlm.get("commitment_aliases", []),
             self_verifying=set(c.get("self_verifying", [])),
             label_required=set(c.get("label_required", [])),
+            ocr_min_conf=c.get("ocr_min_conf", 0.8),
         )
 
 
@@ -189,6 +201,45 @@ def _support_with_barcodes(
                     )
                 )
                 break
+    return out
+
+
+def _support_with_ocr(
+    fname: str,
+    cands: list[Candidate],
+    ocr: list[dict],
+    page_id: str,
+    cfg: DecisionConfig,
+    ref: date,
+) -> list[Candidate]:
+    """Vision found, in one line of the page, the same normalized value a
+    reader chose (D-009): an independent source, with a real box. Like a
+    barcode it proves the reading, not the field: labels and decoys still
+    decide that. A low-confidence word doesn't count as a clear read."""
+    out, seen = [], set()
+    for c in cands:
+        v = c.value_norm
+        if v is None or v in seen or c.reader in ("barcode", "ocr"):
+            continue
+        seen.add(v)
+        hit = find_value(ocr, v, lambda s: _normalize(fname, s, cfg, ref).value)
+        if hit is None:
+            continue
+        out.append(
+            Candidate(
+                field=fname,
+                value_raw=hit.text,
+                value_norm=v,
+                reader="ocr",
+                page_id=page_id,
+                bbox=tuple(hit.bbox),
+                evidence_text=f"Vision: {hit.line[:120]}",
+                legible=hit.confidence >= cfg.ocr_min_conf,
+                handwritten=c.handwritten,
+                label_nearby=c.label_nearby,
+                signals={"ocr_conf": hit.confidence},
+            )
+        )
     return out
 
 
@@ -365,6 +416,7 @@ def decide_field(
     ref: date,
     aux_dates: dict[str, list[date]] | None = None,
     exclude: set[str] | None = None,
+    ocr: list[dict] | None = None,
 ) -> FieldResult:
     for c in cands:
         n = _normalize(fname, c.value_raw, cfg, ref)
@@ -373,6 +425,8 @@ def decide_field(
         c.signals["rule"] = n.rule
     if fname in BARCODE_FIELDS:
         cands = cands + _support_with_barcodes(fname, cands, barcodes, page_id)
+    if ocr and fname in OCR_FIELDS:
+        cands = cands + _support_with_ocr(fname, cands, ocr, page_id, cfg, ref)
 
     overridden = []
     if fname in ("first_name", "last_name") and any(c.handwritten for c in cands):
@@ -567,6 +621,7 @@ def decide_page(
     barcodes: list[dict],
     cfg: DecisionConfig,
     ref: date,
+    ocr: list[dict] | None = None,
 ) -> Submission:
     """One page = one submission (continuation pages are attached later)."""
     if "error" in vlm_page:
@@ -622,7 +677,9 @@ def decide_page(
 
     fields: dict[str, FieldResult] = {}
     for f in ("central_numbers", "id_number", "first_name", "last_name", "sender"):
-        fields[f] = decide_field(f, by_field.get(f, []), barcodes, page_id, cfg, ref)
+        fields[f] = decide_field(
+            f, by_field.get(f, []), barcodes, page_id, cfg, ref, ocr=ocr
+        )
     fields["receipt_date"] = decide_field(
         "receipt_date",
         by_field.get("receipt_date", []),
@@ -631,6 +688,7 @@ def decide_page(
         cfg,
         ref,
         aux_dates=aux,
+        ocr=ocr,
     )
     # A commitment number is never the central number or the ID (spec 5).
     taken = set(fields["central_numbers"].values) | set(fields["id_number"].values)
@@ -642,6 +700,7 @@ def decide_page(
         cfg,
         ref,
         exclude=taken,
+        ocr=ocr,
     )
     _cross_field_conflicts(fields, by_field, cfg)
     _name_split(fields["first_name"], fields["last_name"])

@@ -203,6 +203,52 @@ def _ref_date(text: str | None):
     return date.fromisoformat(text) if text else date.today()
 
 
+def cmd_ocr(args: argparse.Namespace) -> None:
+    """Google Vision OCR of the pages (D-009) -> <pages>/ocr.json (cached)."""
+    import json
+    from concurrent.futures import ThreadPoolExecutor
+
+    from PIL import Image
+
+    from vera.config import get_settings
+    from vera.pipeline.gvision import VisionOcr
+    from vera.pipeline.vlm import CacheMiss, VlmInvalid
+
+    s = get_settings()
+    mode = args.mode or s.vlm_mode
+    if mode == "live" and not s.google_vision_api_key:
+        raise SystemExit("GOOGLE_VISION_API_KEY is empty in .env")
+    ocr = VisionOcr(
+        s.data_dir / "cache" / "gvision", s.google_vision_api_key, mode=mode
+    )
+    pages_dir = Path(args.pages)
+    manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
+    pages = [p for p in manifest["pages"] if not args.doc or p["doc"] in args.doc]
+
+    def run(p):
+        page_id = f"{p['doc']}/p{p['page']:02d}"
+        try:
+            with Image.open(pages_dir / p["image"]) as img:
+                return page_id, {"lines": ocr.read(img, p["sha256"])}
+        except (VlmInvalid, CacheMiss) as e:
+            return page_id, {"error": type(e).__name__, "detail": str(e)[:200]}
+
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        out = dict(ex.map(run, pages))
+    out_path = Path(args.out) if args.out else pages_dir / "ocr.json"
+    out_path.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    ok = [v for v in out.values() if "error" not in v]
+    words = sum(len(ln["words"]) for v in ok for ln in v["lines"])
+    print(
+        f"{len(ok)}/{len(out)} pages OCR'd ({mode}), {words} words, "
+        f"{time.time() - t0:.0f}s -> {out_path}"
+    )
+    for page_id, v in out.items():
+        if "error" in v:
+            print(f"  {page_id}: {v['error']} {v['detail']}")
+
+
 def cmd_decide(args: argparse.Namespace) -> None:
     import json
     from collections import Counter
@@ -227,6 +273,12 @@ def cmd_decide(args: argparse.Namespace) -> None:
         if crop_path.is_file() and not args.no_escalated
         else {}
     )
+    ocr_path = pages_dir / "ocr.json"
+    ocr = (
+        json.loads(ocr_path.read_text(encoding="utf-8"))
+        if ocr_path.is_file() and not args.no_ocr
+        else {}
+    )
     vlm = {
         pid: merge_reads(v, escalated.get(pid), crops.get(pid))
         for pid, v in vlm.items()
@@ -241,6 +293,7 @@ def cmd_decide(args: argparse.Namespace) -> None:
             barcodes.get(page_id, {}).get("barcodes", []),
             cfg,
             ref,
+            ocr=ocr.get(page_id, {}).get("lines"),
         )
         for page_id, v in vlm.items()
     ]
@@ -378,6 +431,13 @@ def main(argv: list[str] | None = None) -> None:
     )
     v.set_defaults(func=cmd_vlm)
 
+    o = sub.add_parser("ocr", help="Google Vision OCR of extracted pages (cached)")
+    o.add_argument("--pages", default="data/work/pages", help="output of `pages`")
+    o.add_argument("--doc", nargs="*", help="only these docs, e.g. part2")
+    o.add_argument("--mode", choices=["live", "replay"], default=None)
+    o.add_argument("--out", default=None, help="default: <pages>/ocr.json")
+    o.set_defaults(func=cmd_ocr)
+
     d = sub.add_parser("decide", help="barcodes + VLM -> statuses per field")
     d.add_argument("--pages", default="data/work/pages", help="output of `pages`")
     d.add_argument("--batch", default="samples")
@@ -386,6 +446,7 @@ def main(argv: list[str] | None = None) -> None:
     d.add_argument(
         "--no-escalated", action="store_true", help="ignore vlm_escalated.json"
     )
+    d.add_argument("--no-ocr", action="store_true", help="ignore ocr.json")
     d.set_defaults(func=cmd_decide)
 
     e = sub.add_parser("eval", help="accuracy report against the ground truth")

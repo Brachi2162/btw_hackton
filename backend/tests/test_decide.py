@@ -415,3 +415,65 @@ def test_commitment_without_its_label_goes_to_review(cfg):
         REF,
     )
     assert labeled.status == "likely" and "label_missing" not in labeled.reasons
+
+
+def ocr_line(*words, conf=0.95):
+    """Vision lines as gvision.to_lines makes them (D-009)."""
+    return {
+        "text": " ".join(words),
+        "words": [
+            {"text": w, "bbox": [100 * i, 50, 100 * i + 80, 80], "conf": conf}
+            for i, w in enumerate(words)
+        ],
+    }
+
+
+def test_vision_confirms_a_handwritten_name_with_a_real_box(cfg):
+    read = vlm("first_name", "דנה", legible=False, handwritten=True)
+    alone = decide_field("first_name", [read], [], PAGE, cfg, REF)
+    assert alone.status == "review" and "illegible" in alone.reasons
+    fr = decide_field(
+        "first_name",
+        [read.model_copy()],
+        [],
+        PAGE,
+        cfg,
+        REF,
+        ocr=[ocr_line("שם", "דנה")],
+    )
+    assert fr.status == "verified"
+    vision = next(s for s in fr.sources if s.reader == "ocr")
+    assert vision.bbox == (100, 50, 180, 80) and "Vision" in vision.evidence_text
+
+
+def test_vision_low_confidence_adds_a_source_but_not_a_clear_read(cfg):
+    read = vlm("first_name", "דנה", legible=False, handwritten=True)
+    fr = decide_field(
+        "first_name", [read], [], PAGE, cfg, REF, ocr=[ocr_line("דנה", conf=0.5)]
+    )
+    assert fr.status == "review" and "illegible" in fr.reasons
+    assert "source_single" not in fr.reasons
+
+
+def test_vision_proves_the_digits_not_the_field(cfg):
+    fr = decide_field(
+        "commitment_numbers",
+        [vlm("commitment_numbers", "88120")],
+        [],
+        PAGE,
+        cfg,
+        REF,
+        ocr=[ocr_line("88", "120")],
+    )
+    assert fr.status == "review" and "label_missing" in fr.reasons
+    assert "bbox_approx" not in fr.reasons  # the box is real now
+    other = decide_field(
+        "central_numbers",
+        [vlm("central_numbers", "512340", label="מרכזי")],
+        [],
+        PAGE,
+        cfg,
+        REF,
+        ocr=[ocr_line("512341")],  # a different number: no support
+    )
+    assert other.status == "likely" and "source_single" in other.reasons

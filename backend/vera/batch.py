@@ -32,6 +32,7 @@ from vera.normalize import (
 )
 from vera.pipeline.decide import FIELDS, MULTI, DecisionConfig, decide_page
 from vera.pipeline.decide import merge_reads
+from vera.pipeline.gvision import VisionOcr
 from vera.pipeline.ingest import UnsupportedFileError, pdf_page_count, sniff_kind
 from vera.pipeline.process import (
     crop_region,
@@ -42,6 +43,8 @@ from vera.pipeline.process import (
     read_vlm,
 )
 from vera.pipeline.vlm import (
+    CacheMiss,
+    VlmInvalid,
     VlmCache,
     VlmConfig,
     filter_blocked,
@@ -126,6 +129,7 @@ class Readers:
     crop_prompt: str = ""
     crop_version: str = ""
     crop_max_side: int = 1568
+    ocr: object = None  # VisionOcr (D-009), when there is a key or a cache
 
 
 class BatchService:
@@ -176,6 +180,15 @@ class BatchService:
                 ),
                 crop_version=cfg.crop_prompt,
                 crop_max_side=cfg.crop_max_side,
+                ocr=(
+                    VisionOcr(
+                        self.s.data_dir / "cache" / "gvision",
+                        self.s.google_vision_api_key,
+                        mode=mode,
+                    )
+                    if mode == "replay" or self.s.google_vision_api_key
+                    else None
+                ),
             )
         return self._readers
 
@@ -377,9 +390,14 @@ class BatchService:
                 read_vlm, r.full, image, rec["sha256"], r.prompt, page_id
             )
             self._set_page(page_id, vlm=vlm)
+            ocr = None
+            if r.ocr is not None:
+                ocr = await asyncio.to_thread(self._ocr, r.ocr, image, rec["sha256"])
+                self._set_page(page_id, ocr=ocr)
+            lines = ocr.get("lines") if ocr else None
             self._stage(batch_id, page_id, doc_id, "verify")
             sub = decide_page(
-                page_id, batch_id, vlm, prep["barcodes"], self.decision, ref
+                page_id, batch_id, vlm, prep["barcodes"], self.decision, ref, ocr=lines
             )
             if needs_escalation(sub):
                 esc = await asyncio.to_thread(
@@ -399,6 +417,7 @@ class BatchService:
                     prep["barcodes"],
                     self.decision,
                     ref,
+                    ocr=lines,
                 )
             else:
                 esc = None
@@ -423,6 +442,7 @@ class BatchService:
                     prep["barcodes"],
                     self.decision,
                     ref,
+                    ocr=lines,
                 )
             self._save_submission(sub, position=self._position(doc_id, page_no))
             self._set_page(page_id, status="done")
@@ -438,6 +458,19 @@ class BatchService:
             self.events.publish(
                 batch_id, "warning", {"page_id": page_id, "error": type(exc).__name__}
             )
+
+    @staticmethod
+    def _ocr(reader: VisionOcr, image: Path, sha256: str) -> dict:
+        """Vision OCR is an extra source (D-009): when it fails, the page is
+        still read and decided without it."""
+        from PIL import Image
+
+        try:
+            with Image.open(image) as img:
+                return {"lines": reader.read(img, sha256)}
+        except (VlmInvalid, CacheMiss) as e:
+            log.warning("ocr skipped: %s", page_error(e)[:200])
+            return {"error": type(e).__name__, "detail": page_error(e)[:300]}
 
     def _stage(self, batch_id: str, page_id: str, doc_id: str, stage: str) -> None:
         self._set_page(page_id, stage=stage)

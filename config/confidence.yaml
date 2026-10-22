@@ -29,6 +29,10 @@ self_verifying: [id_number]
 # case), so it goes to review instead of yellow.
 label_required: [commitment_numbers]
 
+# Vision OCR (D-009) confirms a value only as a clear read at this word
+# confidence or above; below it, it still adds a source but not legibility.
+ocr_min_conf: 0.8
+
 anchor_bonus: 0.3      # the right label next to the value
 illegible_penalty: 0.5 # the reader itself said it can't read it
 decoy_penalty: 1.0     # next to a decoy label (spec 3.4)
