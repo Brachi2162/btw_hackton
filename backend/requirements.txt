@@ -16,5 +16,6 @@ zxing-cpp>=2.2,<3.0
 
 # Vision model, config, export
 anthropic>=1.4,<2.0
+httpx>=0.27,<1.0  # Gemini and Google Vision calls (REST)
 pyyaml>=6.0,<7.0
 openpyxl>=3.1,<4.0

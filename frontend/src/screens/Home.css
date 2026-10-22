@@ -36,7 +36,7 @@
 .home-blobs .b1 {
   width: 420px;
   height: 420px;
-  background: #fdba74;
+  background: #a8e8e3;
   top: -120px;
   right: 8%;
 }
@@ -44,7 +44,7 @@
 .home-blobs .b2 {
   width: 380px;
   height: 380px;
-  background: #f9a8d4;
+  background: #bfe4ee;
   top: 380px;
   left: 6%;
   animation-delay: -6s;
@@ -53,7 +53,7 @@
 .home-blobs .b3 {
   width: 460px;
   height: 460px;
-  background: #c4b5fd;
+  background: #c3d4e3;
   top: 1300px;
   right: 30%;
   animation-delay: -12s;
@@ -166,7 +166,7 @@
 }
 
 .btn.primary.big {
-  box-shadow: 0 10px 30px rgba(236, 72, 153, 0.35);
+  box-shadow: 0 10px 30px rgba(14, 159, 154, 0.35);
 }
 
 .btn.glass {
@@ -218,7 +218,7 @@
 .scroll-hint span {
   width: 22px;
   height: 34px;
-  border: 2px solid #d6c8e6;
+  border: 2px solid #c9d4de;
   border-radius: 12px;
   position: relative;
 }
@@ -333,7 +333,7 @@
   width: 26px;
   height: 4px;
   border-radius: 2px;
-  background: #e6dcef;
+  background: #e2e8ee;
   transition: background 0.4s;
 }
 
@@ -358,7 +358,7 @@
   border-radius: 18px;
   background: var(--dark-grad);
   color: #fff;
-  box-shadow: 0 18px 40px rgba(31, 16, 53, 0.18);
+  box-shadow: 0 18px 40px rgba(14, 26, 43, 0.18);
   overflow: hidden;
   position: relative;
 }
@@ -370,7 +370,7 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.45), transparent 70%);
+  background: radial-gradient(circle, rgba(14, 159, 154, 0.45), transparent 70%);
 }
 
 .rule-n {
@@ -391,7 +391,7 @@
 }
 
 .rule span {
-  color: #d9c9ee;
+  color: #b9cad8;
 }
 
 /* --- features --- */
@@ -429,7 +429,7 @@
   padding: 22px;
   border-radius: 18px;
   background:
-    radial-gradient(360px circle at var(--mx) var(--my), rgba(236, 72, 153, 0.1), transparent 45%),
+    radial-gradient(360px circle at var(--mx) var(--my), rgba(14, 159, 154, 0.1), transparent 45%),
     rgba(255, 255, 255, 0.82);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
@@ -448,7 +448,7 @@
   inset: 0;
   padding: 1px;
   border-radius: inherit;
-  background: radial-gradient(260px circle at var(--mx) var(--my), #ec4899, #8b3dff 45%, transparent 70%);
+  background: radial-gradient(260px circle at var(--mx) var(--my), #0e9f9a, #0b6f78 45%, transparent 70%);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -465,7 +465,7 @@
 
 .feat.in:hover {
   transform: translateY(-4px);
-  box-shadow: 0 18px 40px rgba(139, 61, 255, 0.14);
+  box-shadow: 0 18px 40px rgba(13, 27, 42, 0.14);
 }
 
 .feat-icon {
@@ -521,8 +521,8 @@
   padding: 32px 36px;
   border-radius: 24px;
   background:
-    radial-gradient(500px 200px at 100% 0%, rgba(251, 138, 60, 0.18), transparent 70%),
-    radial-gradient(500px 220px at 0% 100%, rgba(139, 61, 255, 0.16), transparent 70%),
+    radial-gradient(500px 200px at 100% 0%, rgba(95, 208, 203, 0.18), transparent 70%),
+    radial-gradient(500px 220px at 0% 100%, rgba(13, 27, 42, 0.16), transparent 70%),
     #fff;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
@@ -546,7 +546,7 @@
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(139, 61, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(13, 27, 42, 0.1);
 }
 
 .foot-logo span {

@@ -1,7 +1,8 @@
 """Stage 7, vision-model reader (spec 8): one full-page read per page.
 
-- `VisionReader` is the interface; `ClaudeReader` calls the API, and
-  `ReplayReader` answers from the cache only, with no network (demo mode).
+- `VisionReader` is the interface; `GeminiReader` and `ClaudeReader` call the
+  APIs (picked by model name, D-006), and `ReplayReader` answers from the
+  cache only, with no network (demo mode).
 - Output is structured: the response schema is `PageReading` below, and every
   answer is validated by Pydantic. An invalid answer is retried once, then
   raises `VlmInvalid` (reason code `vlm_invalid`).
@@ -18,6 +19,7 @@ import hashlib
 import io
 import json
 import threading
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal, Protocol
@@ -73,14 +75,59 @@ class PageReading(BaseModel):
     fields: VlmFields
 
 
-class CropReading(BaseModel):
-    """The response schema of a patient-area crop read (spec 8.2.2)."""
+class CropReadingV1(BaseModel):
+    """The response schema of crop_patient.v1 (spec 8.2.2, D-005)."""
 
     first_name: str
     last_name: str
     id_number: str
     name_legible: bool
     id_legible: bool
+
+
+class CropReading(BaseModel):
+    """The response schema of crop_patient.v2 (D-012). The letters come
+    before the names: the model transcribes what it sees first, then joins
+    it, instead of jumping to a familiar name. The box (0-1000 of the crop)
+    is where it read them, for a second, tighter crop."""
+
+    name_line: str
+    first_name_letters: list[str]
+    first_name: str
+    last_name_letters: list[str]
+    last_name: str
+    id_number: str
+    first_name_legible: bool
+    last_name_legible: bool
+    id_legible: bool
+    box_left: int
+    box_top: int
+    box_right: int
+    box_bottom: int
+
+
+class CropReadingV3(BaseModel):
+    """The response schema of crop_patient.v3 (D-014): v1's plain reading,
+    with a confidence per field and a second reading of each name when one
+    is still reasonable, offered to the person instead of chosen silently."""
+
+    first_name: str
+    first_name_alt: str
+    last_name: str
+    last_name_alt: str
+    id_number: str
+    first_name_legible: bool
+    last_name_legible: bool
+    id_legible: bool
+
+
+def crop_schema(prompt_version: str) -> type[BaseModel]:
+    """Each crop prompt has its own schema; v1 answers stay in the cache."""
+    if prompt_version.endswith(".v1"):
+        return CropReadingV1
+    if prompt_version.endswith(".v3"):
+        return CropReadingV3
+    return CropReading
 
 
 class VlmInvalid(RuntimeError):
@@ -107,6 +154,10 @@ class VlmConfig:
     crop_model: str = ""
     crop_prompt: str = ""
     crop_max_side: int = 1568
+    # Re-read a tight crop around the box the first crop read reported.
+    crop_zoom: bool = True
+    # A crop reader from another provider, its own source (vlm_crop_check).
+    crop_check_model: str = ""
 
     @classmethod
     def load(cls, config_dir: Path) -> "VlmConfig":
@@ -144,6 +195,22 @@ def prepare_image(img: Image.Image, max_side: int, quality: int) -> bytes:
     buf = io.BytesIO()
     img.save(buf, "JPEG", quality=quality, optimize=True)
     return buf.getvalue()
+
+
+MAX_UPSCALE = 3.0
+
+
+def crop_image(img: Image.Image, crop, max_side: int) -> Image.Image:
+    """A crop is a zoom: a small one (one line of handwriting) is enlarged
+    toward max_side, so the model sees the strokes, not a few pixels."""
+    if not crop:
+        return img
+    img = img.crop(crop)
+    scale = min(MAX_UPSCALE, max_side / max(img.size))
+    if scale > 1:
+        size = (round(img.width * scale), round(img.height * scale))
+        img = img.resize(size, Image.Resampling.LANCZOS)
+    return img
 
 
 def cache_key(
@@ -323,9 +390,9 @@ class ClaudeReader:
         if entry is not None:
             return _from_cache(entry, key, schema)
 
-        if crop:
-            img = img.crop(crop)
-        data = prepare_image(img, max_side or self.cfg.max_side, self.cfg.jpeg_quality)
+        side = max_side or self.cfg.max_side
+        img = crop_image(img, crop, side)
+        data = prepare_image(img, side, self.cfg.jpeg_quality)
         image_b64 = base64.standard_b64encode(data).decode("ascii")
         problem = ""
         for _attempt in range(2):  # one retry on an invalid answer (spec 8.1)
@@ -370,15 +437,180 @@ class ClaudeReader:
         raise VlmInvalid(problem)
 
 
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+)
+# Gemini finish reasons that mean "won't answer", like Claude's refusal.
+_GEMINI_BLOCKED = {"SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII"}
+
+
+class GeminiReader:
+    """Live reads through the Gemini REST API (D-006); same cache and contract
+    as ClaudeReader. JSON output is constrained by the schema and then
+    validated by Pydantic, never trusted as is."""
+
+    def __init__(
+        self,
+        cfg: VlmConfig,
+        cache: VlmCache,
+        client=None,
+        model: str | None = None,
+        api_key: str | None = None,
+    ):
+        import httpx
+
+        self.cfg, self.cache = cfg, cache
+        self.model = model or cfg.model
+        self.api_key = api_key or ""
+        self.client = client or httpx.Client(timeout=cfg.timeout)
+        self._slots = threading.Semaphore(cfg.concurrency)
+
+    def _post(self, body: dict) -> dict:
+        """One call, retried with backoff on 429/5xx/connection errors."""
+        import httpx
+
+        problem = ""
+        for attempt in range(self.cfg.max_retries + 1):
+            if attempt:
+                time.sleep(min(2**attempt, 20))
+            try:
+                with self._slots:
+                    r = self.client.post(
+                        GEMINI_URL.format(model=self.model),
+                        headers={"x-goog-api-key": self.api_key},
+                        json=body,
+                    )
+            except httpx.TransportError as e:
+                problem = type(e).__name__
+                continue
+            if r.status_code == 429 or r.status_code >= 500:
+                problem = f"HTTP {r.status_code}"
+                continue
+            if r.status_code != 200:
+                if filter_blocked(r.text):
+                    raise VlmInvalid(f"filter blocked: {r.text[:200]}")
+                # The error body names the problem (bad key, model name), never the key.
+                try:
+                    msg = r.json().get("error", {}).get("message", "")[:200]
+                except ValueError:
+                    msg = r.text[:200]
+                raise VlmInvalid(f"gemini HTTP {r.status_code}: {msg}")
+            return r.json()
+        raise VlmInvalid(f"gemini unavailable: {problem}")
+
+    def read_page(
+        self,
+        img,
+        page_sha256,
+        prompt,
+        schema=PageReading,
+        prompt_version=None,
+        crop=None,
+        max_side=None,
+    ) -> VlmResult:
+        key = _key(self, page_sha256, prompt, prompt_version, crop, max_side)
+        entry = self.cache.get(key)
+        if entry is not None:
+            return _from_cache(entry, key, schema)
+
+        side = max_side or self.cfg.max_side
+        img = crop_image(img, crop, side)
+        data = prepare_image(img, side, self.cfg.jpeg_quality)
+        body = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": base64.standard_b64encode(data).decode("ascii"),
+                            }
+                        },
+                        {"text": prompt},
+                    ],
+                }
+            ],
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "responseJsonSchema": schema.model_json_schema(),
+                "maxOutputTokens": self.cfg.max_tokens,
+            },
+        }
+        problem = ""
+        for _attempt in range(2):  # one retry on an invalid answer (spec 8.1)
+            response = self._post(body)
+            if response.get("promptFeedback", {}).get("blockReason"):
+                raise VlmInvalid("model refused to read the page")
+            candidates = response.get("candidates") or []
+            if not candidates:
+                problem = "no candidates"
+                continue
+            finish = candidates[0].get("finishReason", "")
+            if finish in _GEMINI_BLOCKED:
+                raise VlmInvalid("model refused to read the page")
+            if finish == "MAX_TOKENS":
+                problem = "truncated (max_tokens)"
+                continue
+            parts = candidates[0].get("content", {}).get("parts", [])
+            text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
+            try:
+                reading = schema.model_validate_json(text)
+            except ValidationError as e:
+                problem = f"schema: {e.error_count()} errors"
+                continue
+            meta = response.get("usageMetadata", {})
+            usage = {
+                "input_tokens": meta.get("promptTokenCount", 0),
+                "output_tokens": meta.get("candidatesTokenCount", 0)
+                + meta.get("thoughtsTokenCount", 0),
+            }
+            self.cache.put(
+                key,
+                {
+                    "model": self.model,
+                    "prompt_version": prompt_version or self.cfg.prompt,
+                    "page_sha256": page_sha256,
+                    "crop": list(crop) if crop else None,
+                    "request_id": response.get("responseId"),
+                    "usage": usage,
+                    "reading": reading.model_dump(mode="json"),
+                },
+            )
+            return VlmResult(
+                reading,
+                self.model,
+                prompt_version or self.cfg.prompt,
+                key,
+                False,
+                usage,
+            )
+        raise VlmInvalid(problem)
+
+
+def filter_blocked(text: str) -> bool:
+    """A network content filter (NetFree) answered with its block page
+    instead of the API's answer."""
+    return "netfree.link/block" in text
+
+
+def provider_of(model: str) -> str:
+    """Which API serves a model name: "gemini" or "anthropic"."""
+    return "gemini" if model.startswith("gemini") else "anthropic"
+
+
 def make_reader(
     mode: str,
     cfg: VlmConfig,
     cache: VlmCache,
     api_key: str = "",
     model: str | None = None,
+    gemini_api_key: str = "",
 ) -> VisionReader:
     if mode == "replay":
         return ReplayReader(cfg, cache, model=model)
+    if provider_of(model or cfg.model) == "gemini":
+        return GeminiReader(cfg, cache, api_key=gemini_api_key, model=model)
     return ClaudeReader(cfg, cache, api_key=api_key, model=model)
 
 
@@ -422,29 +654,95 @@ def region_box(region: str, width: int, height: int) -> tuple[int, int, int, int
     return (int(x0 * width), int(y0 * height), int(x1 * width), int(y1 * height))
 
 
+# Tight crop around the box a crop read reported: margins as a share of the
+# box, and a floor so one squeezed line still has its neighbours' context.
+ZOOM_MARGIN_X, ZOOM_MARGIN_Y = 0.15, 0.6
+ZOOM_MIN_SIDE = 160
+# A box this big (share of the crop's area) is no zoom: read it as it is.
+ZOOM_MAX_AREA = 0.6
+
+
+def zoom_box(
+    reading: BaseModel, crop: tuple[int, int, int, int]
+) -> tuple[int, int, int, int] | None:
+    """The crop read's own box (0-1000 of the crop) -> page pixels, with
+    margins. None when the box is missing (a v1 read has none), broken or
+    not much smaller than the crop."""
+    x0, y0, x1, y1 = crop
+    w, h = x1 - x0, y1 - y0
+    sides = ("box_left", "box_top", "box_right", "box_bottom")
+    b = [max(0, min(1000, getattr(reading, k, 0))) for k in sides]
+    if b[2] <= b[0] or b[3] <= b[1]:
+        return None
+    if (b[2] - b[0]) * (b[3] - b[1]) > ZOOM_MAX_AREA * 1000 * 1000:
+        return None
+    bx0, by0 = x0 + b[0] * w / 1000, y0 + b[1] * h / 1000
+    bx1, by1 = x0 + b[2] * w / 1000, y0 + b[3] * h / 1000
+    mx = max((bx1 - bx0) * ZOOM_MARGIN_X, (ZOOM_MIN_SIDE - (bx1 - bx0)) / 2, 0)
+    my = max((by1 - by0) * ZOOM_MARGIN_Y, (ZOOM_MIN_SIDE - (by1 - by0)) / 2, 0)
+    return (
+        int(max(x0, bx0 - mx)),
+        int(max(y0, by0 - my)),
+        int(min(x1, bx1 + mx)),
+        int(min(y1, by1 + my)),
+    )
+
+
+def _letters_match(letters: list[str], value: str) -> bool:
+    """The joined letters are the name the model returned. When they aren't,
+    the model contradicted its own transcription: not a clear read."""
+    return "".join(letters).replace(" ", "") == value.replace(" ", "")
+
+
 def crop_to_candidates(
-    result: VlmResult, page_id: str, box: tuple[int, int, int, int]
+    result: VlmResult,
+    page_id: str,
+    box: tuple[int, int, int, int],
+    reader: str = "vlm_crop",
 ) -> list[Candidate]:
-    """A crop read of the patient area -> name/ID candidates (reader vlm_crop)."""
-    r: CropReading = result.reading
-    out = []
-    for field_name, value, legible in (
-        ("first_name", r.first_name, r.name_legible),
-        ("last_name", r.last_name, r.name_legible),
+    """A crop read of the patient area -> name/ID candidates."""
+    r = result.reading
+    alts = {}
+    if isinstance(r, CropReadingV1):
+        first_ok = last_ok = r.name_legible
+        line = ""
+    elif isinstance(r, CropReadingV3):
+        first_ok, last_ok, line = r.first_name_legible, r.last_name_legible, ""
+        alts = {"first_name": r.first_name_alt, "last_name": r.last_name_alt}
+    else:
+        first_ok = r.first_name_legible and _letters_match(
+            r.first_name_letters, r.first_name
+        )
+        last_ok = r.last_name_legible and _letters_match(
+            r.last_name_letters, r.last_name
+        )
+        line = r.name_line
+    readings = [
+        ("first_name", r.first_name, first_ok),
+        ("last_name", r.last_name, last_ok),
         ("id_number", r.id_number, r.id_legible),
-    ):
+    ]
+    # A second reasonable reading is a guess by definition: it competes as an
+    # unreadable candidate, so the person gets both and nothing is chosen.
+    readings += [
+        (f, alt, False)
+        for f, alt in alts.items()
+        if alt.strip() and alt.strip() != getattr(r, f).strip()
+    ]
+    out = []
+    for field_name, value, legible in readings:
         if not value.strip():
             continue
         out.append(
             Candidate(
                 field=field_name,
                 value_raw=value,
-                reader="vlm_crop",
+                reader=reader,
                 model=result.model,
                 page_id=page_id,
                 bbox=box,
                 bbox_approx=True,
-                evidence_text=f"crop {','.join(map(str, box))}",
+                evidence_text=(line or f"crop {','.join(map(str, box))}")[:200],
                 legible=legible,
                 handwritten=True,
                 signals={"crop": True},

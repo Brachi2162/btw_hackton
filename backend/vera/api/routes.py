@@ -140,6 +140,25 @@ async def upload_files(
     return {"added": added, "rejected": rejected, "job_id": job_id}
 
 
+@router.post("/batches/{batch_id}/retry-failed")
+async def retry_failed(
+    batch_id: str, request: Request, x_user: str | None = Header(None)
+):
+    """Read the failed pages again; pages already read are not touched.
+    Progress arrives on /events, as after an upload."""
+    service = svc(request)
+    try:
+        requeued = service.requeue_failed(batch_id, user_of(x_user))
+    except KeyError:
+        raise HTTPException(404, "batch not found")
+    except PermissionError as e:
+        raise HTTPException(409, str(e))
+    job_id = None
+    if requeued:
+        job_id = await service.sv.jobs.submit(service.process_batch, batch_id)
+    return {"requeued": requeued, "job_id": job_id}
+
+
 @router.get("/batches/{batch_id}/events")
 async def events(batch_id: str, request: Request):
     """SSE: page_done, submission_updated, batch_done, warning."""

@@ -8,6 +8,8 @@ validation, never from the model's opinion of itself (iron rule 3):
 - verified (green): checks pass, two independent source groups agree, and no
   close competitor. A barcode + VLM match is two groups; two reads by the
   same model are one.
+  A field with its own check digit (`self_verifying`, D-007: the ID) needs
+  one clear source only.
 - likely (yellow): checks pass, one source group only.
 - review (orange): failed check, illegible, decoy label, competing values,
   date conflicts, unreadable page.
@@ -33,13 +35,16 @@ from vera.models import (
     Submission,
     worst_status,
 )
+from vera.pipeline.gvision import find_value
 from vera.normalize import (
+    LATIN_RE,
     Norm,
     SenderIndex,
     norm_central,
     norm_commitment,
     norm_date,
     norm_id,
+    is_placeholder,
     norm_name,
     parse_date,
 )
@@ -56,6 +61,15 @@ FIELDS = [
 ]
 MULTI = {"central_numbers", "commitment_numbers"}
 BARCODE_FIELDS = {"central_numbers", "commitment_numbers", "id_number"}
+# Fields Vision OCR can confirm (D-009); the sender is a name from a list.
+OCR_FIELDS = {
+    "central_numbers",
+    "commitment_numbers",
+    "id_number",
+    "receipt_date",
+    "first_name",
+    "last_name",
+}
 
 
 @dataclass
@@ -73,6 +87,12 @@ class DecisionConfig:
     reasons_he: dict[str, str]
     senders: SenderIndex
     commitment_aliases: list[str] = field(default_factory=list)
+    self_verifying: set[str] = field(default_factory=set)
+    label_required: set[str] = field(default_factory=set)
+    rules_suffice: set[str] = field(default_factory=set)
+    check_overrides_doubt: set[str] = field(default_factory=set)
+    ocr_min_conf: float = 0.8
+    hebrew_handwriting: set[str] = field(default_factory=set)
 
     @classmethod
     def load(cls, config_dir: Path) -> "DecisionConfig":
@@ -96,6 +116,12 @@ class DecisionConfig:
             reasons_he=y("reasons.he.yaml"),
             senders=SenderIndex(y("senders.yaml")),
             commitment_aliases=vlm.get("commitment_aliases", []),
+            self_verifying=set(c.get("self_verifying", [])),
+            label_required=set(c.get("label_required", [])),
+            rules_suffice=set(c.get("rules_suffice", [])),
+            check_overrides_doubt=set(c.get("check_overrides_doubt", [])),
+            ocr_min_conf=c.get("ocr_min_conf", 0.8),
+            hebrew_handwriting=set(c.get("hebrew_handwriting", [])),
         )
 
 
@@ -158,15 +184,35 @@ def _barcode_value(fname: str, text: str) -> str | None:
 
 
 def _support_with_barcodes(
-    fname: str, cands: list[Candidate], barcodes: list[dict], page_id: str
+    fname: str,
+    cands: list[Candidate],
+    barcodes: list[dict],
+    page_id: str,
+    anchors: list[str] = (),
 ) -> list[Candidate]:
-    """A barcode becomes a candidate of a field only when it encodes the same
-    value a reader found for that field: the barcode alone can't tell which
-    field it is (spec 3.6), the label next to the VLM value does."""
+    """A barcode becomes a candidate of a field when it encodes the same value
+    a reader found for that field: the barcode alone can't tell which field
+    it is (spec 3.6), the label next to the VLM value does. Or when the
+    field's own label is printed right next to the barcode (D-016): then the
+    barcode needs no reader at all."""
     out = []
     for b in barcodes:
         bv = _barcode_value(fname, b["text"])
         if bv is None:
+            continue
+        if b.get("label") and _has_label(b["label"], anchors):
+            out.append(
+                Candidate(
+                    field=fname,
+                    value_raw=b["text"],
+                    value_norm=bv,
+                    reader="barcode",
+                    page_id=page_id,
+                    bbox=tuple(b["bbox"]),
+                    evidence_text=f"{b['format']}: {b['text']} ({b['label']})",
+                    label_nearby=b["label"],
+                )
+            )
             continue
         for c in cands:
             if c.value_norm == bv:
@@ -183,6 +229,45 @@ def _support_with_barcodes(
                     )
                 )
                 break
+    return out
+
+
+def _support_with_ocr(
+    fname: str,
+    cands: list[Candidate],
+    ocr: list[dict],
+    page_id: str,
+    cfg: DecisionConfig,
+    ref: date,
+) -> list[Candidate]:
+    """Vision found, in one line of the page, the same normalized value a
+    reader chose (D-009): an independent source, with a real box. Like a
+    barcode it proves the reading, not the field: labels and decoys still
+    decide that. A low-confidence word doesn't count as a clear read."""
+    out, seen = [], set()
+    for c in cands:
+        v = c.value_norm
+        if v is None or v in seen or c.reader in ("barcode", "ocr"):
+            continue
+        seen.add(v)
+        hit = find_value(ocr, v, lambda s: _normalize(fname, s, cfg, ref).value)
+        if hit is None:
+            continue
+        out.append(
+            Candidate(
+                field=fname,
+                value_raw=hit.text,
+                value_norm=v,
+                reader="ocr",
+                page_id=page_id,
+                bbox=tuple(hit.bbox),
+                evidence_text=f"Vision: {hit.line[:120]}",
+                legible=hit.confidence >= cfg.ocr_min_conf,
+                handwritten=c.handwritten,
+                label_nearby=c.label_nearby,
+                signals={"ocr_conf": hit.confidence},
+            )
+        )
     return out
 
 
@@ -238,8 +323,11 @@ def _status(
             reasons.append("sources_dependent")
         if all(c.handwritten for c in g.cands if c.reader != "barcode"):
             reasons.append("handwritten_only")
-    if not any(c.bbox for c in g.cands):
+    # A crop read's box is the whole crop, not the value: still approximate.
+    if not any(c.bbox and not c.bbox_approx for c in g.cands):
         reasons.append("bbox_approx")
+    if fname in cfg.label_required and needs_anchor:
+        reasons.append("label_missing")
 
     blocking = {
         "validation_failed",
@@ -251,10 +339,24 @@ def _status(
         "illegible",
         "multiple_candidates",
         "name_split_ambiguous",
+        "label_missing",
     }
+    # A strong check of its own (the ID check digit) outweighs the reader's
+    # "not sure": a misread digit would have failed it (D-016).
+    if fname in cfg.check_overrides_doubt:
+        blocking = blocking - {"illegible"}
+    # The field's label is next to it and every rule passes: that settles
+    # which field it is, even when the models put it in different fields.
+    if fname in cfg.rules_suffice and g.anchored:
+        reasons = [r for r in reasons if r != "disagree_sources"]
     if blocking & set(reasons):
         return "review", reasons
+    if fname in cfg.rules_suffice and not needs_anchor:
+        return "verified", reasons  # all of the field's rules pass (D-016)
     if len(srcs) >= 2 and not needs_anchor:
+        return "verified", reasons
+    if fname in cfg.self_verifying:
+        # The check digit already caught any single misread digit (D-007).
         return "verified", reasons
     return "likely", reasons
 
@@ -262,7 +364,17 @@ def _status(
 def _explain(cfg: DecisionConfig, status: str, reasons: list, ctx: dict) -> str:
     keys = [r for r in reasons if r not in ("bbox_approx",)]
     if status == "verified":
-        keys = ["verified_barcode" if ctx.get("barcode") else "verified_sources"]
+        keys = [
+            (
+                "verified_barcode"
+                if ctx.get("barcode")
+                else (
+                    "verified_checksum"
+                    if "source_single" in reasons
+                    else "verified_sources"
+                )
+            )
+        ]
     elif status == "missing":
         keys = keys or ["missing"]
     texts = []
@@ -280,10 +392,15 @@ def _source(c: Candidate) -> Source:
         values=[c.value_norm or c.value_raw],
         page_id=c.page_id,
         bbox=c.bbox,
-        bbox_approx=c.bbox is None,
+        bbox_approx=c.bbox is None or c.bbox_approx,
         evidence_text=c.evidence_text,
         legible=c.legible,
         handwritten=c.handwritten,
+        region=(
+            c.signals.get("region")
+            if isinstance(c.signals.get("region"), str)
+            else None
+        ),
     )
 
 
@@ -308,6 +425,7 @@ def _date_checks(
 
 MODEL_GROUPS = {"vlm", "vlm_escalated"}
 HANDWRITING_FIELDS = {"first_name", "last_name", "id_number"}
+CROP_GROUPS = {"vlm_crop", "vlm_crop_check"}
 
 
 def _choose_multi(ranked: list[Group], cfg: DecisionConfig) -> list[Group]:
@@ -343,14 +461,43 @@ def decide_field(
     ref: date,
     aux_dates: dict[str, list[date]] | None = None,
     exclude: set[str] | None = None,
+    ocr: list[dict] | None = None,
 ) -> FieldResult:
+    # "לא קריא", "unknown"... is a reader saying it couldn't read: not a value.
+    unread = [c for c in cands if is_placeholder(c.value_raw)]
+    cands = [c for c in cands if not is_placeholder(c.value_raw)]
+    if unread and not cands:
+        return FieldResult(
+            field=fname,
+            values=[],
+            status="review",
+            score=0.0,
+            reasons=["illegible"],
+            explanation_he=(
+                "המקור ראה שכתוב משהו אבל לא הצליח לקרוא אותו; השדה נשאר ריק"
+            ),
+            sources=[_source(c) for c in unread],
+        )
     for c in cands:
         n = _normalize(fname, c.value_raw, cfg, ref)
+        if (
+            fname in cfg.hebrew_handwriting
+            and c.handwritten
+            and not n.problems
+            and LATIN_RE.search(n.value or "")
+        ):
+            # Hebrew cursive looks Latin to a model ("Ireei" for ישראלי):
+            # a handwritten name in Latin letters is a misread until checked.
+            n.problems, n.rule = ["validation_failed"], "כתב יד עברי שנקרא כלטינית"
         c.value_norm = n.value
         c.signals["problems"] = ",".join(n.problems)
         c.signals["rule"] = n.rule
     if fname in BARCODE_FIELDS:
-        cands = cands + _support_with_barcodes(fname, cands, barcodes, page_id)
+        cands = cands + _support_with_barcodes(
+            fname, cands, barcodes, page_id, cfg.anchors.get(fname, [])
+        )
+    if ocr and fname in OCR_FIELDS:
+        cands = cands + _support_with_ocr(fname, cands, ocr, page_id, cfg, ref)
 
     overridden = []
     if fname in ("first_name", "last_name") and any(c.handwritten for c in cands):
@@ -384,7 +531,7 @@ def decide_field(
             key=lambda g: (
                 not g.problems,
                 len(g.source_groups(cfg) - {"barcode"}),
-                "vlm_crop" in g.source_groups(cfg),
+                bool(CROP_GROUPS & g.source_groups(cfg)),
                 g.score,
             ),
             reverse=True,
@@ -436,15 +583,23 @@ def decide_field(
             sorted({str(d.year) for v in (aux_dates or {}).values() for d in v})
         ),
     }
+    # A reading that every one of its readers marked unreadable is a guess:
+    # it is offered to the secretary, never written as the value (iron rule
+    # 1, D-013). The field stays empty and orange until a person picks.
+    guesses = [g.display for g in chosen if "illegible" in g.reasons and g.display]
+    values = [g.display for g in chosen if g.display not in guesses]
+    if guesses:
+        status = "review"
     return FieldResult(
         field=fname,
-        values=[g.display for g in chosen],
+        values=values,
         status=status,
         score=round(sum(g.score for g in chosen) / len(chosen), 3),
         reasons=[r for r in reasons if r in ReasonCode.__args__],
-        explanation_he=_explain(cfg, status, reasons, ctx),
+        explanation_he=_explain(cfg, status, reasons, ctx)
+        + ("; הניחוש מוצע לבחירה ולא נכתב" if guesses else ""),
         sources=[_source(c) for g in chosen for c in g.cands],
-        alternatives=[g.display for g in rejected if g.display] + overridden,
+        alternatives=guesses + [g.display for g in rejected if g.display] + overridden,
     )
 
 
@@ -468,9 +623,12 @@ def _cross_field_conflicts(
     for f in BARCODE_FIELDS:
         fr = fields[f]
         clash = [v for v in fr.values if proposed.get(_number_key(v), {f}) - {f}]
-        if clash and fr.status in ("verified", "likely"):
+        # Green by its rules means its own label is next to it: that label,
+        # not the models' vote, says which field it is (D-016).
+        settled = fr.status == "verified" and f in cfg.rules_suffice
+        if clash and not settled and fr.status in ("verified", "likely", "review"):
             fr.status = "review"
-            fr.reasons.append("disagree_sources")
+            fr.reasons = list(dict.fromkeys(fr.reasons + ["disagree_sources"]))
             others = sorted(proposed[_number_key(clash[0])] - {f})
             fr.explanation_he = (
                 f"{clash[0]}: נקרא גם כ-{', '.join(others)}; "
@@ -489,7 +647,10 @@ def _name_split(first: FieldResult, last: FieldResult) -> None:
 
 
 def merge_reads(
-    base: dict | None, escalated: dict | None, crop: dict | None = None
+    base: dict | None,
+    escalated: dict | None,
+    crop: dict | None = None,
+    crop_check: dict | None = None,
 ) -> dict:
     """One page dict with the candidates of every model (each keeps its own
     `reader`, so they count as separate sources)."""
@@ -505,10 +666,11 @@ def merge_reads(
         merged["escalated_model"] = escalated.get("model")
     if merged is None:
         return base or {"error": "missing"}
-    if crop and "error" not in crop:
-        merged["candidates"] = list(merged["candidates"]) + list(
-            crop.get("candidates", [])
-        )
+    for extra in (crop, crop_check):
+        if extra and "error" not in extra:
+            merged["candidates"] = list(merged["candidates"]) + list(
+                extra.get("candidates", [])
+            )
     return merged
 
 
@@ -545,6 +707,7 @@ def decide_page(
     barcodes: list[dict],
     cfg: DecisionConfig,
     ref: date,
+    ocr: list[dict] | None = None,
 ) -> Submission:
     """One page = one submission (continuation pages are attached later)."""
     if "error" in vlm_page:
@@ -600,7 +763,9 @@ def decide_page(
 
     fields: dict[str, FieldResult] = {}
     for f in ("central_numbers", "id_number", "first_name", "last_name", "sender"):
-        fields[f] = decide_field(f, by_field.get(f, []), barcodes, page_id, cfg, ref)
+        fields[f] = decide_field(
+            f, by_field.get(f, []), barcodes, page_id, cfg, ref, ocr=ocr
+        )
     fields["receipt_date"] = decide_field(
         "receipt_date",
         by_field.get("receipt_date", []),
@@ -609,6 +774,7 @@ def decide_page(
         cfg,
         ref,
         aux_dates=aux,
+        ocr=ocr,
     )
     # A commitment number is never the central number or the ID (spec 5).
     taken = set(fields["central_numbers"].values) | set(fields["id_number"].values)
@@ -620,6 +786,7 @@ def decide_page(
         cfg,
         ref,
         exclude=taken,
+        ocr=ocr,
     )
     _cross_field_conflicts(fields, by_field, cfg)
     _name_split(fields["first_name"], fields["last_name"])
@@ -628,10 +795,10 @@ def decide_page(
         sid = sender.values[0]
         sender.values = [cfg.senders.name(sid)]
         # A parent organization (כללית) may hide a more specific hospital on
-        # the form, and the most specific one is required (spec 3.5): agreement
-        # on the parent is not enough for green.
-        if sender.status == "verified" and cfg.senders.has_children(sid):
-            sender.status = "likely"
+        # the form, and the most specific one is required (spec 3.5): on the
+        # dev set a bare parent was always a hospital misread, so it's a check.
+        if sender.status in ("verified", "likely") and cfg.senders.has_children(sid):
+            sender.status = "review"
             sender.explanation_he = cfg.reasons_he.get("sender_parent_only", "")
 
     fields = {f: fields[f] for f in FIELDS}

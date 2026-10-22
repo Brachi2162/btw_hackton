@@ -58,6 +58,8 @@ class PageRow(SQLModel, table=True):
     vlm: dict = Field(default_factory=dict, sa_column=Column(JSON))
     vlm_escalated: dict = Field(default_factory=dict, sa_column=Column(JSON))
     vlm_crops: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    # Google Vision lines (D-009): {"lines": [...]} or {"error": ...}.
+    ocr: dict = Field(default_factory=dict, sa_column=Column(JSON))
     # split | read | verify (intake stage strip); set while processing.
     stage: str | None = None
     # e.g. {"sharpness": 41.2, "warnings": ["blur"]}

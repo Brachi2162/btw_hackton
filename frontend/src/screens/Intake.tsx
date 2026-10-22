@@ -229,18 +229,24 @@ function FolderImport({ onImported }: { onImported: (id: string) => void }) {
   return (
     <section className="card folder-card">
       <h2>קליטה מתיקייה</h2>
-      <p className="muted">הדביקי נתיב של תיקייה במחשב (או קישור file:///). נקלטים רק מסמכים שעוד לא נקלטו.</p>
+      <p className="muted">
+        הדביקי נתיב של תיקייה במחשב (או קישור file:///), או כתובת אינטרנט (http://…) של תיקיית הסורק ברשת. נקלטים
+        רק טפסים שעוד לא נקלטו.
+      </p>
       <form className="folder-row" onSubmit={check}>
         <input
           className="input num"
           dir="ltr"
           value={path}
           onChange={(e) => {
-            setPath(e.target.value);
+            const v = e.target.value;
+            // A network scanner folder: by default take only today's scans.
+            if (/^\s*https?:\/\//i.test(v) && !/^\s*https?:\/\//i.test(path)) setToday(true);
+            setPath(v);
             setPreview(null);
           }}
-          placeholder="C:\Users\lab\Documents\Scans"
-          aria-label="נתיב התיקייה"
+          placeholder="C:\Scans\2026-10-22  או  http://scanner/scans/"
+          aria-label="נתיב התיקייה או כתובת"
         />
         <label className="today">
           <input type="checkbox" checked={today} onChange={(e) => (setToday(e.target.checked), setPreview(null))} /> רק מהיום

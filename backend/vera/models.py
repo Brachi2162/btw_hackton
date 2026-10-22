@@ -31,9 +31,18 @@ ReasonCode = Literal[
     "vlm_invalid",
     "duplicate_in_batch",
     "illegible",  # D-004: a reader saw something but marked it unreadable
+    "label_missing",  # D-008: no field label next to the value
 ]
 
-Reader = Literal["barcode", "ocr", "vlm_full", "vlm_crop", "vlm_escalated", "human"]
+Reader = Literal[
+    "barcode",
+    "ocr",
+    "vlm_full",
+    "vlm_crop",
+    "vlm_crop_check",  # D-012: the same crop read by another provider
+    "vlm_escalated",
+    "human",
+]
 Status = Literal["verified", "likely", "review", "missing", "human"]
 PageKind = Literal["form", "screenshot", "lab_report", "continuation", "unknown"]
 
@@ -69,6 +78,9 @@ class Source(BaseModel):
     evidence_text: str | None = None
     legible: bool = True
     handwritten: bool = False
+    # The reader's coarse place on the page ("top-right"), when it gave no box:
+    # enough to show where an uncertain value came from (D-015).
+    region: str | None = None
 
 
 class Correction(BaseModel):

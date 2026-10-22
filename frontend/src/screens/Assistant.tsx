@@ -22,7 +22,11 @@ export function Assistant() {
   const [handled, setHandled] = useState<Record<string, "ok" | "no">>({});
   const end = useRef<HTMLDivElement>(null);
 
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [msgs, busy]);
+  // Braces: newer Chrome returns a Promise from scrollIntoView, and React
+  // would call an effect's return value as its cleanup ("n is not a function").
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "end" });
+  }, [msgs, busy]);
 
   async function send(q: string) {
     q = q.trim();
@@ -56,8 +60,12 @@ export function Assistant() {
   return (
     <>
       {!open && (
-        <button className="ask-btn" onClick={() => setOpen(true)}>
-          <Virus size={20} spikes={8} /> שאלי את VERA
+        <button className="ask-btn" onClick={() => setOpen(true)} aria-label="שאלי את VERA">
+          <span className="ask-bubble">{msgs.length ? "חזרה לשיחה" : "שאלי את VERA"}</span>
+          <span className="ask-orb">
+            <Virus size={38} spikes={9} className="ask-virus" />
+            {msgs.length > 0 && <span className="ask-dot" aria-hidden="true" />}
+          </span>
         </button>
       )}
       {open && (
@@ -66,8 +74,8 @@ export function Assistant() {
             <Virus size={22} spikes={8} className="chat-logo" />
             <h2>VERA</h2>
             <span className="grow" />
-            <button className="btn ghost dark-x" onClick={() => setOpen(false)} aria-label="סגירה">
-              ✕
+            <button className="btn ghost dark-x" onClick={() => setOpen(false)} aria-label="הקטנה (השיחה נשמרת)" title="הקטנה">
+              —
             </button>
           </header>
           <div className="chat-body">

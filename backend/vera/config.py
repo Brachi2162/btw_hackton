@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # Process pool size for CPU-bound work (OpenCV, OCR). 0 = os.cpu_count().
     cpu_workers: int = 0
     # Max jobs running at once (also bounds concurrent VLM calls per batch).
-    max_concurrent_jobs: int = 4
+    max_concurrent_jobs: int = 8
 
     # Rules and prompt templates (spec 10, 8.3), at the repo root. In Docker
     # they are mounted at /config and /prompts, which is the same path.
@@ -39,9 +39,13 @@ class Settings(BaseSettings):
 
     vlm_mode: Literal["live", "replay"] = "live"
     anthropic_api_key: str = ""
+    gemini_api_key: str = ""
+    google_vision_api_key: str = ""
 
     # Assistant (spec 15) and drafted letters. Empty key = template answers.
-    assistant_model: str = "claude-opus-5-5"
+    # Gemini first, then the fallback when it fails (D-010).
+    assistant_model: str = "gemini-3.5-flash"
+    assistant_fallback_model: str = "claude-opus-5-5"
     # Scanner folder for "import from folder" (vera/inbox.py): where it is
     # mounted in the container, and its path on the host as people type it.
     inbox_dir: Path = Path("/inbox")

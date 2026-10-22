@@ -40,7 +40,7 @@
 }
 
 .forms tr.row-sel td {
-  background: #faf6ff;
+  background: #f2fafa;
 }
 
 .sig-cell {
@@ -62,12 +62,12 @@
 }
 
 .cell:hover {
-  border-color: rgba(31, 16, 53, 0.15);
+  border-color: rgba(14, 26, 43, 0.15);
 }
 
 .cell.active {
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(139, 61, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba(13, 27, 42, 0.18);
 }
 
 .cell-icon {
@@ -110,6 +110,69 @@
   font-size: 13px;
   color: var(--muted);
   cursor: pointer;
+}
+
+/* Close-up / whole page / mark: the field is what the secretary looks at. */
+.view-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.view-tabs button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.view-tabs button.on {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+.view-tabs button.mark {
+  margin-inline-start: auto;
+  border-color: var(--teal);
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.view-tabs button.mark.on {
+  background: var(--teal);
+  color: #fff;
+}
+
+.view-tabs button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.zoom-view {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--teal);
+  background: #fff;
+}
+
+.zoom-view img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.view-note {
+  margin: 6px 0 0;
+}
+
+.view-note.strong {
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: var(--teal);
 }
 
 .viewer.placeholder {
@@ -156,7 +219,7 @@
 
 .option.current {
   border-color: var(--teal);
-  background: #f7f2ff;
+  background: #eef7f7;
 }
 
 .option kbd {
@@ -194,4 +257,11 @@
     position: static;
     max-height: none;
   }
+}
+
+/* A guess in an empty field (D-013): visible, but unmistakably not a value. */
+.cell-guess {
+  color: var(--muted);
+  font-style: italic;
+  opacity: 0.85;
 }

@@ -1,6 +1,6 @@
 .sidebar {
   background: var(--dark-grad);
-  color: #dccfef;
+  color: #d3dde6;
   width: 230px;
   flex: none;
   display: flex;
@@ -20,7 +20,7 @@
   height: 320px;
   top: -160px;
   inset-inline-end: -160px;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.28), transparent 65%);
+  background: radial-gradient(circle, rgba(14, 159, 154, 0.28), transparent 65%);
   pointer-events: none;
 }
 
@@ -38,14 +38,14 @@
 
 .logo-icon {
   color: var(--glow);
-  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.6));
+  filter: drop-shadow(0 0 6px rgba(14, 159, 154, 0.6));
 }
 
 .logo-text {
   font-weight: 600;
   font-size: 19px;
   letter-spacing: 0.32em;
-  background: linear-gradient(90deg, #ffd0b0, #ffc2e2 50%, #d9c2ff);
+  background: linear-gradient(90deg, #bdeeea, #8fdcd6 50%, #9fc3d8);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -83,7 +83,7 @@
 }
 
 .nav-item.active {
-  background: linear-gradient(120deg, rgba(251, 138, 60, 0.18), rgba(236, 72, 153, 0.18) 50%, rgba(139, 61, 255, 0.22));
+  background: linear-gradient(120deg, rgba(95, 208, 203, 0.18), rgba(14, 159, 154, 0.18) 50%, rgba(13, 27, 42, 0.22));
   color: #fff;
 }
 
@@ -122,7 +122,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ff5b7a;
+  background: #e5484d;
 }
 
 .sidebar-foot {
@@ -156,7 +156,7 @@
   align-items: center;
   gap: 9px;
   font-size: 13px;
-  color: #b3a3c9;
+  color: #9fb3c4;
   padding: 0 12px;
 }
 
