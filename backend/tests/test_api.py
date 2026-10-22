@@ -108,7 +108,8 @@ def test_upload_process_correct_export(client, tmp_path):
     # labelled central number, so it is green.
     assert f["central_numbers"] == {"values": ["512340"], "status": "verified"}
     assert f["id_number"]["status"] == "review"  # bad check digit
-    assert f["sender"]["values"] == ["המרכז הרפואי שיבא"]
+    # the official name from the closed list (config/senders.yaml)
+    assert f["sender"]["values"] == ['המרכז הרפואי ע"ש חיים שיבא - תל השומר']
 
     # two different models agreeing on the labeled date -> green
     assert f["receipt_date"] == {"values": ["2026-08-20"], "status": "verified"}
