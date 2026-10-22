@@ -366,3 +366,34 @@ def test_models_disagreeing_on_the_field_send_it_to_review(cfg):
     commitment = sub.fields["commitment_numbers"]
     assert commitment.values == ["700100"]
     assert commitment.status == "review" and "disagree_sources" in commitment.reasons
+
+
+def test_id_with_a_valid_check_digit_is_green_from_one_clear_read(cfg):
+    fr = decide_field("id_number", [vlm("id_number", "12345674")], [], PAGE, cfg, REF)
+    assert fr.status == "verified" and "source_single" in fr.reasons
+    assert "ספרת הביקורת תקינה" in fr.explanation_he
+
+
+@pytest.mark.parametrize(
+    "cands",
+    [
+        [vlm("id_number", "12345674", legible=False)],  # reader not sure
+        [vlm("id_number", "012345675")],  # check digit fails
+        [vlm("id_number", "12345674", label="מ.ז. אם")],  # mother's ID
+    ],
+)
+def test_id_one_source_stays_orange_when_anything_blocks(cfg, cands):
+    fr = decide_field("id_number", cands, [], PAGE, cfg, REF)
+    assert fr.status == "review"
+
+
+def test_one_source_rule_is_only_for_self_verifying_fields(cfg):
+    fr = decide_field(
+        "central_numbers",
+        [vlm("central_numbers", "512340", label="מרכזי")],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert fr.status == "likely"

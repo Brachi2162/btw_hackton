@@ -19,6 +19,11 @@ source_groups:
   vlm_escalated: vlm_escalated
   human: human
 
+# Fields whose own check digit proves the digits were read right (D-007): one
+# clear source is enough for green, unless something blocks it (illegible,
+# decoy label, a rival value). Measured on dev: +8 green, 0 wrong.
+self_verifying: [id_number]
+
 anchor_bonus: 0.3      # the right label next to the value
 illegible_penalty: 0.5 # the reader itself said it can't read it
 decoy_penalty: 1.0     # next to a decoy label (spec 3.4)

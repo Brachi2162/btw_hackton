@@ -8,6 +8,8 @@ validation, never from the model's opinion of itself (iron rule 3):
 - verified (green): checks pass, two independent source groups agree, and no
   close competitor. A barcode + VLM match is two groups; two reads by the
   same model are one.
+  A field with its own check digit (`self_verifying`, D-007: the ID) needs
+  one clear source only.
 - likely (yellow): checks pass, one source group only.
 - review (orange): failed check, illegible, decoy label, competing values,
   date conflicts, unreadable page.
@@ -73,6 +75,7 @@ class DecisionConfig:
     reasons_he: dict[str, str]
     senders: SenderIndex
     commitment_aliases: list[str] = field(default_factory=list)
+    self_verifying: set[str] = field(default_factory=set)
 
     @classmethod
     def load(cls, config_dir: Path) -> "DecisionConfig":
@@ -96,6 +99,7 @@ class DecisionConfig:
             reasons_he=y("reasons.he.yaml"),
             senders=SenderIndex(y("senders.yaml")),
             commitment_aliases=vlm.get("commitment_aliases", []),
+            self_verifying=set(c.get("self_verifying", [])),
         )
 
 
@@ -256,13 +260,26 @@ def _status(
         return "review", reasons
     if len(srcs) >= 2 and not needs_anchor:
         return "verified", reasons
+    if fname in cfg.self_verifying:
+        # The check digit already caught any single misread digit (D-007).
+        return "verified", reasons
     return "likely", reasons
 
 
 def _explain(cfg: DecisionConfig, status: str, reasons: list, ctx: dict) -> str:
     keys = [r for r in reasons if r not in ("bbox_approx",)]
     if status == "verified":
-        keys = ["verified_barcode" if ctx.get("barcode") else "verified_sources"]
+        keys = [
+            (
+                "verified_barcode"
+                if ctx.get("barcode")
+                else (
+                    "verified_checksum"
+                    if "source_single" in reasons
+                    else "verified_sources"
+                )
+            )
+        ]
     elif status == "missing":
         keys = keys or ["missing"]
     texts = []
