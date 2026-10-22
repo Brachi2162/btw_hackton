@@ -1,0 +1,33 @@
+# The sender names the page prompt lists (page_extract: "Sender must be one
+# of"). Frozen: the names as they were when the cached sample reads were
+# made, so the prompt and its cache key stay the same (D-022). The model's
+# answer is then matched to the full closed list in senders.yaml, where these
+# names are aliases. Changing this list changes every page's prompt: all
+# cached reads miss, and every page must be read live again.
+- כללית
+- מכבי
+- מאוחדת
+- לאומית
+- מרכז שניידר לרפואת ילדים
+- מרכז רפואי מאיר
+- מרכז רפואי קפלן
+- מרכז רפואי כרמל
+- מרכז רפואי רבין
+- מרכז רפואי סורוקה
+- מרכז רפואי העמק
+- המרכז הרפואי שיבא
+- המרכז הרפואי תל אביב (איכילוב)
+- הדסה
+- שערי צדק
+- רמב"ם
+- המרכז הרפואי וולפסון
+- המרכז הרפואי שמיר (אסף הרופא)
+- המרכז הרפואי הלל יפה
+- המרכז הרפואי ברזילי
+- המרכז הרפואי בני ציון
+- המרכז הרפואי לניאדו
+- אסותא אשדוד
+- צה"ל - חיל הרפואה
+- משרד הביטחון
+- המרכז הלאומי לרפואה משפטית
+- רוזנבלט מעבדה רפואית

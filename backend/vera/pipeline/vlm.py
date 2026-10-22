@@ -166,6 +166,12 @@ class VlmConfig:
 
 
 def sender_names(config_dir: Path) -> list[str]:
+    """The names the page prompt lists. prompt_senders.yaml, when there is
+    one, keeps the prompt (and so every cached read) unchanged while the
+    closed list in senders.yaml grows (D-022); its names match there too."""
+    frozen = config_dir / "prompt_senders.yaml"
+    if frozen.is_file():
+        return yaml.safe_load(frozen.read_text(encoding="utf-8"))
     senders = yaml.safe_load((config_dir / "senders.yaml").read_text(encoding="utf-8"))
     return [s["name"] for s in senders]
 
