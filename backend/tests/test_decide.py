@@ -494,3 +494,50 @@ def test_a_crop_reads_box_stays_approximate(cfg):
     )
     both = decide_field("first_name", [crop, exact], [], PAGE, cfg, REF)
     assert _crop(both) == {"page_id": PAGE, "bbox": [0, 0, 84, 54], "approx": False}
+
+
+# --- handwritten names (D-012) ---
+
+
+def test_handwritten_name_in_latin_letters_is_a_misread(cfg):
+    fr = decide_field(
+        "first_name", [vlm("first_name", "Dana", handwritten=True)], [], PAGE, cfg, REF
+    )
+    assert fr.status == "review" and "validation_failed" in fr.reasons
+    # Printed Latin is a real name (spec 3.4 allows Latin letters).
+    fr = decide_field("first_name", [vlm("first_name", "Dana")], [], PAGE, cfg, REF)
+    assert fr.status == "likely"
+
+
+def test_hebrew_crop_reading_beats_a_latin_one(cfg):
+    crop = vlm("last_name", "כהן", handwritten=True).model_copy(
+        update={"reader": "vlm_crop"}
+    )
+    fr = decide_field(
+        "last_name",
+        [vlm("last_name", "Cohn", handwritten=True), crop],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert fr.values == ["כהן"] and "Cohn" in fr.alternatives
+
+
+def test_a_name_mixing_two_scripts_fails_the_check(cfg):
+    from vera.normalize import norm_name
+
+    assert norm_name("Gec. כהן").problems == ["validation_failed"]
+    assert norm_name("בן דוד").problems == []
+
+
+def test_two_providers_reading_the_same_crop_make_it_green(cfg):
+    def crop(reader):
+        return vlm("first_name", "דנה", handwritten=True).model_copy(
+            update={"reader": reader}
+        )
+
+    fr = decide_field(
+        "first_name", [crop("vlm_crop"), crop("vlm_crop_check")], [], PAGE, cfg, REF
+    )
+    assert fr.status == "verified"

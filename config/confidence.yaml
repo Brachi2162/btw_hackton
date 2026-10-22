@@ -6,6 +6,7 @@ source_weights:
   ocr: 0.6
   vlm_full: 0.7
   vlm_crop: 0.7        # crop read by a third model (D-005), its own source
+  vlm_crop_check: 0.7  # the same crop, another provider (D-012)
   vlm_escalated: 0.7   # a different model
   human: 2.0
 
@@ -16,6 +17,7 @@ source_groups:
   ocr: ocr
   vlm_full: vlm
   vlm_crop: vlm_crop   # a different model from the full read (D-005)
+  vlm_crop_check: vlm_crop_check
   vlm_escalated: vlm_escalated
   human: human
 
@@ -32,6 +34,11 @@ label_required: [commitment_numbers]
 # Vision OCR (D-009) confirms a value only as a clear read at this word
 # confidence or above; below it, it still adds a source but not legibility.
 ocr_min_conf: 0.8
+
+# Fields whose handwriting is Hebrew cursive, which models misread as Latin
+# letters ("Ireei" for ישראלי): a handwritten value in Latin letters goes to
+# review instead of competing as a reading (D-012). Printed Latin is fine.
+hebrew_handwriting: [first_name, last_name]
 
 anchor_bonus: 0.3      # the right label next to the value
 illegible_penalty: 0.5 # the reader itself said it can't read it

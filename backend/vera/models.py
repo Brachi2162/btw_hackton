@@ -34,7 +34,15 @@ ReasonCode = Literal[
     "label_missing",  # D-008: no field label next to the value
 ]
 
-Reader = Literal["barcode", "ocr", "vlm_full", "vlm_crop", "vlm_escalated", "human"]
+Reader = Literal[
+    "barcode",
+    "ocr",
+    "vlm_full",
+    "vlm_crop",
+    "vlm_crop_check",  # D-012: the same crop read by another provider
+    "vlm_escalated",
+    "human",
+]
 Status = Literal["verified", "likely", "review", "missing", "human"]
 PageKind = Literal["form", "screenshot", "lab_report", "continuation", "unknown"]
 

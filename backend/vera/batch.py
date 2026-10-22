@@ -146,6 +146,8 @@ class Readers:
     crop_prompt: str = ""
     crop_version: str = ""
     crop_max_side: int = 1568
+    crop_zoom: bool = True
+    crop_check: object = None  # another provider on the same crop (D-012)
     ocr: object = None  # VisionOcr (D-009), when there is a key or a cache
 
 
@@ -219,6 +221,12 @@ class BatchService:
                 ),
                 crop_version=cfg.crop_prompt,
                 crop_max_side=cfg.crop_max_side,
+                crop_zoom=cfg.crop_zoom,
+                crop_check=(
+                    make_reader(mode, cfg, cache, model=cfg.crop_check_model, **keys)
+                    if cfg.crop_model and cfg.crop_check_model
+                    else None
+                ),
                 ocr=(
                     VisionOcr(
                         self.s.data_dir / "cache" / "gvision",
@@ -237,7 +245,12 @@ class BatchService:
             return None
         if self.s.vlm_mode == "live":
             cfg = VlmConfig.load(self.s.config_dir)
-            models = [cfg.model, cfg.escalation_model, cfg.crop_model]
+            models = [
+                cfg.model,
+                cfg.escalation_model,
+                cfg.crop_model,
+                cfg.crop_check_model,
+            ]
             have = {
                 "anthropic": self.s.anthropic_api_key,
                 "gemini": self.s.gemini_api_key,
@@ -486,12 +499,29 @@ class BatchService:
                     r.crop_max_side,
                     page_id,
                     crop_region(merged),
+                    r.crop_zoom,
                 )
-                self._set_page(page_id, vlm_crops=crop)
+                check = None
+                if r.crop_check is not None and "error" not in crop:
+                    check = await asyncio.to_thread(
+                        read_crop,
+                        r.crop_check,
+                        image,
+                        rec["sha256"],
+                        r.crop_prompt,
+                        r.crop_version,
+                        r.crop_max_side,
+                        page_id,
+                        crop_region(merged),
+                        box=tuple(crop["box"]),
+                        reader_name="vlm_crop_check",
+                    )
+                # One column for both: the check read rides along with the crop.
+                self._set_page(page_id, vlm_crops={**crop, "check": check})
                 sub = decide_page(
                     page_id,
                     batch_id,
-                    merge_reads(vlm, esc, crop),
+                    merge_reads(vlm, esc, crop, check),
                     prep["barcodes"],
                     self.decision,
                     ref,

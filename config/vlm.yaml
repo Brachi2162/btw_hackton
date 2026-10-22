@@ -18,8 +18,17 @@ prompt: page_extract.v2
 # names and ID that are still unverified after escalation. A third, stronger
 # model: on the dev set it reads Hebrew cursive names the others can't (D-005).
 crop_model: claude-opus-5-5
+# v2 (letter by letter, plus where the name is) is ready but measured no
+# better than v1 on dev (D-012): 10/18 first names both, 6/18 vs 8/18 last.
 crop_prompt: crop_patient.v1
 crop_max_side: 1568
+# Re-read a tight, enlarged crop of the name line the first crop read found.
+# Needs crop_patient.v2 (v1 reports no box). Off with v1 (D-012).
+crop_zoom: false
+# The same tight crop through another provider, an independent source
+# (vlm_crop_check): when both read the same name, it can turn green.
+# Off until the Gemini key is on a paid tier (D-006): e.g. gemini-3.1-pro-preview
+crop_check_model: ""
 
 # Privacy (spec 8.4): send a downscaled page, no metadata.
 max_side: 1800

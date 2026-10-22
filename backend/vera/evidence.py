@@ -11,6 +11,7 @@ READER_HE = {
     "ocr": "OCR",
     "vlm_full": "מודל ראייה",
     "vlm_crop": "מודל ראייה (חיתוך)",
+    "vlm_crop_check": "מודל ראייה שני (חיתוך)",
     "vlm_escalated": "מודל ראייה חזק",
     "human": "ידני",
 }

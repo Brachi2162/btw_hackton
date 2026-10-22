@@ -100,7 +100,13 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     # pages that still have an orange/grey field; it counts as its own source.
     # Crops (spec 8.2.2): a third model reads a full-resolution crop of the
     # patient area, for names/IDs that two sources haven't confirmed.
-    if args.crops:
+    # Crop check (D-012): another provider reads the same tight crop.
+    if args.crop_check:
+        if not cfg.crop_check_model:
+            raise SystemExit("crop_check_model is empty in config/vlm.yaml")
+        model, reader_name = cfg.crop_check_model, "vlm_crop_check"
+        default = "vlm_crop_check.json"
+    elif args.crops:
         model, reader_name, default = cfg.crop_model, "vlm_crop", "vlm_crops.json"
     elif args.escalate:
         model, reader_name = cfg.escalation_model, "vlm_escalated"
@@ -122,11 +128,12 @@ def cmd_vlm(args: argparse.Namespace) -> None:
     pages_dir = Path(args.pages)
     manifest = json.loads((pages_dir / "manifest.json").read_text(encoding="utf-8"))
     pages = [p for p in manifest["pages"] if not args.doc or p["doc"] in args.doc]
-    if args.escalate or args.crops:
+    crops = args.crops or args.crop_check
+    if args.escalate or crops:
         from vera.models import Submission
         from vera.pipeline.process import needs_crop, needs_escalation
 
-        need = needs_crop if args.crops else needs_escalation
+        need = needs_crop if crops else needs_escalation
         subs = json.loads((pages_dir / "submissions.json").read_text(encoding="utf-8"))
         todo = {
             pid
@@ -135,7 +142,7 @@ def cmd_vlm(args: argparse.Namespace) -> None:
             for pid in sub["page_ids"]
         }
         pages = [p for p in pages if page_id_of(p["doc"], p["page"]) in todo]
-    if args.crops:
+    if crops:
         crop_prompt = (s.prompts_dir / f"{cfg.crop_prompt}.md").read_text(
             encoding="utf-8"
         )
@@ -147,14 +154,22 @@ def cmd_vlm(args: argparse.Namespace) -> None:
             )
 
         full, esc = _load("vlm.json"), _load("vlm_escalated.json")
+        done = _load("vlm_crops.json")
     if args.limit:
         pages = pages[: args.limit]
 
     def run(p: dict) -> tuple[str, dict]:
         page_id = page_id_of(p["doc"], p["page"])
         try:
-            if args.crops:
+            if crops:
                 region = crop_region(merge_reads(full.get(page_id), esc.get(page_id)))
+                box = None
+                if args.crop_check:
+                    # The same box the crop reader settled on, or skip.
+                    first = done.get(page_id) or {}
+                    if "box" not in first:
+                        return page_id, {"error": "NoCrop", "detail": "run --crops"}
+                    box = tuple(first["box"])
                 return page_id, read_crop(
                     reader,
                     pages_dir / p["image"],
@@ -164,6 +179,9 @@ def cmd_vlm(args: argparse.Namespace) -> None:
                     cfg.crop_max_side,
                     page_id,
                     region,
+                    zoom=cfg.crop_zoom,
+                    box=box,
+                    reader_name=reader_name,
                 )
             return page_id, read_vlm(
                 reader,
@@ -273,6 +291,12 @@ def cmd_decide(args: argparse.Namespace) -> None:
         if crop_path.is_file() and not args.no_escalated
         else {}
     )
+    check_path = pages_dir / "vlm_crop_check.json"
+    checks = (
+        json.loads(check_path.read_text(encoding="utf-8"))
+        if check_path.is_file() and not args.no_escalated
+        else {}
+    )
     ocr_path = pages_dir / "ocr.json"
     ocr = (
         json.loads(ocr_path.read_text(encoding="utf-8"))
@@ -280,7 +304,7 @@ def cmd_decide(args: argparse.Namespace) -> None:
         else {}
     )
     vlm = {
-        pid: merge_reads(v, escalated.get(pid), crops.get(pid))
+        pid: merge_reads(v, escalated.get(pid), crops.get(pid), checks.get(pid))
         for pid, v in vlm.items()
     }
     ref = _ref_date(args.ref_date)
@@ -423,6 +447,11 @@ def main(argv: list[str] | None = None) -> None:
         "--crops",
         action="store_true",
         help="crop reads of the patient area for unconfirmed names/IDs",
+    )
+    v.add_argument(
+        "--crop-check",
+        action="store_true",
+        help="the same crops through crop_check_model, another provider (D-012)",
     )
     v.add_argument(
         "--escalate",

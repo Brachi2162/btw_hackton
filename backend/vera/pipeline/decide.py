@@ -37,6 +37,7 @@ from vera.models import (
 )
 from vera.pipeline.gvision import find_value
 from vera.normalize import (
+    LATIN_RE,
     Norm,
     SenderIndex,
     norm_central,
@@ -89,6 +90,7 @@ class DecisionConfig:
     self_verifying: set[str] = field(default_factory=set)
     label_required: set[str] = field(default_factory=set)
     ocr_min_conf: float = 0.8
+    hebrew_handwriting: set[str] = field(default_factory=set)
 
     @classmethod
     def load(cls, config_dir: Path) -> "DecisionConfig":
@@ -115,6 +117,7 @@ class DecisionConfig:
             self_verifying=set(c.get("self_verifying", [])),
             label_required=set(c.get("label_required", [])),
             ocr_min_conf=c.get("ocr_min_conf", 0.8),
+            hebrew_handwriting=set(c.get("hebrew_handwriting", [])),
         )
 
 
@@ -383,6 +386,7 @@ def _date_checks(
 
 MODEL_GROUPS = {"vlm", "vlm_escalated"}
 HANDWRITING_FIELDS = {"first_name", "last_name", "id_number"}
+CROP_GROUPS = {"vlm_crop", "vlm_crop_check"}
 
 
 def _choose_multi(ranked: list[Group], cfg: DecisionConfig) -> list[Group]:
@@ -437,6 +441,15 @@ def decide_field(
         )
     for c in cands:
         n = _normalize(fname, c.value_raw, cfg, ref)
+        if (
+            fname in cfg.hebrew_handwriting
+            and c.handwritten
+            and not n.problems
+            and LATIN_RE.search(n.value or "")
+        ):
+            # Hebrew cursive looks Latin to a model ("Ireei" for ישראלי):
+            # a handwritten name in Latin letters is a misread until checked.
+            n.problems, n.rule = ["validation_failed"], "כתב יד עברי שנקרא כלטינית"
         c.value_norm = n.value
         c.signals["problems"] = ",".join(n.problems)
         c.signals["rule"] = n.rule
@@ -477,7 +490,7 @@ def decide_field(
             key=lambda g: (
                 not g.problems,
                 len(g.source_groups(cfg) - {"barcode"}),
-                "vlm_crop" in g.source_groups(cfg),
+                bool(CROP_GROUPS & g.source_groups(cfg)),
                 g.score,
             ),
             reverse=True,
@@ -582,7 +595,10 @@ def _name_split(first: FieldResult, last: FieldResult) -> None:
 
 
 def merge_reads(
-    base: dict | None, escalated: dict | None, crop: dict | None = None
+    base: dict | None,
+    escalated: dict | None,
+    crop: dict | None = None,
+    crop_check: dict | None = None,
 ) -> dict:
     """One page dict with the candidates of every model (each keeps its own
     `reader`, so they count as separate sources)."""
@@ -598,10 +614,11 @@ def merge_reads(
         merged["escalated_model"] = escalated.get("model")
     if merged is None:
         return base or {"error": "missing"}
-    if crop and "error" not in crop:
-        merged["candidates"] = list(merged["candidates"]) + list(
-            crop.get("candidates", [])
-        )
+    for extra in (crop, crop_check):
+        if extra and "error" not in extra:
+            merged["candidates"] = list(merged["candidates"]) + list(
+                extra.get("candidates", [])
+            )
     return merged
 
 

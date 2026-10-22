@@ -97,32 +97,61 @@ def read_crop(
     max_side: int,
     page_id: str,
     region: str,
+    zoom: bool = True,
+    box: tuple[int, int, int, int] | None = None,
+    reader_name: str = "vlm_crop",
 ) -> dict:
     """Patient-area crop through a third model (spec 8.2.2); same dict shape
-    as read_vlm, so merge_reads/decide_page take it as they are."""
-    from vera.pipeline.vlm import CropReading, crop_to_candidates, region_box
+    as read_vlm, so merge_reads/decide_page take it as they are.
 
+    The region crop is wide (the full-page read only knows a ninth of the
+    page), so it holds other names too. With `zoom`, its read also says
+    where the patient's name is, and a tight, enlarged crop of that line is
+    read again; that second read is the answer (the first is its fallback).
+    With `box`, that exact box is read once (a check reader reads the same
+    line the crop reader zoomed into)."""
+    from vera.pipeline.vlm import crop_schema, crop_to_candidates, region_box, zoom_box
+
+    def read(img, crop):
+        return reader.read_page(
+            img,
+            page_sha256,
+            prompt,
+            schema=crop_schema(prompt_version),
+            prompt_version=prompt_version,
+            crop=crop,
+            max_side=max_side,
+        )
+
+    first = None
     try:
         with Image.open(image_path) as img:
-            box = region_box(region, img.width, img.height)
-            r = reader.read_page(
-                img,
-                page_sha256,
-                prompt,
-                schema=CropReading,
-                prompt_version=prompt_version,
-                crop=box,
-                max_side=max_side,
-            )
+            if box is None:
+                first = box = region_box(region, img.width, img.height)
+            reads = [read(img, box)]
+            tight = zoom_box(reads[0].reading, box) if zoom and first else None
+            if tight:
+                try:
+                    reads.append(read(img, tight))
+                    box = tight
+                except (VlmInvalid, CacheMiss):  # the wide read still stands
+                    pass
     except (VlmInvalid, CacheMiss) as e:
         return {"error": type(e).__name__, "detail": str(e)[:200]}
+    r = reads[-1]
+    fresh = [x for x in reads if not x.cached]
     return {
         "model": r.model,
-        "cached": r.cached,
-        "usage": r.usage,
+        "cached": not fresh,
+        "usage": {
+            k: sum(x.usage.get(k, 0) for x in fresh)
+            for k in ("input_tokens", "output_tokens")
+        },
         "region": region,
         "box": list(box),
+        "located_in": list(first) if first and first != box else None,
         "candidates": [
-            c.model_dump(mode="json") for c in crop_to_candidates(r, page_id, box)
+            c.model_dump(mode="json")
+            for c in crop_to_candidates(r, page_id, box, reader=reader_name)
         ],
     }

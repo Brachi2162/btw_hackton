@@ -2,7 +2,7 @@
 -include .env
 export
 
-.PHONY: up down logs dev dev-local dtest test test-docker test-web lint pages barcodes vlm escalate ocr crops decide eval gt-template seed-demo clear-demo
+.PHONY: up down logs dev dev-local dtest test test-docker test-web lint pages barcodes vlm escalate ocr crops crop-check decide eval gt-template seed-demo clear-demo
 
 up:        ## build and start everything: UI http://localhost:8080, API :8000/health
 	docker compose up --build -d
@@ -55,6 +55,9 @@ ocr:       ## Google Vision OCR of the dev set -> data/work/pages/ocr.json (D-00
 
 crops:     ## crop reads of the patient area for unconfirmed names/IDs (D-005; after `make decide`)
 	docker compose exec api python -m vera.cli vlm --pages /data/work/pages --doc part2 --crops
+
+crop-check: ## the same crops through crop_check_model, another provider (D-012; after `make crops`)
+	docker compose exec api python -m vera.cli vlm --pages /data/work/pages --doc part2 --crop-check
 
 # Samples are from Jun-Aug 2026: judge dates against 1/9/2026, not today (D-004).
 REF_DATE ?= 2026-09-01

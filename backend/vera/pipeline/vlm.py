@@ -75,14 +75,40 @@ class PageReading(BaseModel):
     fields: VlmFields
 
 
-class CropReading(BaseModel):
-    """The response schema of a patient-area crop read (spec 8.2.2)."""
+class CropReadingV1(BaseModel):
+    """The response schema of crop_patient.v1 (spec 8.2.2, D-005)."""
 
     first_name: str
     last_name: str
     id_number: str
     name_legible: bool
     id_legible: bool
+
+
+class CropReading(BaseModel):
+    """The response schema of crop_patient.v2 (D-012). The letters come
+    before the names: the model transcribes what it sees first, then joins
+    it, instead of jumping to a familiar name. The box (0-1000 of the crop)
+    is where it read them, for a second, tighter crop."""
+
+    name_line: str
+    first_name_letters: list[str]
+    first_name: str
+    last_name_letters: list[str]
+    last_name: str
+    id_number: str
+    first_name_legible: bool
+    last_name_legible: bool
+    id_legible: bool
+    box_left: int
+    box_top: int
+    box_right: int
+    box_bottom: int
+
+
+def crop_schema(prompt_version: str) -> type[BaseModel]:
+    """Each crop prompt has its own schema; v1 answers stay in the cache."""
+    return CropReadingV1 if prompt_version.endswith(".v1") else CropReading
 
 
 class VlmInvalid(RuntimeError):
@@ -109,6 +135,10 @@ class VlmConfig:
     crop_model: str = ""
     crop_prompt: str = ""
     crop_max_side: int = 1568
+    # Re-read a tight crop around the box the first crop read reported.
+    crop_zoom: bool = True
+    # A crop reader from another provider, its own source (vlm_crop_check).
+    crop_check_model: str = ""
 
     @classmethod
     def load(cls, config_dir: Path) -> "VlmConfig":
@@ -146,6 +176,22 @@ def prepare_image(img: Image.Image, max_side: int, quality: int) -> bytes:
     buf = io.BytesIO()
     img.save(buf, "JPEG", quality=quality, optimize=True)
     return buf.getvalue()
+
+
+MAX_UPSCALE = 3.0
+
+
+def crop_image(img: Image.Image, crop, max_side: int) -> Image.Image:
+    """A crop is a zoom: a small one (one line of handwriting) is enlarged
+    toward max_side, so the model sees the strokes, not a few pixels."""
+    if not crop:
+        return img
+    img = img.crop(crop)
+    scale = min(MAX_UPSCALE, max_side / max(img.size))
+    if scale > 1:
+        size = (round(img.width * scale), round(img.height * scale))
+        img = img.resize(size, Image.Resampling.LANCZOS)
+    return img
 
 
 def cache_key(
@@ -325,9 +371,9 @@ class ClaudeReader:
         if entry is not None:
             return _from_cache(entry, key, schema)
 
-        if crop:
-            img = img.crop(crop)
-        data = prepare_image(img, max_side or self.cfg.max_side, self.cfg.jpeg_quality)
+        side = max_side or self.cfg.max_side
+        img = crop_image(img, crop, side)
+        data = prepare_image(img, side, self.cfg.jpeg_quality)
         image_b64 = base64.standard_b64encode(data).decode("ascii")
         problem = ""
         for _attempt in range(2):  # one retry on an invalid answer (spec 8.1)
@@ -448,9 +494,9 @@ class GeminiReader:
         if entry is not None:
             return _from_cache(entry, key, schema)
 
-        if crop:
-            img = img.crop(crop)
-        data = prepare_image(img, max_side or self.cfg.max_side, self.cfg.jpeg_quality)
+        side = max_side or self.cfg.max_side
+        img = crop_image(img, crop, side)
+        data = prepare_image(img, side, self.cfg.jpeg_quality)
         body = {
             "contents": [
                 {
@@ -589,15 +635,69 @@ def region_box(region: str, width: int, height: int) -> tuple[int, int, int, int
     return (int(x0 * width), int(y0 * height), int(x1 * width), int(y1 * height))
 
 
+# Tight crop around the box a crop read reported: margins as a share of the
+# box, and a floor so one squeezed line still has its neighbours' context.
+ZOOM_MARGIN_X, ZOOM_MARGIN_Y = 0.15, 0.6
+ZOOM_MIN_SIDE = 160
+# A box this big (share of the crop's area) is no zoom: read it as it is.
+ZOOM_MAX_AREA = 0.6
+
+
+def zoom_box(
+    reading: BaseModel, crop: tuple[int, int, int, int]
+) -> tuple[int, int, int, int] | None:
+    """The crop read's own box (0-1000 of the crop) -> page pixels, with
+    margins. None when the box is missing (a v1 read has none), broken or
+    not much smaller than the crop."""
+    x0, y0, x1, y1 = crop
+    w, h = x1 - x0, y1 - y0
+    sides = ("box_left", "box_top", "box_right", "box_bottom")
+    b = [max(0, min(1000, getattr(reading, k, 0))) for k in sides]
+    if b[2] <= b[0] or b[3] <= b[1]:
+        return None
+    if (b[2] - b[0]) * (b[3] - b[1]) > ZOOM_MAX_AREA * 1000 * 1000:
+        return None
+    bx0, by0 = x0 + b[0] * w / 1000, y0 + b[1] * h / 1000
+    bx1, by1 = x0 + b[2] * w / 1000, y0 + b[3] * h / 1000
+    mx = max((bx1 - bx0) * ZOOM_MARGIN_X, (ZOOM_MIN_SIDE - (bx1 - bx0)) / 2, 0)
+    my = max((by1 - by0) * ZOOM_MARGIN_Y, (ZOOM_MIN_SIDE - (by1 - by0)) / 2, 0)
+    return (
+        int(max(x0, bx0 - mx)),
+        int(max(y0, by0 - my)),
+        int(min(x1, bx1 + mx)),
+        int(min(y1, by1 + my)),
+    )
+
+
+def _letters_match(letters: list[str], value: str) -> bool:
+    """The joined letters are the name the model returned. When they aren't,
+    the model contradicted its own transcription: not a clear read."""
+    return "".join(letters).replace(" ", "") == value.replace(" ", "")
+
+
 def crop_to_candidates(
-    result: VlmResult, page_id: str, box: tuple[int, int, int, int]
+    result: VlmResult,
+    page_id: str,
+    box: tuple[int, int, int, int],
+    reader: str = "vlm_crop",
 ) -> list[Candidate]:
-    """A crop read of the patient area -> name/ID candidates (reader vlm_crop)."""
-    r: CropReading = result.reading
+    """A crop read of the patient area -> name/ID candidates."""
+    r = result.reading
+    if isinstance(r, CropReadingV1):
+        first_ok = last_ok = r.name_legible
+        line = ""
+    else:
+        first_ok = r.first_name_legible and _letters_match(
+            r.first_name_letters, r.first_name
+        )
+        last_ok = r.last_name_legible and _letters_match(
+            r.last_name_letters, r.last_name
+        )
+        line = r.name_line
     out = []
     for field_name, value, legible in (
-        ("first_name", r.first_name, r.name_legible),
-        ("last_name", r.last_name, r.name_legible),
+        ("first_name", r.first_name, first_ok),
+        ("last_name", r.last_name, last_ok),
         ("id_number", r.id_number, r.id_legible),
     ):
         if not value.strip():
@@ -606,12 +706,12 @@ def crop_to_candidates(
             Candidate(
                 field=field_name,
                 value_raw=value,
-                reader="vlm_crop",
+                reader=reader,
                 model=result.model,
                 page_id=page_id,
                 bbox=box,
                 bbox_approx=True,
-                evidence_text=f"crop {','.join(map(str, box))}",
+                evidence_text=(line or f"crop {','.join(map(str, box))}")[:200],
                 legible=legible,
                 handwritten=True,
                 signals={"crop": True},

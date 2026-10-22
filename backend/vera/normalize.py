@@ -15,6 +15,8 @@ DEFAULT_COMMITMENT_RE = r"^[A-Z]?\d{4,12}$"
 CENTRAL_RE = r"^\d{6}$"
 # Hebrew/Latin letters, spaces, hyphen, apostrophe/geresh (ג', צ').
 NAME_RE = re.compile(r"^[A-Za-zא-ת][A-Za-zא-ת '\-׳״\"]{0,29}$")
+HEBREW_RE = re.compile(r"[א-ת]")
+LATIN_RE = re.compile(r"[A-Za-z]")
 
 
 # Invisible direction marks that come with copied Hebrew text.
@@ -116,6 +118,9 @@ def norm_name(raw: str) -> Norm:
         return Norm(None, ["validation_failed"], "אותיות")
     if not NAME_RE.match(v):
         return Norm(v, ["validation_failed"], "אותיות, רווח, מקף, גרש; עד 30")
+    # A name is written in one script; "Gec יצחק" is a misread of one.
+    if HEBREW_RE.search(v) and LATIN_RE.search(v):
+        return Norm(v, ["validation_failed"], "עברית או לטינית, לא שתיהן")
     return Norm(v)
 
 
