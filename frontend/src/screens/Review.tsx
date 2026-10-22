@@ -18,6 +18,7 @@ import {
 } from "../fields";
 import { useToast } from "../components/Toast";
 import { useData } from "../hooks";
+import { useDoneChime } from "../sound";
 import { FixError, PropagationBar, useFix } from "./fix";
 import { WhyDialog } from "./WhyDialog";
 import "./Review.css";
@@ -55,6 +56,7 @@ function ReviewBatch({ batchId }: { batchId: string }) {
   const tableRef = useRef<HTMLDivElement>(null);
   const subs = batch.data?.submissions ?? [];
   const processing = batch.data?.status === "processing";
+  useDoneChime(batch.data?.status);
 
   // poll while the batch is still being read
   useEffect(() => {
@@ -100,6 +102,13 @@ function ReviewBatch({ batchId }: { batchId: string }) {
       <div className="review-body">
         <div className="table-wrap card" ref={tableRef} tabIndex={0} onKeyDown={onKey} aria-label="טבלת הטפסים. Enter עובר לשדה הבא שצריך עין">
           <table className="forms">
+            <colgroup>
+              <col className="col-sender" />
+              <col className="col-sig" />
+              {TABLE_FIELDS.map((f) => (
+                <col key={f} className={`col-${f}`} />
+              ))}
+            </colgroup>
             <thead>
               <tr>
                 <th>שולח</th>
@@ -169,25 +178,56 @@ function Cell({ s, field, sel, onSelect }: { s: SubmissionSummary; field: string
         {STATUS_ICON[fr.status]}
       </span>
       {text ? (
-        LTR_FIELDS.has(field) ? (
-          <span className="num" dir="ltr">
-            {text}
-          </span>
-        ) : (
-          <span className="cell-text">{text}</span>
-        )
+        <Fit className={LTR_FIELDS.has(field) ? "num" : undefined} dir={LTR_FIELDS.has(field) ? "ltr" : undefined} text={text} />
       ) : fr.guess ? (
         // Read, but not surely (D-013): the guess, clearly marked as one; the
         // field itself stays empty (and empty in the export) until confirmed.
-        <span className={`cell-guess${LTR_FIELDS.has(field) ? " num" : ""}`} dir="auto" title="ניחוש של המודל, לא נכתב">
-          {showValue(field, fr.guess, true)}?
-        </span>
+        <Fit
+          className={`cell-guess${LTR_FIELDS.has(field) ? " num" : ""}`}
+          dir="auto"
+          title="ניחוש של המודל, לא נכתב"
+          text={`${showValue(field, fr.guess, true)}?`}
+        />
       ) : fr.status === "review" ? (
-        <span className="muted">? לא נקרא בוודאות</span>
+        <Fit className="muted" text="? לא נקרא בוודאות" />
       ) : (
         <span className="muted">—</span>
       )}
     </button>
+  );
+}
+
+/** Cell text cut to the column width. When it does not fit, hovering or
+ * focusing slides it to its end and back, so the whole value can be read
+ * without widening the table. */
+function Fit({ text, className, dir, title }: { text: string; className?: string; dir?: string; title?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [shift, setShift] = useState(0);
+  const start = () => {
+    const el = ref.current;
+    if (!el) return;
+    const d = el.scrollWidth - el.clientWidth;
+    if (d <= 1) return;
+    setShift(getComputedStyle(el).direction === "rtl" ? d : -d);
+  };
+  const stop = () => setShift(0);
+  return (
+    <span
+      ref={ref}
+      className={`cell-text${shift ? " sliding" : ""}${className ? ` ${className}` : ""}`}
+      dir={dir}
+      title={title ?? text}
+      onMouseEnter={start}
+      onMouseLeave={stop}
+      onTouchStart={start}
+      style={
+        shift
+          ? ({ "--shift": `${shift}px`, "--dur": `${Math.max(1.6, Math.abs(shift) / 40)}s` } as React.CSSProperties)
+          : undefined
+      }
+    >
+      <span className="cell-inner">{text}</span>
+    </span>
   );
 }
 
