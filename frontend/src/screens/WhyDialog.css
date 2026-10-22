@@ -1,9 +1,12 @@
+/* Fits the screen with no scrolling: the form on one side, scaled down to
+   fit, and the sources, checks and decision on the other. */
 .why {
   border: 0;
   border-radius: 14px;
   padding: 0;
-  width: min(680px, 94vw);
-  max-height: 88vh;
+  width: min(1040px, 94vw);
+  max-height: 90vh;
+  overflow: hidden;
   box-shadow: 0 24px 60px rgba(13, 27, 42, 0.3);
   color: var(--text);
 }
@@ -18,8 +21,6 @@
   justify-content: space-between;
   padding: 16px 22px;
   border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
   background: #fff;
 }
 
@@ -28,9 +29,16 @@
   counter-reset: step;
   margin: 0;
   padding: 18px 22px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-auto-rows: min-content;
+  gap: 16px 28px;
+  align-items: start;
+}
+
+/* step 1, the form crop, takes the whole first column */
+.why-steps > li:first-child {
+  grid-row: 1 / span 3;
 }
 
 .why-steps > li {
@@ -60,7 +68,11 @@
 }
 
 .why-crop {
-  max-width: 100%;
+  display: block;
+  width: 100%;
+  max-height: calc(90vh - 150px);
+  object-fit: contain;
+  background: #fff;
   border-radius: 8px;
   border: 1px solid var(--border);
 }
@@ -133,4 +145,17 @@
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+}
+
+@media (max-width: 760px) {
+  .why-steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .why-steps > li:first-child {
+    grid-row: auto;
+  }
+  .why-crop {
+    max-height: 34vh;
+  }
 }

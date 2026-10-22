@@ -291,3 +291,13 @@ h3 {
     padding: 18px 16px 40px;
   }
 }
+
+/* No visible scrollbars anywhere: everything still scrolls with the wheel,
+   the touchpad and the keyboard. */
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
