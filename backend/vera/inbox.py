@@ -14,7 +14,9 @@ Optionally only files changed today.
 
 import hashlib
 import re
+from itertools import islice
 import time
+from urllib.parse import unquote
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
@@ -29,6 +31,7 @@ SKIP_NAMES = re.compile(
 )
 SETTLE_SECONDS = 5  # a file modified this recently may still be written
 MAX_FILES = 500
+MAX_SCAN = 5000  # directory entries looked at, at most
 
 REASON_HE = {
     "ok": "ייקלט",
@@ -47,13 +50,23 @@ class InboxError(ValueError):
 
 
 def _norm(p: str) -> str:
-    return p.replace("\\", "/").strip().strip('"').rstrip("/")
+    """C:\\a\\b, "C:/a/b/", file:///C:/a%20b -> C:/a/b (comparable form)."""
+    p = p.strip().strip('"').strip("'").strip()
+    if p.lower().startswith("file:"):
+        p = unquote(re.sub(r"^file:/*", "", p, flags=re.I))
+    p = p.replace("\\", "/").rstrip("/")
+    return re.sub(r"^([a-zA-Z]:)$", r"\1/", p) if p else p
 
 
 def resolve(root: Path, host_root: str, text: str) -> Path:
     """Map what the user typed to a folder under the mounted root."""
     t = _norm(text)
     host = _norm(host_root)
+    if re.match(r"^(https?|ftp)://|^//", t, re.I):
+        raise InboxError(
+            "אפשר להזין רק תיקייה במחשב הזה (למשל C:\\Scans). "
+            "קישור אינטרנט או תיקיית רשת צריך קודם לסנכרן או להעתיק לתיקייה מקומית"
+        )
     if not t:
         rel = ""
     elif host and t.lower().startswith(host.lower()):
@@ -62,8 +75,9 @@ def resolve(root: Path, host_root: str, text: str) -> Path:
         rel = t[len(_norm(str(root))) :]
     elif re.match(r"^[a-zA-Z]:/|^/|^//", t):
         raise InboxError(
-            f"התיקייה {text.strip()} לא נמצאת בתוך תיקיית הסורק המשותפת "
-            f"({host_root or root}). אפשר להגדיר אחרת ב-SCAN_FOLDER בקובץ .env"
+            f"לשרת אין גישה לתיקייה {text.strip()}: הוא רואה רק את "
+            f"{host_root or root}. כדי לאפשר כל תיקייה בכונן, מגדירים "
+            "SCAN_FOLDER=C:\\ בקובץ .env ומפעילים מחדש"
         )
     else:
         rel = t
@@ -88,7 +102,7 @@ def _imported_hashes(bs) -> set[str]:
     return set(rows)
 
 
-def scan(bs, text: str, today_only: bool = False, recursive: bool = True) -> dict:
+def scan(bs, text: str, today_only: bool = False, recursive: bool = False) -> dict:
     """Preview: every file with whether it will be imported and why not."""
     root = Path(bs.s.inbox_dir)
     if not root.is_dir():
@@ -96,13 +110,16 @@ def scan(bs, text: str, today_only: bool = False, recursive: bool = True) -> dic
             "תיקיית הסורק לא מחוברת לשרת. מגדירים SCAN_FOLDER בקובץ .env "
             "ומפעילים מחדש"
         )
+    if not _norm(text) and re.match(r"^[a-zA-Z]:/?$", _norm(bs.s.scan_folder_host)):
+        raise InboxError("צריך להזין נתיב לתיקייה, למשל C:\\Scans\\2026-10-22")
     folder = resolve(root, bs.s.scan_folder_host, text)
     seen = _imported_hashes(bs)
     now = time.time()
     today = datetime.now(timezone.utc).astimezone().date()
     files, batch_hashes = [], set()
     walker = folder.rglob("*") if recursive else folder.glob("*")
-    for p in sorted(walker, key=lambda x: str(x).lower()):
+    # bounded: a huge folder must not hang the request
+    for p in sorted(islice(walker, MAX_SCAN), key=lambda x: str(x).lower()):
         if not p.is_file() or len(files) >= MAX_FILES:
             continue
         st = p.stat()
@@ -153,10 +170,12 @@ def scan(bs, text: str, today_only: bool = False, recursive: bool = True) -> dic
     }
 
 
-def import_folder(bs, text: str, user: str, today_only: bool = False) -> dict:
+def import_folder(
+    bs, text: str, user: str, today_only: bool = False, recursive: bool = False
+) -> dict:
     """Create a batch from the relevant files of a folder. The caller starts
     processing (the same job as an upload)."""
-    preview = scan(bs, text, today_only)
+    preview = scan(bs, text, today_only, recursive)
     chosen = [f for f in preview["files"] if f["relevant"]]
     if not chosen:
         return {**preview, "batch_id": None, "added": []}

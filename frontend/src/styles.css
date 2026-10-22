@@ -1,13 +1,21 @@
 :root {
-  --navy: #0d1b2a;
-  --navy-2: #15273b;
-  --bg: #f3f6f8;
+  /* Brand: orange -> pink -> purple. --navy / --teal / --glow keep their
+     names (dark surface / accent / soft glow) so components stay simple. */
+  --orange: #fb8a3c;
+  --pink: #ec4899;
+  --purple: #8b3dff;
+  --grad: linear-gradient(120deg, #fb8a3c 0%, #ec4899 48%, #8b3dff 100%);
+  --grad-soft: linear-gradient(120deg, #fff1e6 0%, #fde7f3 50%, #f1e8ff 100%);
+  --navy: #1f1035;
+  --navy-2: #2b1650;
+  --dark-grad: linear-gradient(170deg, #2a0f3d 0%, #1f1035 55%, #170b29 100%);
+  --bg: #faf7fc;
   --card: #ffffff;
-  --border: #e2e8ee;
-  --text: #0e1a2b;
-  --muted: #5b6b7c;
-  --teal: #0e9f9a;
-  --glow: #5fd0cb;
+  --border: #ece4f3;
+  --text: #1c1230;
+  --muted: #6e6283;
+  --teal: #8b3dff;
+  --glow: #f472b6;
 
   --verified: #1f9d55;
   --verified-bg: #e7f6ee;
@@ -23,7 +31,7 @@
   --missing-text: #7a8796;
 
   --radius: 10px;
-  --shadow: 0 1px 2px rgba(14, 26, 43, 0.04), 0 4px 16px rgba(14, 26, 43, 0.05);
+  --shadow: 0 1px 2px rgba(31, 16, 53, 0.04), 0 4px 16px rgba(31, 16, 53, 0.05);
   --font: "IBM Plex Sans Hebrew", "Segoe UI", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
   color-scheme: light;
@@ -41,7 +49,11 @@ body,
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(236, 72, 153, 0.07), transparent 60%),
+    radial-gradient(900px 500px at 0% 0%, rgba(139, 61, 255, 0.06), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
   font-size: 15px;
@@ -121,13 +133,23 @@ h3 {
 }
 
 .btn.primary {
-  background: var(--teal);
-  border-color: var(--teal);
+  background: var(--grad);
+  border-color: transparent;
   color: #fff;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.25);
 }
 
 .btn.primary:hover {
-  background: #0b8a85;
+  background: var(--grad);
+  filter: brightness(1.06) saturate(1.05);
+}
+
+/* gradient text for headings that carry the brand */
+.grad-text {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .btn.ghost {
@@ -161,7 +183,7 @@ h3 {
 .input:focus {
   outline: none;
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(14, 159, 154, 0.15);
+  box-shadow: 0 0 0 3px rgba(139, 61, 255, 0.15);
 }
 
 .badge {

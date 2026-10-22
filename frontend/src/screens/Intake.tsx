@@ -73,7 +73,7 @@ export function Intake() {
           </p>
         )}
 
-        <FolderImport onImported={follow} defaultPath={overview?.scan_folder ?? ""} />
+        <FolderImport onImported={follow} />
 
         <div
           className={`drop${over ? " over" : ""}`}
@@ -162,24 +162,35 @@ export function Intake() {
 
 /** Import from the scanner folder: the server takes only the relevant files
  * (documents, not yet imported), no upload through the browser. */
-function FolderImport({ onImported, defaultPath }: { onImported: (id: string) => void; defaultPath: string }) {
+function FolderImport({ onImported }: { onImported: (id: string) => void }) {
   const toast = useToast();
   const [path, setPath] = useState("");
   const [today, setToday] = useState(false); // re-imports are skipped anyway
+  const [deep, setDeep] = useState(false);
   const [preview, setPreview] = useState<InboxPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // remembered per computer: the scans folder rarely changes
   useEffect(() => {
-    if (!path && defaultPath) setPath(defaultPath);
-  }, [defaultPath, path]);
+    try {
+      setPath(localStorage.getItem("vera-folder") ?? "");
+    } catch {
+      /* storage blocked */
+    }
+  }, []);
 
   async function check(e?: React.FormEvent) {
     e?.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      setPreview(await api.inbox(path, today));
+      setPreview(await api.inbox(path, today, deep));
+      try {
+        localStorage.setItem("vera-folder", path);
+      } catch {
+        /* storage blocked */
+      }
     } catch (err) {
       setPreview(null);
       setError(err instanceof Error ? err.message : String(err));
@@ -191,7 +202,7 @@ function FolderImport({ onImported, defaultPath }: { onImported: (id: string) =>
   async function run() {
     setBusy(true);
     try {
-      const r = await api.importFolder(path, today);
+      const r = await api.importFolder(path, today, deep);
       if (r.batch_id) {
         toast(`נקלטו ${r.relevant} קבצים מהתיקייה`);
         setPreview(null);
@@ -218,7 +229,7 @@ function FolderImport({ onImported, defaultPath }: { onImported: (id: string) =>
   return (
     <section className="card folder-card">
       <h2>קליטה מתיקייה</h2>
-      <p className="muted">הדביקי את הנתיב לתיקיית הסריקות. נקלטים רק טפסים שעוד לא נקלטו.</p>
+      <p className="muted">הדביקי נתיב של תיקייה במחשב (או קישור file:///). נקלטים רק מסמכים שעוד לא נקלטו.</p>
       <form className="folder-row" onSubmit={check}>
         <input
           className="input num"
@@ -228,11 +239,14 @@ function FolderImport({ onImported, defaultPath }: { onImported: (id: string) =>
             setPath(e.target.value);
             setPreview(null);
           }}
-          placeholder="C:\Scans\2026-10-22"
+          placeholder="C:\Users\lab\Documents\Scans"
           aria-label="נתיב התיקייה"
         />
         <label className="today">
           <input type="checkbox" checked={today} onChange={(e) => (setToday(e.target.checked), setPreview(null))} /> רק מהיום
+        </label>
+        <label className="today">
+          <input type="checkbox" checked={deep} onChange={(e) => (setDeep(e.target.checked), setPreview(null))} /> כולל תתי-תיקיות
         </label>
         <button className="btn" disabled={busy}>
           בדיקה

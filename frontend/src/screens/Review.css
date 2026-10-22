@@ -1,6 +1,6 @@
 .review-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 370px);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 410px);
   gap: 18px;
   align-items: start;
 }
@@ -40,7 +40,7 @@
 }
 
 .forms tr.row-sel td {
-  background: #f6fbfb;
+  background: #faf6ff;
 }
 
 .sig-cell {
@@ -62,12 +62,12 @@
 }
 
 .cell:hover {
-  border-color: rgba(14, 26, 43, 0.15);
+  border-color: rgba(31, 16, 53, 0.15);
 }
 
 .cell.active {
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(14, 159, 154, 0.18);
+  box-shadow: 0 0 0 3px rgba(139, 61, 255, 0.18);
 }
 
 .cell-icon {
@@ -80,16 +80,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 110px;
-}
-
-.tube {
-  text-align: center;
-  color: var(--missing-text);
-}
-
-.tube.yes {
-  color: var(--verified);
-  font-weight: 700;
 }
 
 .panel {
@@ -166,7 +156,7 @@
 
 .option.current {
   border-color: var(--teal);
-  background: #f2fafa;
+  background: #f7f2ff;
 }
 
 .option kbd {

@@ -23,8 +23,8 @@
   background-color: #fff;
   border: 3px solid var(--teal);
   box-shadow:
-    0 0 0 6px rgba(95, 208, 203, 0.35),
-    0 0 28px rgba(95, 208, 203, 0.55),
+    0 0 0 6px rgba(236, 72, 153, 0.35),
+    0 0 28px rgba(236, 72, 153, 0.55),
     0 12px 30px rgba(0, 0, 0, 0.35);
   transition:
     left 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
@@ -73,7 +73,7 @@
   inset-inline: 0;
   height: 3px;
   background: linear-gradient(90deg, transparent, var(--glow), var(--teal), var(--glow), transparent);
-  box-shadow: 0 0 16px 4px rgba(95, 208, 203, 0.6);
+  box-shadow: 0 0 16px 4px rgba(236, 72, 153, 0.6);
   animation: scan 2.2s linear infinite;
 }
 

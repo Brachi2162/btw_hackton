@@ -31,7 +31,7 @@
 
 .drop:hover,
 .drop.over {
-  background: rgba(231, 246, 245, 0.9);
+  background: rgba(246, 238, 255, 0.9);
 }
 
 .drop.over {
@@ -41,7 +41,10 @@
 .drop-title {
   font-size: 24px;
   font-weight: 600;
-  color: var(--teal);
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .progress-card {
@@ -139,7 +142,7 @@
 .fbar span {
   display: block;
   height: 100%;
-  background: var(--teal);
+  background: var(--grad);
   border-radius: 999px;
   transition: width 0.4s;
 }
