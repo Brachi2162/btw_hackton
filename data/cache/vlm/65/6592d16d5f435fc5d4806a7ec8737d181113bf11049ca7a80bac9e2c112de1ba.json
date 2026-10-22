@@ -1,0 +1,107 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "60626ac4a0de1f0ffd9084c249b4fa74f1bfdd361f6704405cdd59e2cb29566f",
+ "request_id": "req_011CgF8PnnsxK4YvNByUf2Rq",
+ "usage": {
+  "input_tokens": 5461,
+  "output_tokens": 793
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז שניידר לרפואת ילדים",
+  "page_marker": "Page 1 of 1",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ישראל",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה",
+     "evidence_text": "שם משפחה: ישראל (handwritten blue ink over print)",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "פרטי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי",
+     "evidence_text": "שם פרטי: handwritten blue ink",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "122344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "barcode sticker 948205 / handwritten 1223344",
+     "evidence_text": "1223344",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "107646",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode",
+     "evidence_text": "107646",
+     "region": "middle-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז שניידר לרפואת ילדים",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "מרכז שניידר לרפואת ילדים",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2925357417-01",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "2925357417-01",
+     "region": "bottom-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "30/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בקשה לבדיקות מעבדה מחוץ לבית החולים מתאריך",
+     "evidence_text": "מתאריך 30/08/2026",
+     "region": "top-center"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "30/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "השתלות מח עצם",
+     "evidence_text": "14:43 30/08/2026",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

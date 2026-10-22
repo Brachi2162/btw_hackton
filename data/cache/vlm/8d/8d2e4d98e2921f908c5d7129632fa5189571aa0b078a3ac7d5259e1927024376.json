@@ -1,0 +1,89 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "f3f28c5ab38c097c421f7326bbacf38a4cc60940acdb931eee3ef685c246e283",
+ "crop": null,
+ "request_id": "req_011CgGvWEYDUBLUdNq1HpSQE",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 616
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "לאומית",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "001122334",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "30.12.196",
+     "evidence_text": "30.12.196 001122334 handwritten blue",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "112233​44",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "7750",
+     "evidence_text": "7750 11223344 handwritten blue in table row",
+     "region": "bottom-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "939973",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מספר מרכזי",
+     "evidence_text": "מספר מרכזי 939973 handwritten with yellow highlight",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "לאומית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "גורם מפנה 13",
+     "evidence_text": "לאומית 13 גורם מפנה",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "לאומית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "לאומית",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "127138045",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "127138045 31.12.2026 22.02.2026",
+     "region": "bottom-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "17.06.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "17.06.2026 תאריך",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "8335d743ceae62baecba1340aa4ee0384aabef82da70eb1781b2e0c4ba8be466",
+ "crop": [
+  1000,
+  0,
+  2500,
+  1593
+ ],
+ "request_id": "-hbaaua2BsOwvdIP6IyWuQ0",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 1209
+ },
+ "reading": {
+  "first_name": "רעות",
+  "last_name": "ישראלי",
+  "id_number": "11223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

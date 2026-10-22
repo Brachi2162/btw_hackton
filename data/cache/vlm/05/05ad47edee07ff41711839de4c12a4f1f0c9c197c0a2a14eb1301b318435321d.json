@@ -1,0 +1,116 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "b59906378ca99f0bc7d9e0ad86dfdf2bd659a07d1579034e2b886da21378ce65",
+ "request_id": "req_011CgFUJJp589pPrdbGofbfK",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 872
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי הלל יפה",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Foe. Goe.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מס' החולה",
+     "evidence_text": "handwritten blue text over yellow highlight on patient sticker",
+     "region": "middle-left"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Foe. Goe.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מס' החולה",
+     "evidence_text": "handwritten blue text over yellow highlight on patient sticker",
+     "region": "middle-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "חיים",
+     "evidence_text": "handwritten blue digits highlighted yellow below 54",
+     "region": "middle-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945740",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ילכיא",
+     "evidence_text": "barcode sticker with 945740, highlighted yellow",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "11.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "945740",
+     "evidence_text": "handwritten blue date under central number sticker",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "הלל יפה",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "המרכז הרפואי",
+     "evidence_text": "המרכז הרפואי הלל יפה logo",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2648 00879",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode",
+     "evidence_text": "2648 00879 under barcode, highlighted yellow",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "12101598",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode",
+     "evidence_text": "12101598 above barcode on patient sticker",
+     "region": "middle-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27.07.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "54",
+     "evidence_text": "27.07.26 on patient sticker",
+     "region": "middle-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "25.07.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "PCR-ZIKA",
+     "evidence_text": "handwritten 25.07.26 below PCR-ZIKA",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

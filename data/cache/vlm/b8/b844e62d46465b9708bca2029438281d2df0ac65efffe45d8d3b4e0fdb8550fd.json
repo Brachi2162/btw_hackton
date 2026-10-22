@@ -1,0 +1,99 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "a4cc766434cbcabbc61489afa1ae26056181b15216cbf05c973bdbcc6c9ab14a",
+ "crop": null,
+ "request_id": "req_011CgHtxfbqySFs8kKw7pqME",
+ "usage": {
+  "input_tokens": 6338,
+  "output_tokens": 730
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "08.02.2010",
+     "evidence_text": "08.02.2010 , 11223344 | handwritten blue",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "31.12.9999 08.02.2010",
+     "evidence_text": "31.12.9999 08.02.2010 11223344 handwritten blue",
+     "region": "bottom-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "9474146",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten highlighted number with date 31.8.26 on left side",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten highlighted next to number, left middle",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "הרשות הפלסטינאית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "גורם מפנה",
+     "evidence_text": "גורם מפנה 47 רשות פלסטינאית",
+     "region": "middle-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "9874511",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "9874511 31.08.2026 11.08.2026",
+     "region": "bottom-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "11.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ביק.ראש.",
+     "evidence_text": "11.08.2026 ביק.ראש.",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "31.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 31.08.2026",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

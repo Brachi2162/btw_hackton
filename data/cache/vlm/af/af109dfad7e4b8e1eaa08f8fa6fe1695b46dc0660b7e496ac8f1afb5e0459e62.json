@@ -1,0 +1,99 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "f72c7cf8fb63d2769e90ab786ac93fde3dffe5368e8db592584211c21fedc79e",
+ "request_id": "req_011CgF8ovb76UQSQ6MoLZMyT",
+ "usage": {
+  "input_tokens": 7499,
+  "output_tokens": 715
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי הלל יפה",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "הלל יפה",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ש",
+     "evidence_text": "(ש) הלל יפה handwritten in blue over highlighter at top left",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "12108148",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה",
+     "evidence_text": "12108148 barcode sticker with מקרה",
+     "region": "middle-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945986",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "945986 barcode sticker at top left with vertical מרכזי label",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "13-08-2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "תאריך התשובה",
+     "evidence_text": "stamp date 13 -08- 2026 highlighted in yellow over the stamp",
+     "region": "middle-right"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי הלל יפה",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בי\"ח הלל יפה",
+     "evidence_text": "ב\"ח הלל יפה printed on sticker",
+     "region": "middle-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2648 00956",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "2648 00956 highlighted in yellow near בדיקה בקט",
+     "region": "middle-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "",
+     "region": "middle-center"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "10.08.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "10.08.26 on sticker",
+     "region": "middle-left"
+    }
+   ]
+  }
+ }
+}

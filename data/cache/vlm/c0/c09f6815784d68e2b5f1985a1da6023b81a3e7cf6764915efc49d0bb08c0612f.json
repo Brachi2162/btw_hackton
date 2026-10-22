@@ -1,0 +1,116 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "f46975d0ecc86751be8588f171126bd670b08339221b1fcc079abdc8f79fc194",
+ "request_id": "req_011CgFUL2EjMoLaxUzJrtQcN",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 848
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז רפואי מאיר",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Ireei",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue name under barcode on sticker, highlighted",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Goai",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue name under barcode on sticker, highlighted",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "112223644",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "נ",
+     "evidence_text": "20:56 נ 112223644 highlighted blue handwriting on sticker",
+     "region": "top-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "82853",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "82853 vertical on barcode sticker, highlighted",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "948258",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode with 948258 highlighted",
+     "region": "bottom-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31-08-2026 המעבדה המרכזית לנגיפים",
+     "region": "bottom-right"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז רפואי מאיר",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "מרכז רפואי מאיר",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2825751832-01",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "29.08.26 2825751832-01",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "29.08.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "29.08.26 2825751832-01",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "2/9/08/26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "תאריך לקיחת הדגימה 2|9|08|26",
+     "region": "middle-left"
+    }
+   ]
+  }
+ }
+}

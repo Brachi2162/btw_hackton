@@ -1,0 +1,90 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "296490079b3edacd8dd3e80562f0b9104e3dd7d1fe4ae9c00c1c70351598cf42",
+ "request_id": "req_011CgF8veMVUQCYzT8Vpcsu9",
+ "usage": {
+  "input_tokens": 5668,
+  "output_tokens": 581
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "כללית",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ישראל",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם החולה",
+     "evidence_text": "שם החולה ישראל",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ישראלי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם החולה",
+     "evidence_text": "שם החולה ישראלי",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "112233344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מספר הזיהוי",
+     "evidence_text": "מספר הזיהוי 112233344",
+     "region": "middle-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "945598",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "945598 מרכזי",
+     "region": "middle-center"
+    }
+   ],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "כללית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "בית החולים",
+     "evidence_text": "כללית",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "375365293",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "האבחנה המשוערת",
+     "evidence_text": "375365293",
+     "region": "middle-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "10-08-2026",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך ביצוע הבדיקה",
+     "evidence_text": "10-08-2026",
+     "region": "bottom-center"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

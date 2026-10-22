@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "240bbdd11dab0445f5e875a166cdbc1fd0c3830990da3486bda7e7a36594efa8",
+ "crop": [
+  998,
+  883,
+  2496,
+  2650
+ ],
+ "request_id": "4hbaasazFIyIxN8P9MbpmQc",
+ "usage": {
+  "input_tokens": 1328,
+  "output_tokens": 2318
+ },
+ "reading": {
+  "first_name": "יוסי",
+  "last_name": "שמש",
+  "id_number": "0011223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

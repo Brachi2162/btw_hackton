@@ -1,0 +1,99 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "4fa37bbfc60db80ee3c5fa00a9d3b3e46d3232deae797c834f7b0fd15ac8a3da",
+ "request_id": "req_011CgFUsuSM6axLMbX5cYAFU",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 700
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Shlomo Peretz",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "מיון פנימי / שם: Shlomo Peretz (handwritten blue over sticker)",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Abrahim Abulin",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "שם",
+     "evidence_text": "שם: אבראהים אעבלין",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "12233344",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "ח.מיון כללי",
+     "evidence_text": "ח.מיון כללי 1223344",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946621",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "946621 (vertical label מרכזי)",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "התקבל",
+     "evidence_text": "18-08-2026 (highlighted under stamp התקבל)",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "436702",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לכבוד",
+     "evidence_text": "436702",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "14.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "14.8.26",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "20:10",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שעת לקיחת הדגימה",
+     "evidence_text": "20:10",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

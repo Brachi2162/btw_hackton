@@ -1,0 +1,80 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "ca12f93e4b8a91be995f6abddeea00f239e052140daeb05bea3dbde80d1a0b67",
+ "request_id": "req_011CgFULbPHnStZt37x27V9Z",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 545
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "11223844",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "19.06.2004 . 11223844 handwritten in blue next to date",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "11223344 handwritten in blue on the second row of the table",
+     "region": "bottom-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "19.06.2004",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "19.06.2004 . 11223844",
+     "region": "top-right"
+    }
+   ],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "9806981",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "9806981 31.08.2026 17.08.2026",
+     "region": "bottom-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "31.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 31.08.2026",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "31.8",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten diagonal text on yellow highlight ending in - 31.8",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

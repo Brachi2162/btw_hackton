@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "f3f28c5ab38c097c421f7326bbacf38a4cc60940acdb931eee3ef685c246e283",
+ "crop": [
+  1415,
+  0,
+  3538,
+  1123
+ ],
+ "request_id": "jxbaatqSM6LmxN8P3KSBiA8",
+ "usage": {
+  "input_tokens": 1352,
+  "output_tokens": 1368
+ },
+ "reading": {
+  "first_name": "רוית",
+  "last_name": "פינצ'י",
+  "id_number": "001122334",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

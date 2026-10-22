@@ -1,0 +1,79 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "ca12f93e4b8a91be995f6abddeea00f239e052140daeb05bea3dbde80d1a0b67",
+ "request_id": "req_011CgFUvt17S1c5i7v2LDPBi",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 555
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [],
+   "central_numbers": [],
+   "receipt_date": [
+    {
+     "value_raw": "19.06.2004",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "19.06.2004 11223344",
+     "region": "top-center"
+    }
+   ],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות 11223344",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "9806981",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "9806981 31.08.2026 17.08.2026",
+     "region": "bottom-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "17.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ביק.ראש.",
+     "evidence_text": "ביק.ראש. 17.08.2026",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "31.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "Vst אחר.",
+     "evidence_text": "Vst אחר. 31.08.2026",
+     "region": "top-center"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "31.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 31.08.2026 שעה 07:21:15",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

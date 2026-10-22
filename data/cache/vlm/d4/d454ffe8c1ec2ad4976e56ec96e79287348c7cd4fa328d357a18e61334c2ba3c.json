@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "aba5737e49b09c1ce9d6c2713b44833c115872e7a6a732fe23d6ee2cc3f436e6",
+ "crop": [
+  992,
+  886,
+  2480,
+  2659
+ ],
+ "request_id": "RBfaaoPMK5ObkdUPxPbsqAg",
+ "usage": {
+  "input_tokens": 1328,
+  "output_tokens": 4099
+ },
+ "reading": {
+  "first_name": "עדן",
+  "last_name": "ארנון",
+  "id_number": "11223344",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

@@ -1,0 +1,99 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "84852728671001fe80d80678d7241b770aea6941e1b6826a6a25cd9d5d6a437f",
+ "request_id": "req_011CgFUvXP81nm2XASkxWXJQ",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 1967
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ישראל",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwriting over yellow highlight at top right",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ישראל ישראלי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwriting over yellow highlight at top right",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "04.04.2001 , 11223344",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "948008",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "9480083 0.8 handwritten on green highlight",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "30.8",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "9480083 0.8 handwritten on green highlight",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "08240",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות 08240 30.08.2026 30.08.2026",
+     "region": "bottom-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "30.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 30.08.2026",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "30.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "08240 30.08.2026 30.08.2026",
+     "region": "bottom-center"
+    }
+   ]
+  }
+ }
+}

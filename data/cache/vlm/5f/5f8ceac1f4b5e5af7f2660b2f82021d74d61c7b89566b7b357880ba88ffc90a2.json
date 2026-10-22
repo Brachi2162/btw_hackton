@@ -1,0 +1,116 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "a8037828736f7b3ffe347f407120ba0878d0ff63c9b6d17b74a1a8a1972c6a85",
+ "request_id": "req_011CgF8w8iZHvdZnQa3win27",
+ "usage": {
+  "input_tokens": 5733,
+  "output_tokens": 2186
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי לניאדו",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יבגי, פבאסי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "blue handwriting over printed label near top center sticker area",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "יבגי, פבאסי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם",
+     "evidence_text": "blue handwriting over printed label near top center sticker area",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "blue handwritten 11223344 on patient sticker next to ת.ז.",
+     "region": "middle-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "26224944",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לניאדו",
+     "evidence_text": "small printed 26224944 under barcode sticker",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "948246",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "נא לציין",
+     "evidence_text": "printed 948246 under barcode sticker near הבדיקה הנדרשת",
+     "region": "bottom-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל stamp with date 31-08-2026",
+     "region": "bottom-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי לניאדו",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לניאדו",
+     "evidence_text": "לניאדו logo top-right",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "X132797",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "printed X132797 barcode sticker top-right",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27/8/26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "handwritten 27/8/26 next to תאריך",
+     "region": "middle-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "26/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "פנימית ב",
+     "evidence_text": "sticker text 26/08/2026 under פנימית ב",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

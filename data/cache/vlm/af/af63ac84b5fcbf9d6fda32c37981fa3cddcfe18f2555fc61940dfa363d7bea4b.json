@@ -1,0 +1,108 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "ed3153b48d9f192ae8ee75b59b7e01d1e531cc6445e79d0ed11bfe7c5aa6d213",
+ "crop": null,
+ "request_id": "req_011CgHttzne9vzmyam4eMzCo",
+ "usage": {
+  "input_tokens": 6338,
+  "output_tokens": 794
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "מאוחדת",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ופרי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue text at top right next to 08.05.1959 and 00122833",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ופרי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue text at top right next to 08.05.1959 and 00122833",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "00122833",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue number at top right next to the birth date 08.05.1959",
+     "region": "top-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "934158",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מספר מרכזי",
+     "evidence_text": "handwritten highlighted yellow under 'מספר מרכזי'",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "16/6/26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten highlighted date below the central number",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מאוחדת",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "גורם מפנה",
+     "evidence_text": "12 מאוחדת",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "קופ\"ח מאוחדת",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "שם מבטח",
+     "evidence_text": "קופ\"ח מאוחדת תל אביב; 62038",
+     "region": "middle-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "730542025",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "730542025 16.06.2026 16.06.2026",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "16.06.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 16.06.2026",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

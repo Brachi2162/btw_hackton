@@ -1,0 +1,72 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "84852728671001fe80d80678d7241b770aea6941e1b6826a6a25cd9d5d6a437f",
+ "request_id": "req_011CgF8x2HPQdegNC393ckS9",
+ "usage": {
+  "input_tokens": 5733,
+  "output_tokens": 1534
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ישפה",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwriting next to 04.04.2001 and 11223344 at top",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ישפה",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "blue handwriting next to 04.04.2001 and 11223344 at top",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "04.04.2001 , 11223344 (blue handwriting)",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [],
+   "receipt_date": [],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "03240",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות 03240 30.08.2026 30.08.2026",
+     "region": "bottom-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "30.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 30.08.2026",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

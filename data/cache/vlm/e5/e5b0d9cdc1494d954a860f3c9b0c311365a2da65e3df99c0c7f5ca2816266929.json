@@ -1,0 +1,108 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "1295bc60e5f4a7d85ad29dbb861af5875cde1f5586e19cbcd4086ffa0a20e6d2",
+ "crop": null,
+ "request_id": "req_011CgH5YWjtrk3ACwzziFfdf",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 744
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "מכבי",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יובל",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "1122334.Beo. Gaoי",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Beo Gao",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "1122334.Beo. Gaoי",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "1122334",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "15.12.1947",
+     "evidence_text": "15.12.1947 1122334.Beo. Gao",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "6 12233",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "31.12.9999 15.12.1947",
+     "evidence_text": "6 12233 .Geo. Gao",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "937188",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "מטפל מדפס",
+     "evidence_text": "937188",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "7/6/26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "937188",
+     "evidence_text": "7/6/26",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מכבי",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "גורם מפנה",
+     "evidence_text": "גורם מפנה 11 מכבי",
+     "region": "middle-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "251120160",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות 251120160 31.12.2026 02.02.2026",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "31.05.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 31.05.2026",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

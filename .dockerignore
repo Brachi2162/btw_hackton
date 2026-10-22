@@ -5,3 +5,13 @@
 !backend/certs
 frontend/node_modules
 frontend/dist
+# The cloud API image (deploy/api.Dockerfile) also builds from the root.
+!deploy
+!backend
+backend/.venv
+backend/**/__pycache__
+backend/.pytest_cache
+backend/.env
+!config
+!prompts
+!data/cache/vlm

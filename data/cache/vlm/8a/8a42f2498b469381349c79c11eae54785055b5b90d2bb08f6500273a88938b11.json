@@ -1,0 +1,98 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "f72c7cf8fb63d2769e90ab786ac93fde3dffe5368e8db592584211c21fedc79e",
+ "request_id": "req_011CgF8g1Hfh7h4mxbqRAgvK",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 709
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "112233447",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "handwritten blue number on patient sticker next to מ.ז.",
+     "region": "middle-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "00956",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "2648",
+     "evidence_text": "2648 00956 on yellow highlighted barcode sticker",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "945986",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode",
+     "evidence_text": "945986 below barcode with highlighted vertical text",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "13-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "stamp of המעבדה המרכזית לנגיפים",
+     "evidence_text": "13 -08- 2026 in the received stamp",
+     "region": "bottom-right"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "בי\"ח הלל יפה",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "patient sticker",
+     "evidence_text": "בי\"ח הלל יפה",
+     "region": "middle-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "12108148",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה",
+     "evidence_text": "12108148 above barcode on sticker",
+     "region": "middle-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "10.08.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "patient sticker",
+     "evidence_text": "10.08.26",
+     "region": "middle-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "11/8/26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "handwritten 11/8/26 8:30",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

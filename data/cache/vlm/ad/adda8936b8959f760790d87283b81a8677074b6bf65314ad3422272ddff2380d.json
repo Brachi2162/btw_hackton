@@ -1,0 +1,23 @@
+{
+ "model": "gemini-3-flash-preview",
+ "prompt_version": "crop_patient.v1",
+ "page_sha256": "f72c7cf8fb63d2769e90ab786ac93fde3dffe5368e8db592584211c21fedc79e",
+ "crop": [
+  0,
+  0,
+  1488,
+  1586
+ ],
+ "request_id": "TxjaauyNJ7rwnsEP__H7uAI",
+ "usage": {
+  "input_tokens": 1336,
+  "output_tokens": 4412
+ },
+ "reading": {
+  "first_name": "שמאי",
+  "last_name": "שמאי",
+  "id_number": "11223349",
+  "name_legible": true,
+  "id_legible": true
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt_version": "crop_patient.v2",
+ "page_sha256": "d17285193bbf701830a1fe35504f933bce536d5fa89c1ec292b07cc8f3790e7d",
+ "crop": [
+  995,
+  0,
+  2488,
+  1590
+ ],
+ "request_id": "req_011CgHRPxwZQDqHv3Ppycz1p",
+ "usage": {
+  "input_tokens": 4683,
+  "output_tokens": 1487
+ },
+ "reading": {
+  "name_line": "Gaa'. Rsoe.",
+  "first_name_letters": [
+   "י",
+   "ש",
+   "ע",
+   "ג"
+  ],
+  "first_name": "ישעג",
+  "last_name_letters": [
+   "י",
+   "ע",
+   "ס",
+   "ג",
+   "א"
+  ],
+  "last_name": "יעסגא",
+  "id_number": "11223344",
+  "first_name_legible": false,
+  "last_name_legible": false,
+  "id_legible": false,
+  "box_left": 20,
+  "box_top": 438,
+  "box_right": 750,
+  "box_bottom": 492
+ }
+}

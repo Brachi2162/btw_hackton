@@ -1,0 +1,91 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "8668c275957894da28575af970a05fbcb306bb2bc6616dc79a689f9526f11029",
+ "crop": null,
+ "request_id": "req_011CgHfu7wzKNH8MkvHcpH7D",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 609
+ },
+ "reading": {
+  "page_kind": "screenshot",
+  "upright": true,
+  "sender_guess": "unknown",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "כיקסובל",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מין",
+     "evidence_text": "handwritten text at top right next to 04.04.2001",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "גבסן",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מין",
+     "evidence_text": "handwritten highlighted text at top right",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "04.04.2001 ,",
+     "evidence_text": "04.04.2001 , 11223344 (blue handwriting)",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "948008",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "948008-30.8 highlighted handwriting",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "30.8",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "948008-",
+     "evidence_text": "948008-30.8",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "03240",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "03240 30.08.2026 30.08.2026",
+     "region": "bottom-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "30.08.2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ביק.ראש.",
+     "evidence_text": "30.08.2026 ביק.ראש.",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

@@ -1,0 +1,115 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "4f4cf3f082f663166743b49e74ff70ebed08276453a33d4100f1c1d77db31c58",
+ "request_id": "req_011CgFUL1f1RBt4P9Xs7wPhP",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 788
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "כללית",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Tce. Tae",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue text above 11223344 near patient sticker",
+     "region": "top-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Tce. Tae",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue text above 11223344 near patient sticker",
+     "region": "top-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue 11223344 under name",
+     "region": "top-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947550",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode sticker with 947550 highlighted yellow",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "66608489",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "barcode sticker 66608489 highlighted yellow",
+     "region": "top-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "26.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "handwritten blue date under barcode 947550",
+     "region": "top-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "כללית",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "כללית logo, stamp כללית ד\"ר פאדי גאנם",
+     "region": "top-left"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "231110",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "פנימית ב",
+     "evidence_text": "פנימית ב 231110",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "10012",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "דורון",
+     "evidence_text": "10012",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "23.08.2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "23.08.2026 :תאריך",
+     "region": "top-center"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

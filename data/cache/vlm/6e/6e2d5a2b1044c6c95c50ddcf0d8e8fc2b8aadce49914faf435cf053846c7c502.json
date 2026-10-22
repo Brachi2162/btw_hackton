@@ -1,0 +1,132 @@
+{
+ "model": "gemini-3.8-flash",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "60626ac4a0de1f0ffd9084c249b4fa74f1bfdd361f6704405cdd59e2cb29566f",
+ "crop": null,
+ "request_id": "b73ZatzTEOmY28oP7c7gkA0",
+ "usage": {
+  "input_tokens": 1970,
+  "output_tokens": 2207
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מרכז שניידר לרפואת ילדים",
+  "page_marker": "Page 1 of 1",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Gabi",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי:",
+     "evidence_text": "שם פרטי: Gabi",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Fisher",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה:",
+     "evidence_text": "שם משפחה: Fisher",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "ת. זהות:",
+     "evidence_text": "ת. זהות: 11223344",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "הדבק מדב",
+     "evidence_text": "11223344 תל 05.09.24",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "948205",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "מרכזי 948205",
+     "region": "top-center"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "31 -08- 2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "התקבל 31 -08- 2026 המעבדה המרכזית לנגיפים",
+     "region": "middle-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מרכז שניידר לרפואת ילדים",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "מרכז שניידר לרפואת ילדים",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2535741701",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מס' ביקור:",
+     "evidence_text": "בדיקות חוץ 1 מס' ביקור: 2535741701",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "2925357417-01",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "הדבק מדב",
+     "evidence_text": "02.08.26 2925357417-01",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "107646",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "הדבק מ(מעבדה)",
+     "evidence_text": "הדבק מ(מעבדה) 107646",
+     "region": "middle-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "30/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מתאריך",
+     "evidence_text": "בקשה לבדיקות מעבדה מחוץ לבית החולים מתאריך 30/08/2026",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "30/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך ושעה",
+     "evidence_text": "תאריך ושעה 14:43 30/08/2026",
+     "region": "middle-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

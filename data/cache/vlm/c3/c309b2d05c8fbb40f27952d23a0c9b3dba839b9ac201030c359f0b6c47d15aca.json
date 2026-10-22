@@ -1,0 +1,82 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "c7a1cf8e588761115f4750a57bc8c7a167056dc911590c777ad0dded163feb27",
+ "crop": null,
+ "request_id": "req_011CgHu3vGnoZruxM6Ua1owj",
+ "usage": {
+  "input_tokens": 6338,
+  "output_tokens": 567
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": false,
+  "sender_guess": "המרכז הרפואי ע\"ש חיים שיבא - תל השומר",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יוסף",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "אצל החולה",
+     "evidence_text": "אצל החולה [handwritten blue name]",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Cohen יוסף",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "אצל החולה",
+     "evidence_text": "אצל החולה [handwritten blue name]",
+     "region": "middle-center"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "100223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "ת.ז. 100223344",
+     "region": "middle-center"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947682",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode sticker",
+     "evidence_text": "947682",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי ע\"ש חיים שיבא - תל השומר",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "אל:",
+     "evidence_text": "אל: [handwritten text]",
+     "region": "middle-center"
+    }
+   ],
+   "commitment_numbers": [],
+   "form_date": [
+    {
+     "value_raw": "26.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך 26.8.26",
+     "region": "top-right"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

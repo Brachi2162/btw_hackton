@@ -1,0 +1,116 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "a1e0636557fbc349128a30be8f8d9d80166ccf1c91b53d5b878c6df04ceca868",
+ "request_id": "req_011CgF8rpYZmnCiDBXMWJVqW",
+ "usage": {
+  "input_tokens": 5668,
+  "output_tokens": 918
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Ize. Fae.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי",
+     "evidence_text": "handwritten blue/green text over patient sticker next to שם פרטי",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Ize. Fae.",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה",
+     "evidence_text": "handwritten blue text over patient sticker at top of sticker",
+     "region": "top-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "handwritten blue digits 11223344 under name on sticker, next to 64",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946622",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "946622 barcode sticker with vertical text",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-08-2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "faint highlighted stamp '1 8 -08- 2026' below the box",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי בני ציון",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "המרכז הרפואי",
+     "evidence_text": "המרכז הרפואי בני ציון logo, מ.ר. בני-ציון on sticker",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "436703",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "לכבוד",
+     "evidence_text": "436703 barcode sticker highlighted",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "10982910",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מקרה",
+     "evidence_text": "10982910 מקרה: on sticker",
+     "region": "top-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "14.08.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "ת.קבלה",
+     "evidence_text": "14.08.26 on patient sticker",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "17.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "handwritten '17.8.26' next to תאריך לקיחת הדגימה",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

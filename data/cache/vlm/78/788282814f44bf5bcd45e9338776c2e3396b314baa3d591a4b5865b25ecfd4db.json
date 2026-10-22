@@ -1,0 +1,81 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v1",
+ "page_sha256": "f72c7cf8fb63d2769e90ab786ac93fde3dffe5368e8db592584211c21fedc79e",
+ "request_id": "req_011CgF8QKtfCPyCSB2sMrCog",
+ "usage": {
+  "input_tokens": 5526,
+  "output_tokens": 1781
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי שמיר (אסף הרופא)",
+  "page_marker": "",
+  "fields": {
+   "first_name": [],
+   "last_name": [],
+   "id_number": [],
+   "central_numbers": [
+    {
+     "value_raw": "945986",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "945986",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "13.08.2026",
+     "legible": false,
+     "handwritten": false,
+     "label_nearby": "התקבל",
+     "evidence_text": "13 -08- 2026 (stamp, partly obscured)",
+     "region": "middle-right"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי שמיר (אסף הרופא)",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "בית החולים הממשלתי",
+     "evidence_text": "ת. השומר",
+     "region": "top-center"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "264800956",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "2648 00956",
+     "region": "middle-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "11.08.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "11.08.26. 8:13",
+     "region": "middle-center"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "11.08.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "11.08.26. 8:13",
+     "region": "middle-center"
+    }
+   ]
+  }
+ }
+}

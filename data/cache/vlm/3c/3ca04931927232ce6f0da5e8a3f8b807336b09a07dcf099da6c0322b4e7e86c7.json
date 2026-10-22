@@ -1,0 +1,98 @@
+{
+ "model": "claude-haiku-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "a1e0636557fbc349128a30be8f8d9d80166ccf1c91b53d5b878c6df04ceca868",
+ "request_id": "req_011CgF8mjbX8kUUqcqhz8V6Y",
+ "usage": {
+  "input_tokens": 5668,
+  "output_tokens": 2375
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי בני ציון",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "Raz Esa",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי",
+     "evidence_text": "blue handwriting over patient sticker next to שם פרטי",
+     "region": "top-left"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "Raz Esa",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה",
+     "evidence_text": "blue handwriting over patient sticker next to שם משפחה",
+     "region": "top-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "ת.ז.",
+     "evidence_text": "blue handwritten 11223344 under 64 on patient sticker",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "946622",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מרכזי",
+     "evidence_text": "barcode sticker 946622 with vertical מרכזי label",
+     "region": "top-left"
+    },
+    {
+     "value_raw": "436703",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "printed barcode 436703 near לכבוד",
+     "region": "top-right"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18-08-2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "yellow highlighted stamp 1 8 -08- 2026",
+     "region": "bottom-center"
+    }
+   ],
+   "sender": [],
+   "commitment_numbers": [
+    {
+     "value_raw": "436703",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "printed barcode 436703 near לכבוד",
+     "region": "top-right"
+    }
+   ],
+   "form_date": [],
+   "sample_date": [
+    {
+     "value_raw": "18.8.26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "תאריך לקיחת הדגימה",
+     "evidence_text": "handwritten date next to תאריך לקיחת הדגימה",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

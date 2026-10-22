@@ -1,0 +1,99 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "aba5737e49b09c1ce9d6c2713b44833c115872e7a6a732fe23d6ee2cc3f436e6",
+ "request_id": "req_011CgF8rjNG82hkYo3YwzLLf",
+ "usage": {
+  "input_tokens": 5668,
+  "output_tokens": 734
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי שמיר (אסף הרופא)",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יעקב",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "שם",
+     "evidence_text": "יעקב 72 מ.ז.: פנימית ג פנימית ג",
+     "region": "middle-right"
+    }
+   ],
+   "last_name": [],
+   "id_number": [
+    {
+     "value_raw": "142233514",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז.: 142233514 (handwritten blue over sticker)",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947768",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode sticker",
+     "evidence_text": "947768",
+     "region": "middle-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "27-08-2026",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "",
+     "evidence_text": "27-08-2026 handwritten in blue with yellow highlight",
+     "region": "middle-center"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי שמיר (אסף הרופא)",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "header",
+     "evidence_text": "המרכז הרפואי שמיר (אסף הרופא) מסונף לפקולטה לרפואה",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "2646",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "2646 מספר התחייבות",
+     "region": "middle-left"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "27.8.26",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "תאריך",
+     "evidence_text": "27.8.26 :תאריך",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "29.07.26",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "",
+     "evidence_text": "29.07.26 on patient sticker",
+     "region": "middle-right"
+    }
+   ]
+  }
+ }
+}

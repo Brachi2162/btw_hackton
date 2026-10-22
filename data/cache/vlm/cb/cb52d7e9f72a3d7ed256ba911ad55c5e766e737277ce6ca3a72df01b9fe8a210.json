@@ -1,0 +1,115 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "902b942195ba29f0a95597d3fc8be48aeed42f003d353b46f6438150b1cf65dc",
+ "crop": null,
+ "request_id": "req_011CgHtync4GowYq664L49Fv",
+ "usage": {
+  "input_tokens": 6338,
+  "output_tokens": 842
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "המרכז הרפואי שערי צדק",
+  "page_marker": "",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "יוסף",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם פרטי",
+     "evidence_text": "שם פרטי : (handwritten, highlighted)",
+     "region": "middle-center"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "יוסף",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם משפחה",
+     "evidence_text": "שם משפחה : (handwritten, highlighted)",
+     "region": "middle-left"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "1122344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מספר זהות",
+     "evidence_text": "מספר זהות: 1122334(4)",
+     "region": "middle-right"
+    },
+    {
+     "value_raw": "1122344",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "מ.ז.",
+     "evidence_text": "מ.ז.: 1122344 on sticker",
+     "region": "top-left"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "947674",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "barcode sticker",
+     "evidence_text": "947674 highlighted under barcode",
+     "region": "top-center"
+    }
+   ],
+   "receipt_date": [],
+   "sender": [
+    {
+     "value_raw": "המרכז הרפואי שערי צדק",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "header",
+     "evidence_text": "המרכז הרפואי שערי צדק",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "251493",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר בקשה",
+     "evidence_text": "מספר בקשה : 251493",
+     "region": "top-right"
+    },
+    {
+     "value_raw": "251493",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות",
+     "evidence_text": "מספר התחייבות : 251493",
+     "region": "bottom-right"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "24/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך : 24/08/2026",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "24/08/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך",
+     "evidence_text": "תאריך : 24/08/2026",
+     "region": "bottom-center"
+    }
+   ],
+   "sample_date": []
+  }
+ }
+}

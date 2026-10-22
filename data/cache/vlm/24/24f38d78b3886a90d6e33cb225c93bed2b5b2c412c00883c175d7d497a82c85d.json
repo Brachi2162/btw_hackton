@@ -1,0 +1,125 @@
+{
+ "model": "claude-sonnet-5-5",
+ "prompt_version": "page_extract.v2",
+ "page_sha256": "623bf68b3af03301b10a6c996eae8ee8e19fd9fbe452d1831a8c2d3a0fe1386f",
+ "crop": null,
+ "request_id": "req_011CgH5Z5JEYKwRJqMfoKp2Y",
+ "usage": {
+  "input_tokens": 5749,
+  "output_tokens": 922
+ },
+ "reading": {
+  "page_kind": "form",
+  "upright": true,
+  "sender_guess": "מכבי",
+  "page_marker": "1/2",
+  "fields": {
+   "first_name": [
+    {
+     "value_raw": "ישראל",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: [handwritten name in blue pen]",
+     "region": "top-right"
+    }
+   ],
+   "last_name": [
+    {
+     "value_raw": "ישראל ישראלי",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "שם:",
+     "evidence_text": "שם: [handwritten name in blue pen]",
+     "region": "top-right"
+    }
+   ],
+   "id_number": [
+    {
+     "value_raw": "11223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "ת.ז.:",
+     "evidence_text": "ת.ז.: 11223344",
+     "region": "top-center"
+    },
+    {
+     "value_raw": "0011223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "ת.ז.:",
+     "evidence_text": "00112233 44 :ת.ז",
+     "region": "middle-center"
+    },
+    {
+     "value_raw": "0011223344",
+     "legible": true,
+     "handwritten": true,
+     "label_nearby": "ת.ז. חבר:",
+     "evidence_text": "0011223344 under barcode",
+     "region": "middle-right"
+    }
+   ],
+   "central_numbers": [
+    {
+     "value_raw": "979395",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "נסרק",
+     "evidence_text": "handwritten number in yellow highlight above נסרק",
+     "region": "top-left"
+    }
+   ],
+   "receipt_date": [
+    {
+     "value_raw": "18/6/26",
+     "legible": false,
+     "handwritten": true,
+     "label_nearby": "נסרק",
+     "evidence_text": "handwritten date highlighted yellow above נסרק",
+     "region": "top-left"
+    }
+   ],
+   "sender": [
+    {
+     "value_raw": "מכבי",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "שירותי הבריאות הטובים בישראל",
+     "evidence_text": "מכבי שירותי בריאות",
+     "region": "top-right"
+    }
+   ],
+   "commitment_numbers": [
+    {
+     "value_raw": "260630224",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "מספר התחייבות:",
+     "evidence_text": "מספר התחייבות: 260630224",
+     "region": "top-center"
+    }
+   ],
+   "form_date": [
+    {
+     "value_raw": "16/06/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך:",
+     "evidence_text": "תאריך: 16/06/2026 שעה: 17:01:33",
+     "region": "top-left"
+    }
+   ],
+   "sample_date": [
+    {
+     "value_raw": "18/06/2026",
+     "legible": true,
+     "handwritten": false,
+     "label_nearby": "תאריך טיפול:",
+     "evidence_text": "תאריך טיפול: 18062026",
+     "region": "middle-left"
+    }
+   ]
+  }
+ }
+}
