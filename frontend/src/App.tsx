@@ -9,19 +9,17 @@ import { Review } from "./screens/Review";
 import "./App.css";
 
 // Review is the first screen people use; the rest load on demand.
+const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const Intake = lazy(() => import("./screens/Intake").then((m) => ({ default: m.Intake })));
-const CardMode = lazy(() => import("./screens/CardMode").then((m) => ({ default: m.CardMode })));
-const Tubes = lazy(() => import("./screens/Tubes").then((m) => ({ default: m.Tubes })));
 const Followups = lazy(() => import("./screens/Followups").then((m) => ({ default: m.Followups })));
 const Weekly = lazy(() => import("./screens/Weekly").then((m) => ({ default: m.Weekly })));
 const Export = lazy(() => import("./screens/Export").then((m) => ({ default: m.Export })));
 const Handover = lazy(() => import("./screens/Handover").then((m) => ({ default: m.Handover })));
 
 const SCREENS: Record<string, React.ComponentType> = {
+  home: Home,
   intake: Intake,
   review: Review,
-  cards: CardMode,
-  tubes: Tubes,
   followups: Followups,
   reports: Weekly,
   export: Export,
@@ -32,7 +30,7 @@ export function App() {
   const [route, go] = useRoute();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [batchId, setBatch] = useState<string | null>(null);
-  const screen = SCREENS[route[0]] ? route[0] : "review";
+  const screen = SCREENS[route[0]] ? route[0] : "home";
 
   const refreshOverview = useCallback(() => {
     api

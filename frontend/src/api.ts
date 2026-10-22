@@ -128,26 +128,6 @@ export interface Brief {
   signature: { key: string; status: Status }[];
 }
 
-export interface TubeScan {
-  id: number;
-  number: string;
-  slot: number;
-  rack: number;
-  label: string;
-  matched: boolean;
-  submission: Brief | null;
-  scanned_at: string;
-  duplicate?: boolean;
-}
-
-export interface TubeStatus {
-  matched: TubeScan[];
-  orphans: TubeScan[];
-  waiting: Brief[];
-  rack: number;
-  slots: { index: number; label: string; number: string | null; state: "empty" | "matched" | "orphan"; newest: boolean }[];
-  last: TubeScan | null;
-}
 
 export interface Followup {
   id: number;
@@ -287,10 +267,13 @@ export const api = {
       fd,
     );
   },
-  inbox: (path: string, today: boolean) =>
-    call<InboxPreview>("GET", `/inbox?${new URLSearchParams({ path, today: String(today) })}`),
-  importFolder: (path: string, today_only: boolean) =>
-    call<InboxPreview>("POST", "/inbox/import", { path, today_only }),
+  inbox: (path: string, today: boolean, recursive: boolean) =>
+    call<InboxPreview>(
+      "GET",
+      `/inbox?${new URLSearchParams({ path, today: String(today), recursive: String(recursive) })}`,
+    ),
+  importFolder: (path: string, today_only: boolean, recursive: boolean) =>
+    call<InboxPreview>("POST", "/inbox/import", { path, today_only, recursive }),
   submission: (id: string) => call<Submission>("GET", `/submissions/${id}`),
   page: (id: string) => call<Page>("GET", `/pages/${id}`),
   accept: (sid: string, field: string) =>
@@ -313,8 +296,6 @@ export const api = {
       `/batches/${bid}/review-queue`,
     ),
   exportBatch: (bid: string, force = false) => call<Blob>("POST", `/batches/${bid}/export?force=${force}`),
-  tubes: (bid: string) => call<TubeStatus>("GET", `/batches/${bid}/tubes`),
-  scan: (bid: string, number: string) => call<TubeScan>("POST", `/batches/${bid}/tubes/scan`, { number }),
   followups: () => call<Followup[]>("GET", "/followups"),
   patchFollowup: (id: number, body: Partial<Pick<Followup, "status" | "draft">>) =>
     call<Followup>("PATCH", `/followups/${id}`, body),

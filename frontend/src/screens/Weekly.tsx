@@ -12,7 +12,7 @@ export function Weekly() {
   if (error) return <div className="page empty">{error}</div>;
   if (!r) return <div className="page empty">טוען…</div>;
   const s = r.stats;
-  const maxDay = Math.max(1, ...r.orphans_by_day.map((x) => x.count));
+  const autoPct = s.fields ? Math.round((100 * (s.fields - s.fields_needing_eye)) / s.fields) : 0;
 
   return (
     <div className="page weekly">
@@ -41,8 +41,8 @@ export function Weekly() {
           <span className="stat-l">אושרו בלי מגע יד</span>
         </div>
         <div className="stat card">
-          <span className="stat-n num">{s.tubes_without_form}</span>
-          <span className="stat-l">מבחנות בלי טופס</span>
+          <span className="stat-n num">{s.open_followups}</span>
+          <span className="stat-l">בירורים פתוחים</span>
         </div>
       </div>
 
@@ -68,16 +68,31 @@ export function Weekly() {
         </section>
 
         <section className="card chart">
-          <h2>{r.takeaways.orphans}</h2>
-          <p className="muted chart-sub">מבחנות שהגיעו בלי טופס, לפי יום</p>
-          <div className="cols" role="img" aria-label={r.orphans_by_day.map((x) => `${x.day_he}: ${x.count}`).join(", ")}>
-            {r.orphans_by_day.map((x) => (
-              <div key={x.date} className="col">
-                <span className="col-n num">{x.count || ""}</span>
-                <span className="col-bar" style={{ height: `${(x.count / maxDay) * 100}%` }} />
-                <span className="col-l">{x.day_he}</span>
-              </div>
-            ))}
+          <h2>
+            <span className="num">{autoPct}%</span> מהשדות אומתו בלי שאף אחד נגע בהם
+          </h2>
+          <p className="muted chart-sub">כל השדות השבוע: מאומתים אוטומטית מול כאלה שהצריכו עין</p>
+          <div className="ring-wrap">
+            <div
+              className="ring"
+              role="img"
+              aria-label={`${autoPct}% אומתו אוטומטית`}
+              style={{ "--p": `${autoPct}%` } as React.CSSProperties}
+            >
+              <span className="num">{autoPct}%</span>
+            </div>
+            <dl className="ring-legend">
+              <dt>
+                <i className="dot-auto" /> אומתו אוטומטית
+              </dt>
+              <dd className="num">{s.fields - s.fields_needing_eye}</dd>
+              <dt>
+                <i className="dot-eye" /> הצריכו עין
+              </dt>
+              <dd className="num">{s.fields_needing_eye}</dd>
+              <dt>תיקונים ידניים</dt>
+              <dd className="num">{s.corrections}</dd>
+            </dl>
           </div>
         </section>
       </div>

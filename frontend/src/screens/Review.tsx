@@ -30,7 +30,6 @@ export function Review() {
 
 function ReviewBatch({ batchId }: { batchId: string }) {
   const batch = useData(() => api.batch(batchId), [batchId], 0);
-  const tubes = useData(() => api.tubes(batchId), [batchId]);
   // #/review/<submission>/<field> opens on that field (links from elsewhere)
   const [sel, setSel] = useState<Sel | null>(() => {
     const [, sid, field] = window.location.hash.replace(/^#\/?/, "").split("/");
@@ -53,11 +52,6 @@ function ReviewBatch({ batchId }: { batchId: string }) {
   useEffect(() => {
     if (!sel && subs.length) setSel(nextOpenField(subs, null) ?? { sid: subs[0].id, field: "first_name" });
   }, [subs, sel]);
-
-  const matched = useMemo(
-    () => new Set((tubes.data?.matched ?? []).map((t) => t.submission?.id)),
-    [tubes.data],
-  );
 
   function onSaved(p: Propagation | null) {
     batch.refresh();
@@ -98,12 +92,11 @@ function ReviewBatch({ batchId }: { batchId: string }) {
                 {TABLE_FIELDS.map((f) => (
                   <th key={f}>{FIELD_HE[f]}</th>
                 ))}
-                <th>מבחנה</th>
               </tr>
             </thead>
             <tbody>
               {subs.map((s) => (
-                <Row key={s.id} s={s} sel={sel} onSelect={setSel} tube={matched.has(s.id)} />
+                <Row key={s.id} s={s} sel={sel} onSelect={setSel} />
               ))}
             </tbody>
           </table>
@@ -127,23 +120,20 @@ function ReviewBatch({ batchId }: { batchId: string }) {
   );
 }
 
-function Row({ s, sel, onSelect, tube }: { s: SubmissionSummary; sel: Sel | null; onSelect: (x: Sel) => void; tube: boolean }) {
+function Row({ s, sel, onSelect }: { s: SubmissionSummary; sel: Sel | null; onSelect: (x: Sel) => void }) {
   return (
     <tr className={sel?.sid === s.id ? "row-sel" : undefined}>
       <td>
         <Cell s={s} field="sender" sel={sel} onSelect={onSelect} />
       </td>
       <td className="sig-cell">
-        <FormSignature statuses={signatureOf(s.fields)} tube={tube} />
+        <FormSignature statuses={signatureOf(s.fields)} />
       </td>
       {TABLE_FIELDS.map((f) => (
         <td key={f}>
           <Cell s={s} field={f} sel={sel} onSelect={onSelect} />
         </td>
       ))}
-      <td className={`tube ${tube ? "yes" : ""}`} aria-label={tube ? "מבחנה הותאמה" : "אין מבחנה"}>
-        {tube ? "✓" : "—"}
-      </td>
     </tr>
   );
 }
