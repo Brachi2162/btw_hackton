@@ -70,10 +70,15 @@ const RINGS = [
   { tilt: -0.85, spin: 4.2, t: 0.95 },
 ];
 
-export function VirusCanvas({ stage = 0 }: { stage?: number }) {
+// one "notch" of turn: onTurn fires each time the virus turns this far
+const NOTCH = (Math.PI * 2) / 12;
+
+export function VirusCanvas({ stage = 0, onTurn }: { stage?: number; onTurn?: (notch: number) => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef(stage);
   stageRef.current = stage;
+  const turnRef = useRef(onTurn);
+  turnRef.current = onTurn;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -108,6 +113,7 @@ export function VirusCanvas({ stage = 0 }: { stage?: number }) {
     io.observe(canvas);
 
     let raf = 0;
+    let notch = 0;
     const t0 = performance.now();
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
@@ -117,6 +123,11 @@ export function VirusCanvas({ stage = 0 }: { stage?: number }) {
       const spin = still ? 0 : t * 0.22;
       const k = still ? 1 : 0.06;
       eased.yaw += (spin + window.scrollY * 0.0032 + pointer.x * 0.7 - eased.yaw) * k;
+      const n = Math.floor(eased.yaw / NOTCH);
+      if (n !== notch) {
+        notch = n;
+        turnRef.current?.(n);
+      }
       eased.pitch += (0.28 + pointer.y * 0.45 + Math.sin(window.scrollY * 0.0015) * 0.2 - eased.pitch) * k;
       eased.rings += ((st >= 2 ? 1 : 0) - eased.rings) * 0.05;
       eased.pull += ((st >= 3 ? 1 : 0) - eased.pull) * 0.04;

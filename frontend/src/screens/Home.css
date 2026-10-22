@@ -297,6 +297,33 @@
   justify-content: center;
 }
 
+/* Mute / unmute the virus notes, in the corner of its stage. */
+.stage-sound {
+  position: absolute;
+  top: 24px;
+  inset-inline-end: 24px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(6px);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s, border-color 0.15s;
+  z-index: 2;
+}
+
+.stage-sound.on,
+.stage-sound:hover {
+  opacity: 1;
+}
+
+.stage-sound:hover {
+  border-color: var(--teal);
+}
+
 .virus-canvas {
   width: 100%;
   height: min(78vh, 680px);
