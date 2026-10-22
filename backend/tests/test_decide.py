@@ -618,3 +618,30 @@ def test_a_label_by_a_barcode_counts_only_with_a_valid_number(cfg):
     sub = decide_page(PAGE, "b1", page, near, cfg, REF)
     central = sub.fields["central_numbers"]
     assert central.values == ["512340"] and central.status == "verified"
+
+
+def test_a_handwritten_date_under_the_central_number_is_the_receipt_date(cfg):
+    central = {**barcode("512340", bbox=(1500, 300, 1900, 380)), "label": "מרכזי"}
+
+    def date_read(reader, region):
+        c = vlm("receipt_date", "20/08/2026", handwritten=True)
+        return c.model_copy(update={"reader": reader, "signals": {"region": region}})
+
+    def receipt(*cands):
+        page = {"page_kind": "form", "candidates": [c.model_dump() for c in cands]}
+        return decide_page(
+            PAGE, "b1", page, [central], cfg, REF, page_size=(2400, 3400)
+        ).fields["receipt_date"]
+
+    # the barcode is top-right: a date there or just below is the receipt date;
+    # two models agreeing on it make it green, one alone does not (D-020)
+    both = receipt(
+        date_read("vlm_full", "top-right"), date_read("vlm_escalated", "middle-right")
+    )
+    assert both.status == "verified"
+    alone = receipt(date_read("vlm_full", "top-right"))
+    assert alone.status != "verified"
+    far = receipt(
+        date_read("vlm_full", "bottom-left"), date_read("vlm_escalated", "bottom-left")
+    )
+    assert far.status != "verified"  # elsewhere on the page: no say

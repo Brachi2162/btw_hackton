@@ -490,8 +490,16 @@ class BatchService:
                 self._set_page(page_id, ocr=ocr)
             lines = ocr.get("lines") if ocr else None
             self._stage(batch_id, page_id, doc_id, "verify")
+            size = (rec["width"], rec["height"])
             sub = decide_page(
-                page_id, batch_id, vlm, prep["barcodes"], self.decision, ref, ocr=lines
+                page_id,
+                batch_id,
+                vlm,
+                prep["barcodes"],
+                self.decision,
+                ref,
+                ocr=lines,
+                page_size=size,
             )
             if needs_escalation(sub):
                 esc = await asyncio.to_thread(
@@ -512,6 +520,7 @@ class BatchService:
                     self.decision,
                     ref,
                     ocr=lines,
+                    page_size=size,
                 )
             else:
                 esc = None
@@ -554,6 +563,7 @@ class BatchService:
                     self.decision,
                     ref,
                     ocr=lines,
+                    page_size=size,
                 )
             self._save_submission(sub, position=self._position(doc_id, page_no))
             self._set_page(page_id, status="done")
@@ -637,6 +647,7 @@ class BatchService:
                 self.decision,
                 batch.ref_date,
                 ocr=(p.ocr or {}).get("lines"),
+                page_size=(p.width, p.height),
             )
             for f, fr in old.fields.items():
                 if fr.status == "human" or fr.history:

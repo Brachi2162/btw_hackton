@@ -316,7 +316,15 @@ def _score(
     g.anchored = any(
         _has_label(c.label_nearby, cfg.anchors.get(fname, [])) for c in g.cands
     )
-    g.placed = not g.anchored and _in_profile_place(g, fname, profile)
+    g.placed = not g.anchored and (
+        _in_profile_place(g, fname, profile)
+        # handwritten under the central number (D-020): the place says it is
+        # the receipt date, not that every digit was read right
+        or (
+            fname == "receipt_date"
+            and any(c.signals.get("by_central") for c in g.cands)
+        )
+    )
     if g.anchored or g.placed:
         g.score += cfg.anchor_bonus
     decoy = next(
@@ -737,6 +745,37 @@ def _dates_next_to_centrals(cands: list[Candidate]) -> list[Candidate]:
     return out
 
 
+_ROWS3 = ("top", "middle", "bottom")
+_COLS3 = ("left", "center", "right")
+
+
+def _mark_by_central(
+    cands: list[Candidate], barcodes: list[dict], cfg: DecisionConfig, page_size
+) -> None:
+    """Receipt date handwritten under the central number (organizers' spec):
+    a handwritten date the reader placed in the same 3x3 cell as a barcode
+    labelled as the central number, or the cell right below it."""
+    if not page_size or not page_size[0]:
+        return
+    w, h = page_size
+    anchors = cfg.anchors.get("central_numbers", [])
+    near = set()
+    for b in barcodes:
+        if not (b.get("label") and _has_label(b["label"], anchors)):
+            continue
+        if _normalize_barcode("central_numbers", b["text"]).problems:
+            continue
+        x1, y1, x2, y2 = b["bbox"]
+        row = min(2, int((y1 + y2) / 2 / h * 3))
+        col = _COLS3[min(2, int((x1 + x2) / 2 / w * 3))]
+        near.add(f"{_ROWS3[row]}-{col}")
+        if row < 2:
+            near.add(f"{_ROWS3[row + 1]}-{col}")
+    for c in cands:
+        if c.handwritten and c.signals.get("region") in near:
+            c.signals["by_central"] = True
+
+
 def decide_page(
     page_id: str,
     batch_id: str,
@@ -745,8 +784,10 @@ def decide_page(
     cfg: DecisionConfig,
     ref: date,
     ocr: list[dict] | None = None,
+    page_size: tuple[int, int] | None = None,
 ) -> Submission:
-    """One page = one submission (continuation pages are attached later)."""
+    """One page = one submission (continuation pages are attached later).
+    `page_size` (width, height) places values relative to the barcodes."""
     if "error" in vlm_page:
         fields = {
             f: FieldResult(
@@ -810,6 +851,7 @@ def decide_page(
         fields[f] = decide_field(
             f, by_field.get(f, []), barcodes, page_id, cfg, ref, ocr=ocr
         )
+    _mark_by_central(by_field.get("receipt_date", []), barcodes, cfg, page_size)
     fields["receipt_date"] = decide_field(
         "receipt_date",
         by_field.get("receipt_date", []),
