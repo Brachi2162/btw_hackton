@@ -76,6 +76,7 @@ class DecisionConfig:
     senders: SenderIndex
     commitment_aliases: list[str] = field(default_factory=list)
     self_verifying: set[str] = field(default_factory=set)
+    label_required: set[str] = field(default_factory=set)
 
     @classmethod
     def load(cls, config_dir: Path) -> "DecisionConfig":
@@ -100,6 +101,7 @@ class DecisionConfig:
             senders=SenderIndex(y("senders.yaml")),
             commitment_aliases=vlm.get("commitment_aliases", []),
             self_verifying=set(c.get("self_verifying", [])),
+            label_required=set(c.get("label_required", [])),
         )
 
 
@@ -244,6 +246,8 @@ def _status(
             reasons.append("handwritten_only")
     if not any(c.bbox for c in g.cands):
         reasons.append("bbox_approx")
+    if fname in cfg.label_required and needs_anchor:
+        reasons.append("label_missing")
 
     blocking = {
         "validation_failed",
@@ -255,6 +259,7 @@ def _status(
         "illegible",
         "multiple_candidates",
         "name_split_ambiguous",
+        "label_missing",
     }
     if blocking & set(reasons):
         return "review", reasons
@@ -485,9 +490,9 @@ def _cross_field_conflicts(
     for f in BARCODE_FIELDS:
         fr = fields[f]
         clash = [v for v in fr.values if proposed.get(_number_key(v), {f}) - {f}]
-        if clash and fr.status in ("verified", "likely"):
+        if clash and fr.status in ("verified", "likely", "review"):
             fr.status = "review"
-            fr.reasons.append("disagree_sources")
+            fr.reasons = list(dict.fromkeys(fr.reasons + ["disagree_sources"]))
             others = sorted(proposed[_number_key(clash[0])] - {f})
             fr.explanation_he = (
                 f"{clash[0]}: נקרא גם כ-{', '.join(others)}; "

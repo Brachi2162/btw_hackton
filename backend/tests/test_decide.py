@@ -398,3 +398,20 @@ def test_one_source_rule_is_only_for_self_verifying_fields(cfg):
         REF,
     )
     assert fr.status == "likely"
+
+
+def test_commitment_without_its_label_goes_to_review(cfg):
+    fr = decide_field(
+        "commitment_numbers", [vlm("commitment_numbers", "88120")], [], PAGE, cfg, REF
+    )
+    assert fr.status == "review" and "label_missing" in fr.reasons
+    assert "תווית" in fr.explanation_he
+    labeled = decide_field(
+        "commitment_numbers",
+        [vlm("commitment_numbers", "88120", label="התחייבות")],
+        [],
+        PAGE,
+        cfg,
+        REF,
+    )
+    assert labeled.status == "likely" and "label_missing" not in labeled.reasons

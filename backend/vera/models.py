@@ -31,6 +31,7 @@ ReasonCode = Literal[
     "vlm_invalid",
     "duplicate_in_batch",
     "illegible",  # D-004: a reader saw something but marked it unreadable
+    "label_missing",  # D-008: no field label next to the value
 ]
 
 Reader = Literal["barcode", "ocr", "vlm_full", "vlm_crop", "vlm_escalated", "human"]
