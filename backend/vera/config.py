@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # Process pool size for CPU-bound work (OpenCV, OCR). 0 = os.cpu_count().
     cpu_workers: int = 0
     # Max jobs running at once (also bounds concurrent VLM calls per batch).
-    max_concurrent_jobs: int = 4
+    max_concurrent_jobs: int = 8
 
     # Rules and prompt templates (spec 10, 8.3), at the repo root. In Docker
     # they are mounted at /config and /prompts, which is the same path.

@@ -29,7 +29,7 @@ jpeg_quality: 90
 timeout: 90
 max_retries: 3
 # Calls in flight at once.
-concurrency: 4
+concurrency: 8
 
 # Default labels for the commitment number (spec 3.2); a profile can add more.
 commitment_aliases:
