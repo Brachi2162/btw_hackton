@@ -431,7 +431,7 @@ def test_assistant_tools_and_confirmation(demo):
     # the write tool did not act: the model was told it waits for the user
     results = fake.calls[1]["messages"][-1]["content"]
     assert '"pending_confirmation": true' in results[1]["content"]
-    assert fake.calls[0]["model"] == "claude-opus-5-5"
+    assert fake.calls[0]["model"] == "claude-sonnet-5-5"
 
     fid = c.get("/api/followups?status=open").json()[0]["id"]
     ok = c.post(
@@ -562,3 +562,14 @@ def test_assistant_falls_back_to_claude_then_to_the_data(demo):
     app.state.assistant._client = broken
     r = c.post("/api/assistant/chat", json=ask)
     assert r.status_code == 200 and r.json()["mode"] == "offline"
+
+
+def test_a_model_out_of_quota_is_skipped_on_the_next_questions(demo):
+    c, app, _, _ = demo
+    ask = {"messages": [{"role": "user", "content": "איך היה השבוע?"}]}
+    gemini = FakeGemini((429, {"error": {"message": "quota"}}))
+    app.state.assistant._http = gemini
+    app.state.assistant._client = FakeClient()
+    assert c.post("/api/assistant/chat", json=ask).json()["mode"] == "model"
+    assert c.post("/api/assistant/chat", json=ask).json()["mode"] == "model"
+    assert len(gemini.calls) == 1  # the second question went straight to Claude

@@ -7,7 +7,10 @@ X-User header and defaults to "lab". Every change is written to audit_log.
 import asyncio
 import io
 import json
+import threading
+from collections import OrderedDict
 from datetime import date
+from pathlib import Path
 from urllib.parse import unquote
 
 from fastapi import APIRouter, File, Header, HTTPException, Query, Request
@@ -295,6 +298,28 @@ def search(q: str, request: Request):
 # --- pages ---
 
 
+# Decoded pages, newest last. A field click asks for a new crop of the same
+# page every time; decoding the full PNG again took most of the response.
+_PAGES: "OrderedDict[tuple[str, float], Image.Image]" = OrderedDict()
+_PAGES_MAX = 4  # about 26MB each at 300 dpi
+_PAGES_LOCK = threading.Lock()
+
+
+def _decoded(path: Path) -> Image.Image:
+    key = (str(path), path.stat().st_mtime)
+    with _PAGES_LOCK:
+        if key in _PAGES:
+            _PAGES.move_to_end(key)
+            return _PAGES[key]
+    with Image.open(path) as img:
+        page = img.convert("RGB")
+    with _PAGES_LOCK:
+        _PAGES[key] = page
+        while len(_PAGES) > _PAGES_MAX:
+            _PAGES.popitem(last=False)
+    return page
+
+
 @router.get("/pages/{page_id}/image")
 def page_image(
     page_id: str,
@@ -310,26 +335,28 @@ def page_image(
         if page is None or not page.image:
             raise HTTPException(404, "page not ready")
         path = service.work_dir(page.batch_id) / page.image
-    with Image.open(path) as img:
-        img = img.convert("RGB")
-        if crop:
-            try:
-                x1, y1, x2, y2 = (int(float(v)) for v in crop.split(","))
-            except ValueError:
-                raise HTTPException(422, "crop must be x1,y1,x2,y2")
-            box = (max(0, x1), max(0, y1), min(img.width, x2), min(img.height, y2))
-            if box[2] <= box[0] or box[3] <= box[1]:
-                raise HTTPException(422, "empty crop")
-            img = img.crop(box)
-            if scale != 1:
-                img = img.resize(
-                    (max(1, int(img.width * scale)), max(1, int(img.height * scale))),
-                    Image.Resampling.LANCZOS,
-                )
-        if max(img.size) > max_side:
-            img.thumbnail((max_side, max_side))
-        buf = io.BytesIO()
-        img.save(buf, "JPEG", quality=88)
+    page = _decoded(path)
+    img = page
+    if crop:
+        try:
+            x1, y1, x2, y2 = (int(float(v)) for v in crop.split(","))
+        except ValueError:
+            raise HTTPException(422, "crop must be x1,y1,x2,y2")
+        box = (max(0, x1), max(0, y1), min(img.width, x2), min(img.height, y2))
+        if box[2] <= box[0] or box[3] <= box[1]:
+            raise HTTPException(422, "empty crop")
+        img = img.crop(box)
+        if scale != 1:
+            img = img.resize(
+                (max(1, int(img.width * scale)), max(1, int(img.height * scale))),
+                Image.Resampling.LANCZOS,
+            )
+    if max(img.size) > max_side:
+        if img is page:  # thumbnail works in place: never on the cached page
+            img = img.copy()
+        img.thumbnail((max_side, max_side))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=88)
     return Response(
         buf.getvalue(),
         media_type="image/jpeg",
