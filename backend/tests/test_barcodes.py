@@ -81,3 +81,22 @@ def test_same_requires_overlap():
     b = Barcode("1", "Code128", (90, 10, 190, 60), 0, "crop")
     c = Barcode("1", "Code128", (500, 0, 600, 50), 0, "crop")
     assert _same(a, b) and not _same(a, c)
+
+
+def test_labels_are_read_only_around_a_possible_central_number(monkeypatch):
+    import pytesseract
+
+    from vera.pipeline.barcodes import label_barcodes
+
+    seen = []
+
+    def ocr(img, **kw):
+        seen.append(img.size)
+        return "מרכזי"
+
+    monkeypatch.setattr(pytesseract, "image_to_string", ocr)
+    central = Barcode("512340", "Code128", (100, 100, 300, 150), 0, "page")
+    other = Barcode("ABC-77", "Code128", (100, 400, 300, 450), 0, "page")
+    label_barcodes(Image.new("RGB", (800, 800), "white"), [central, other], ["מרכזי"])
+    assert central.label == "מרכזי" and other.label is None
+    assert len(seen) == 1  # no OCR around a barcode that can't be a central

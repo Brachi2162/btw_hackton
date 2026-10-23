@@ -188,9 +188,16 @@ def label_barcodes(img: Image.Image, barcodes: list[Barcode], words=None) -> Non
     words = label_words() if words is None else words
     if not words:
         return
+    from vera.normalize import norm_central
+
     found = re.compile("|".join(rf"(?<![א-ת]){re.escape(w)}(?![א-ת])" for w in words))
     gray = img.convert("L")
     for b in barcodes:
+        # The label only ever counts for a barcode that is a valid central
+        # number (decide.py): reading it around any other one is wasted OCR,
+        # up to 7 angles each (several seconds a page).
+        if norm_central(b.text).problems:
+            continue
         x1, y1, x2, y2 = b.bbox
         pad = int(max(x2 - x1, y2 - y1) * LABEL_PAD)
         area = gray.crop((max(0, x1 - pad), max(0, y1 - pad), x2 + pad, y2 + pad))

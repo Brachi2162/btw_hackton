@@ -13,6 +13,7 @@ server error: the next one in line answers.
 
 import json
 import logging
+import time
 
 from vera import followups as fu
 from vera import handover, reports, tubes
@@ -130,6 +131,15 @@ GEMINI_URL = (
 _GEMINI_BLOCKED = {"SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII"}
 
 
+# A model that answered "quota used up" is skipped this long, instead of
+# costing every question a failed call before the next model answers.
+QUOTA_REST_S = 600
+
+
+class QuotaExceeded(RuntimeError):
+    """The provider's quota (429): try this model again only later."""
+
+
 class Refused(Exception):
     """The model won't answer this; another model wouldn't either."""
 
@@ -141,12 +151,13 @@ class Assistant:
         self.fallback_model = bs.s.assistant_fallback_model
         self._client = client
         self._http = gemini_http
+        self._resting: dict[str, float] = {}  # model -> skip until (QUOTA_REST_S)
 
     def _chain(self) -> list[tuple[str, str]]:
         """(provider, model) in the order they are tried."""
         out = []
         for model in (self.model, self.fallback_model):
-            if not model:
+            if not model or self._resting.get(model, 0) > time.monotonic():
                 continue
             if model.startswith("gemini"):
                 if self.bs.s.gemini_api_key or self._http is not None:
@@ -274,9 +285,15 @@ class Assistant:
                 return self._claude_chat(model, history)
             except Refused:
                 return self._reply("אין לי אפשרות לעזור בזה.", [], [])
-            except Exception as e:  # quota, network, NetFree: the next one answers
+            except QuotaExceeded as e:
+                self._rest(model)
+                log.warning("assistant %s out of quota: %s", model, str(e)[:200])
+            except Exception as e:  # network, NetFree: the next one answers
                 log.warning("assistant %s failed: %s", model, str(e)[:300])
         return self._offline(history[-1]["content"])
+
+    def _rest(self, model: str) -> None:
+        self._resting[model] = time.monotonic() + QUOTA_REST_S
 
     def _tool(self, name: str, args: dict, actions: list) -> dict:
         """Runs a read tool, or turns a write tool into a confirmation card."""
@@ -340,6 +357,8 @@ class Assistant:
             headers={"x-goog-api-key": self.bs.s.gemini_api_key},
             json=body,
         )
+        if r.status_code == 429:
+            raise QuotaExceeded(f"gemini HTTP 429: {r.text[:300]}")
         if r.status_code != 200:
             # The error names the problem (quota, model), never the key.
             raise RuntimeError(f"gemini HTTP {r.status_code}: {r.text[:300]}")

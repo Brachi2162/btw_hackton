@@ -45,7 +45,9 @@ class Settings(BaseSettings):
     # Assistant (spec 15) and drafted letters. Empty key = template answers.
     # Gemini first, then the fallback when it fails (D-010).
     assistant_model: str = "gemini-3.5-flash"
-    assistant_fallback_model: str = "claude-opus-5-5"
+    # Sonnet, not Opus: the facts come from the tools, so the faster model
+    # answers as well, and a question takes two rounds (tool, then answer).
+    assistant_fallback_model: str = "claude-sonnet-5-5"
     # Scanner folder for "import from folder" (vera/inbox.py): where it is
     # mounted in the container, and its path on the host as people type it.
     inbox_dir: Path = Path("/inbox")

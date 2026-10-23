@@ -231,3 +231,20 @@ def test_accept_all_greens_values_and_leaves_empty_fields(client, tmp_path):
                 assert f["status"] != "human"
 
     assert client.post("/api/batches/nope/accept-all").status_code == 404
+
+
+def test_a_whole_page_image_does_not_shrink_the_cached_page(client, tmp_path):
+    from PIL import Image
+
+    bid = client.post("/api/batches", json={"name": "t", "ref_date": "2026-09-01"})
+    bid = bid.json()["id"]
+    upload(client, bid, tmp_path)
+    pid = wait_done(client, bid)["submissions"][0]["page_ids"][0]
+    page = client.get(f"/api/pages/{pid}").json()
+    small = client.get(f"/api/pages/{pid}/image?max_side=100")
+    assert max(Image.open(io.BytesIO(small.content)).size) == 100
+    # a crop after that still comes from the full-size page
+    crop = client.get(
+        f"/api/pages/{pid}/image?crop=0,0,{page['width']},50&max_side=4000"
+    )
+    assert Image.open(io.BytesIO(crop.content)).size == (page["width"], 50)
