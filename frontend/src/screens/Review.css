@@ -215,7 +215,9 @@
 .viewer.placeholder {
   display: grid;
   place-items: center;
-  height: 240px;
+  min-height: 460px;
+  text-align: center;
+  padding: 20px;
 }
 
 .panel-body {

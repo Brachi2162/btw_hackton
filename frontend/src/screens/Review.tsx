@@ -136,7 +136,15 @@ function ReviewBatch({ batchId }: { batchId: string }) {
           </table>
           {!subs.length && <div className="empty">{processing ? "הטפסים נקראים…" : "אין טפסים באצווה"}</div>}
         </div>
-        {sel && <Panel key={`${sel.sid}|${sel.field}|${rev}`} sel={sel} onSaved={onSaved} />}
+        {sel ? (
+          <Panel key={`${sel.sid}|${sel.field}|${rev}`} sel={sel} onSaved={onSaved} />
+        ) : (
+          <aside className="panel card">
+            <div className="viewer placeholder muted">
+              <span>לחצי על שדה בטבלה כדי לראות את הטופס המקורי</span>
+            </div>
+          </aside>
+        )}
       </div>
       {prop && (
         <PropagationBar
