@@ -31,7 +31,9 @@ const SCREENS: Record<string, React.ComponentType> = {
 export function App() {
   const [route, go] = useRoute();
   const [overview, setOverview] = useState<Overview | null>(null);
-  const [batchId, setBatch] = useState<string | null>(null);
+  const [batchId, setBatch] = useState<string | null>(() => {
+    try { return sessionStorage.getItem("vera_batch") ?? null; } catch { return null; }
+  });
   const [offline, setOffline] = useState(false);
   const screen = SCREENS[route[0]] ? route[0] : "home";
 
@@ -45,7 +47,7 @@ export function App() {
       .then((o) => {
         setOverview(o);
         setOffline(false);
-        setBatch((cur) => cur ?? o.latest_batch_id);
+        // Don't auto-select on fresh load — only restore what this session set.
       })
       .catch(() => setOffline(true));
   }, []);
@@ -61,9 +63,14 @@ export function App() {
     if (batchId) refreshOverview();
   }, [batchId, refreshOverview]);
 
+  const setBatchId = useCallback((id: string) => {
+    try { sessionStorage.setItem("vera_batch", id); } catch {}
+    setBatch(id);
+  }, []);
+
   const Screen = SCREENS[screen];
   return (
-    <AppCtx.Provider value={{ batchId, setBatchId: setBatch, overview, refreshOverview, go }}>
+  <AppCtx.Provider value={{ batchId, setBatchId, overview, refreshOverview, go }}>
       <ToastProvider>
       <UploadDoneProvider>
         <div className="shell">
