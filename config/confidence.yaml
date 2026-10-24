@@ -58,6 +58,13 @@ check_overrides_doubt: [id_number]
 # was unsure, and orange until confirmed. Matched ignoring spaces/punctuation.
 receipt_places: ["התקבל", "חותמת", "stamp", "ליד מרכזי"]
 
+# Words every commitment form prints somewhere (D-026), besides the senders'
+# names: a page the readers got nothing from, with no barcode and none of
+# these, is not a form and stays out of the table. Spaces/punctuation ignored.
+form_words: ["התחייבות", "מרכזי", "ת.ז", "תעודת זהות", "מ.ז", "בדיקה", "בדיקות",
+  "מעבדה", "דגימה", "נגיפים", "קופת חולים", "קופ\"ח", "בית חולים", "בית החולים",
+  "מרכז רפואי", "המרכז הרפואי", "הפניה", "חולה", "מבוטח", "אשפוז"]
+
 anchor_bonus: 0.3      # the right label next to the value
 illegible_penalty: 0.5 # the reader itself said it can't read it
 decoy_penalty: 1.0     # next to a decoy label (spec 3.4)

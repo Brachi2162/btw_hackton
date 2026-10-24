@@ -31,6 +31,7 @@ from vera.normalize import (
     norm_name,
 )
 from vera.pipeline.assemble import attach_continuations
+from vera.pipeline.formcheck import form_words, looks_like_form
 from vera.pipeline.decide import FIELDS, MULTI, DecisionConfig, decide_page
 from vera.pipeline.decide import merge_reads
 from vera.pipeline.gvision import VisionOcr
@@ -576,6 +577,21 @@ class BatchService:
                     ocr=lines,
                     page_size=size,
                 )
+            if not any(fr.values for fr in sub.fields.values()) and not (
+                await asyncio.to_thread(
+                    looks_like_form,
+                    image,
+                    prep["barcodes"],
+                    form_words(self.s.config_dir),
+                )
+            ):
+                # Not a commitment form (D-026): out of the table, said at intake.
+                quality["warnings"] = ["not_form"]  # its scan quality is moot
+                self._set_page(page_id, quality=quality, status="done")
+                self.events.publish(
+                    batch_id, "warning", {"page_id": page_id, "error": "not_form"}
+                )
+                return
             self._save_submission(sub, position=self._position(doc_id, page_no))
             self._set_page(page_id, status="done")
             self.events.publish(

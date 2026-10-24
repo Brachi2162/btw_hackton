@@ -236,7 +236,9 @@ def seed(bs, weeks: int = 4, seed_value: int = 7, today: date | None = None) -> 
     days = [
         today - timedelta(days=i)
         for i in range(weeks * 7 - 1, -1, -1)
-        if (today - timedelta(days=i)).weekday() not in (4, 5)  # Fri, Sat
+        # No past Fridays/Saturdays; today always, so a demo on a weekend (and
+        # the tests run then) still has a morning batch to review.
+        if i == 0 or (today - timedelta(days=i)).weekday() not in (4, 5)
     ]
     central = 600000 + rng.randint(0, 9000)
     totals = {"batches": 0, "forms": 0, "tubes": 0}

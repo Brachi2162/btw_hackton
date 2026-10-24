@@ -573,3 +573,19 @@ def test_a_model_out_of_quota_is_skipped_on_the_next_questions(demo):
     assert c.post("/api/assistant/chat", json=ask).json()["mode"] == "model"
     assert c.post("/api/assistant/chat", json=ask).json()["mode"] == "model"
     assert len(gemini.calls) == 1  # the second question went straight to Claude
+
+
+def test_offline_assistant_keeps_to_the_work_and_finds_a_form_by_number(demo):
+    c, _, _, _ = demo
+
+    def ask(q):
+        return c.post(
+            "/api/assistant/chat", json={"messages": [{"role": "user", "content": q}]}
+        ).json()
+
+    off = ask("מה מזג האוויר מחר?")
+    assert off["mode"] == "offline" and off["tools_used"] == []
+    assert "רק בעבודה ב-VERA" in off["reply"]
+    assert ask("מה מחכה לי עכשיו?")["tools_used"] == ["work_overview"]
+    found = ask("תמצאי את הטופס 99887766")
+    assert found["tools_used"] == ["find_form"] and "99887766" in found["reply"]
