@@ -167,16 +167,16 @@ SUGGESTIONS = [
     "איך היה השבוע?",
 ]
 MAX_ROUNDS = 6
-# Without a model: questions containing these are clearly NOT about the lab's work.
-OFFTOPIC_WORDS = (
-    "מזג אוויר", "מתכון", "בישול", "חדשות", "ספורט", "פוליטיק",
-    "שיר", "בדיחה", "סרט", "ספר", "כלכלה",
-)  # fmt: skip
-# kept for backwards-compat (tests may import it)
+# "How are you" phrases get a personal reply, not the time greeting.
+HOWRU_PATTERNS = ("מה שלומך", "מה נשמע", "מה קורה אתך", "מה קורה איתך")
+# Offline: if ANY of these appear → work question → work_overview.
 WORK_WORDS = (
     "מחכה", "עכשיו", "בדיק", "טופס", "טפס", "אצו", "שדה", "שדות", "עבודה",
     "מצב", "סיכום", "יצוא", "ייצוא", "אקסל", "שולח", "התחייב", "מרכזי", "VERA",
+    "לעשות", "פתוח", "ממתין", "היום", "לבדוק",
 )  # fmt: skip
+# kept for import compat
+OFFTOPIC_WORDS = ()  # fmt: skip
 
 
 GEMINI_URL = (
@@ -499,8 +499,11 @@ class Assistant:
     def _offline(self, q: str) -> dict:
         """No API key: answer the common questions straight from the tools."""
         if any(p in q for p in GREETING_PATTERNS):
-            _, tod = _time_of_day()
-            text = f"היי! {tod}. במה אני יכולה לעזור לך היום?"
+            if any(p in q for p in HOWRU_PATTERNS):
+                text = "תודה שאת שואלת! הכל בסדר 😊 במה אני יכולה לעזור לך היום?"
+            else:
+                _, tod = _time_of_day()
+                text = f"היי! {tod}. במה אני יכולה לעזור לך היום?"
             used = []
         elif "מבחנ" in q:
             t = self.run_tool("tubes_status", {})
@@ -542,12 +545,7 @@ class Assistant:
                 else f"לא מצאתי טופס עם {number.group(0)}."
             )
             used = ["find_form"]
-        elif any(w in q for w in OFFTOPIC_WORDS):
-            return {
-                **self._reply(OFFTOPIC_REPLY, [], []),
-                "mode": "offline",
-            }
-        else:
+        elif any(w in q for w in WORK_WORDS):
             o = self.run_tool("work_overview", {})
             text = (
                 f"מחכים עכשיו {o['review_waiting']} שדות לבדיקה "
@@ -556,6 +554,11 @@ class Assistant:
                 f"{o['batches_not_exported']} אצוות עוד לא יוצאו."
             )
             used = ["work_overview"]
+        else:
+            return {
+                **self._reply(OFFTOPIC_REPLY, [], []),
+                "mode": "offline",
+            }
         return {**self._reply(text, [], used), "mode": "offline"}
 
     # --- letters ---
