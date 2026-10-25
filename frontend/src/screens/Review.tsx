@@ -321,7 +321,8 @@ function ViewerArea({
   onPick: (bbox: [number, number, number, number]) => void;
 }) {
   const crop = ev?.crop && ev.crop.page_id === page.id ? ev.crop : null;
-  const mode: View = view === "zoom" && !crop ? "page" : view;
+  // approx bbox → full page with dashed outline (zoom-in on an uncertain area is misleading)
+  const mode: View = view === "zoom" && (!crop || crop.approx) ? "page" : view;
   const note = !crop
     ? "אין מיקום לשדה הזה. אפשר לסמן אותו בעמוד."
     : crop.approx
@@ -330,7 +331,7 @@ function ViewerArea({
   return (
     <div className="viewer-area">
       <div className="view-tabs" role="tablist" aria-label="תצוגת הטופס">
-        <button role="tab" aria-selected={mode === "zoom"} className={mode === "zoom" ? "on" : ""} onClick={() => setView("zoom")} disabled={!crop}>
+        <button role="tab" aria-selected={mode === "zoom"} className={mode === "zoom" ? "on" : ""} onClick={() => setView("zoom")} disabled={!crop || crop.approx}>
           תקריב
         </button>
         <button role="tab" aria-selected={mode === "page"} className={mode === "page" ? "on" : ""} onClick={() => setView("page")}>
@@ -440,7 +441,7 @@ function Panel({ sel, onSaved }: { sel: Sel; onSaved: (p: Propagation | null) =>
           <input type="checkbox" checked={glow} onChange={(e) => setGlow(e.target.checked)} /> הילת ביטחון
         </label>
       </div>
-      {page?.image && sub ? (
+      {page && sub ? (
         <ViewerArea
           page={page}
           ev={ev && ev.submission_id === sel.sid && ev.field === sel.field ? ev : null}
